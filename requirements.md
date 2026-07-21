@@ -16,3 +16,5 @@ Features :
 1.5. Support Admin can add, update or delete supported emails for a tenant. Multiple email accounts are supported for each tenant.
 1.6. Support Admin can open a tenant page, and view, add, update, or delete the tenant data(Drivers, Merchants, Inventory, Routes, Vehicles, Gigs, Orders on a gig)
 1.7. Support Admin can view, create, update support tickets.
+1.8. Support Admin can mark tickets as resolved.
+1.9. Support admin can trigger issue ticker resolution feedback to customer. 
