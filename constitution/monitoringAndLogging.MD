@@ -22,6 +22,11 @@ Draft
 
 - Entity: **Event log** in Firebase Realtime Database ([databaseSchema.md](./databaseSchema.md))
 - Intended use: record system or domain events
+- High-value events from product flows:
+  - Gig: initiation, start, OTP handover, reach village, reach merchant, products delivered, products picked up
+  - Orders: place, cancel, receive goods
+  - Payments and dues changes
+  - Support: user edit/type change/delete/disable/enable; distributor association edits
 - Schema, retention, and query patterns: **TBD**
 
 ### Application / API logging

@@ -37,9 +37,14 @@ Draft
 
 ### Coverage priorities (from known domain)
 
-- Routes and Villages data integrity
-- Actor-related operations (Support, Distributor, Merchant, Driver, Buyer)
-- Event log writes
+- Distributor setup: inventory, drivers, villages, routes, catalog
+- Gig lifecycle: create/start, OTP handover, trip, village/merchant arrival, delivery and/or pickup ([Flows.md](./Flows.md) FLOW-03)
+- OTP negative paths: expired, 5 failed attempts, regenerate cooldown ([securityAndCompliance.md](./securityAndCompliance.md))
+- Merchant notifications for all gig events
+- Catalog → cart → order → cancel / receive goods
+- Dues views and merchant payment
+- Support user admin (type change, delete, disable/enable) and distributor associations
+- Event log writes for the above
 - Profitability reporting inputs ([financialSpec.md](./financialSpec.md))
 - Notification and payment happy paths / failures
 

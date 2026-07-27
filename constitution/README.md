@@ -39,3 +39,12 @@ Every constitution file uses this structure:
 | Draft | Captured notes; needs expansion |
 | In Progress | Sections being filled from product decisions |
 | Stable | Agreed baseline for implementation |
+
+## Current baseline (product context)
+
+Primary journeys are captured in [useCases.md](./useCases.md) and [Flows.md](./Flows.md):
+
+- Distributor setup → catalog → gig create/start with OTP assign
+- Driver OTP handover → trip → village → merchant → delivery and/or pickup
+- Merchant notifications, catalog/cart/order, dues, payment
+- Support user admin and distributor/driver/merchant oversight
