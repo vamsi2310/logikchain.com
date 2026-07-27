@@ -210,6 +210,29 @@ Aligns with users table + type + collection reference ([securityAndCompliance.md
 
 ---
 
+### FLOW-09 — Buyer signup / login / browse / order / pickup
+
+| Field | Content |
+|-------|---------|
+| Actors | Buyer, Merchant, Driver, Distributor |
+| Trigger | Buyer opens the mobile application |
+| Preconditions | Active gigs exist with published catalogs; villages are configured |
+| Related entities | Users, Buyer, Gig, Catalog, Order, Village, Merchant |
+| Use cases | UC-B01–UC-B06 |
+
+**Steps**
+
+1. **Signup / Login**: Buyer signs up on the mobile app. The system automatically registers them with the default role of `Buyer`. If logging in, the system auto-detects their role from the `Users` table and mounts the Buyer shell.
+2. **Choose Village**: Buyer selects their village from a searchable list of available villages. This village preference is saved to their profile.
+3. **Browse Live Gigs**: Buyer views active, live gigs that are currently in transit, showing the estimated time of arrival (ETA) to their selected village.
+4. **Browse Catalog & Place Order**: Buyer opens the product catalog associated with an active gig.
+   - **Constraint**: Orders can only be placed if the gig has *not yet reached* the buyer's selected village.
+   - Buyer adds items to their cart and places an order.
+5. **Fulfillment**: Driver delivers the ordered packages to the local merchant stop in the village (FLOW-03).
+6. **Pickup Package**: Once the gig reaches the village and packages are delivered to the merchant, the buyer is notified. Buyer visits the merchant and picks up their package. The package status is marked as picked up.
+
+---
+
 ## Open Items
 
 - [ ] OTP delivery channel (expiry/attempts policy set in securityAndCompliance)
@@ -217,7 +240,7 @@ Aligns with users table + type + collection reference ([securityAndCompliance.md
 - [ ] How mixed delivery+pickup gigs are sequenced and inventoried
 - [ ] Order cancel eligibility windows
 - [ ] How “reaching in n minutes” is computed (maps / GPS)
-- [ ] Whether ordering is only during an active village gig visit
+- [x] Whether ordering is only during an active village gig visit — **Resolved**: Buyer can place order only on catalogs of gigs that have not reached their village yet.
 - [ ] Map flows to REST / WebSocket events ([Specification.md](./Specification.md))
 
 ## Related Documents
@@ -228,3 +251,4 @@ Aligns with users table + type + collection reference ([securityAndCompliance.md
 - [thirdPartyIntegration.md](./thirdPartyIntegration.md)
 - [architectureOverview.md](./architectureOverview.md)
 - [financialSpec.md](./financialSpec.md)
+- [uiAndNavigation.md](./uiAndNavigation.md)

@@ -13,6 +13,7 @@ Governing specifications for the LogikChain platform. Each document follows a sh
 | [financialSpec.md](./financialSpec.md) | Profitability and financial reporting |
 | [securityAndCompliance.md](./securityAndCompliance.md) | Security controls and compliance |
 | [monitoringAndLogging.md](./monitoringAndLogging.md) | Observability, logs, and alerts |
+| [uiAndNavigation.md](./uiAndNavigation.md) | User interface guidelines, mobile layouts, and navigation |
 | [deploymentSpec.md](./deploymentSpec.md) | Environments and deployment |
 | [testingStrategy.md](./testingStrategy.md) | Test approach and quality gates |
 | [codingStandards.md](./codingStandards.md) | Coding conventions and quality rules |
@@ -47,4 +48,5 @@ Primary journeys are captured in [useCases.md](./useCases.md) and [Flows.md](./F
 - Distributor setup → catalog → gig create/start with OTP assign
 - Driver OTP handover → trip → village → merchant → delivery and/or pickup
 - Merchant notifications, catalog/cart/order, dues, payment
+- Buyer signup/login → choose village → browse active gigs with ETAs → place pre-arrival catalog orders → pickup package from merchant
 - Support user admin and distributor/driver/merchant oversight

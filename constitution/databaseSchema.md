@@ -40,13 +40,13 @@ Draft
 | Distributor | Top-level node; owns inventory, drivers, villages, routes, catalogs, gigs |
 | Merchant | Top-level node; cart, orders, dues per distributor |
 | Driver | Top-level node; assigned gigs, OTP handover |
-| Buyer | Top-level node |
+| Buyer | Top-level node; village preference, active orders, pickup history |
 | GeminiAI | Top-level node |
 | Inventory | Products managed by distributor |
 | Pamphlet / Catalog | Product catalog created by distributor |
 | Gig | Run created/started by distributor, executed by driver; stops may be **delivery**, **pickup**, or both |
-| Cart | Merchant cart |
-| Order | Merchant orders (place, cancel, history) |
+| Cart | Merchant or Buyer cart |
+| Order | Merchant or Buyer orders (place, cancel, history) |
 | Dues | Merchant total dues per distributor |
 | OTP | Gig handover verification |
 | Routes | See fields below |
@@ -57,9 +57,17 @@ Draft
 
 | Field / concern | Notes |
 |-----------------|-------|
-| user type | Support, Distributor, Merchant, Driver, Buyer (changeable by Support) |
-| collection reference | Points at corresponding role collection |
+| user type | Support, Distributor, Merchant, Driver, Buyer (Default: `Buyer` on signup, changeable by Support) |
+| collection reference | Points at corresponding role collection (e.g. `/Buyers/{uid}`) |
 | disabled / blocked | Support can disable (block) or enable (unblock) |
+
+### Buyer
+
+| Field | Type / notes |
+|-------|--------------|
+| selectedVillageId | Reference to selected Village |
+| orders | Map of order IDs placed by this buyer |
+| profile | Name, phone, email, registration date |
 
 ### Inventory
 
@@ -75,7 +83,7 @@ Draft
 | Field / concern | Notes |
 |-----------------|-------|
 | owner | Distributor |
-| contents | Product catalog / pamphlet for merchants to view |
+| contents | Product catalog / pamphlet for merchants and buyers to view |
 
 Exact item schema: **TBD**
 
@@ -90,8 +98,8 @@ Exact item schema: **TBD**
 | OTP | Used for driver handover |
 | stops | Per-merchant (or per-location) actions on the gig |
 | stop type | **delivery** and/or **pickup** (a gig may include either or both) |
-| packages / deliveries | Goods delivered to merchants |
-| packages / pickups | Goods collected from merchants |
+| packages / deliveries | Goods delivered to merchants / buyers |
+| packages / pickups | Goods collected from merchants / buyers |
 
 ### OTP (gig handover)
 
@@ -111,8 +119,8 @@ Exact item schema: **TBD**
 
 | Entity | Notes |
 |--------|-------|
-| Cart | Merchant adds catalog items |
-| Order | Placed by merchant; can be cancelled; past orders listed per distributor |
+| Cart | Merchant or Buyer adds catalog items |
+| Order | Placed by merchant or buyer; can be cancelled; past orders listed per distributor / gig |
 | Receive goods | After driver delivery |
 | Hand over pickup | After driver pickup |
 
@@ -192,3 +200,4 @@ Distributor
 - [securityAndCompliance.md](./securityAndCompliance.md)
 - [financialSpec.md](./financialSpec.md)
 - [monitoringAndLogging.md](./monitoringAndLogging.md)
+- [uiAndNavigation.md](./uiAndNavigation.md)

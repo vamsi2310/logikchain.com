@@ -70,6 +70,17 @@ Concrete paths **TBD**. Required resource areas from use cases / flows:
 | Dues | List distributors with total dues; dues detail |
 | Payments | Make payment |
 
+#### Buyer
+
+| Area | Operations (conceptual) |
+|------|-------------------------|
+| Auth | Signup (default Buyer role); login (auto-detect role) |
+| Villages | List available villages; select/save village preference |
+| Live Gigs | List active live gigs with ETAs to buyer's village |
+| Catalog | View product catalog of active gig |
+| Orders | Place order (only if gig has not reached village); cancel order; view order history |
+| Pickup | Confirm package pickup from merchant |
+
 #### Support
 
 | Area | Operations (conceptual) |
@@ -138,3 +149,4 @@ Concrete paths **TBD**. Required resource areas from use cases / flows:
 - [thirdPartyIntegration.md](./thirdPartyIntegration.md)
 - [Flows.md](./Flows.md)
 - [useCases.md](./useCases.md)
+- [uiAndNavigation.md](./uiAndNavigation.md)

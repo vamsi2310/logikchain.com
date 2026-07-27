@@ -7,7 +7,7 @@ Capture actor-driven use cases for LogikChain so product and engineering share a
 ## Scope
 
 - Actors identified in the data model
-- Use cases derived from [Flows.md](./Flows.md) (FLOW-01–FLOW-08)
+- Use cases derived from [Flows.md](./Flows.md) (FLOW-01–FLOW-09)
 - Cross-cutting cases (notifications, OTP handover, payments, dues)
 
 ## Status
@@ -24,7 +24,7 @@ Draft — aligned to documented flows; each use case follows the shared template
 | Distributor | Owns inventory, drivers, villages, routes; creates catalogs and gigs |
 | Merchant | Receives gig notifications; browses catalog; orders; pays; tracks dues |
 | Driver | Accepts gig handover via OTP; runs trip; delivers to and/or picks up from merchants |
-| Buyer | Present in data model; use cases TBD |
+| Buyer | Mobile-centric buyer: signup, login, choose village, browse active gigs, browse catalog, place order (pre-arrival), pickup package from merchant |
 
 ### Use case template
 
@@ -54,6 +54,7 @@ Every use case below uses this structure:
 | FLOW-06 Merchant dues and payment | UC-M06, UC-M07, UC-M09 |
 | FLOW-07 Support user administration | UC-S01–UC-S05 |
 | FLOW-08 Support entity oversight | UC-S06–UC-S11 |
+| FLOW-09 Buyer signup / order / pickup | UC-B01, UC-B02, UC-B03, UC-B04, UC-B05, UC-B06 |
 
 ---
 
@@ -553,25 +554,108 @@ Every use case below uses this structure:
 
 #### Buyer
 
-*(No use cases in current flows.)*
+##### UC-B01 — Buyer signup
+
+| Field | Content |
+|-------|---------|
+| ID | UC-B01 |
+| Name | Buyer signup |
+| Actor(s) | Buyer |
+| Goal | Register a new account on the mobile application |
+| Preconditions | None |
+| Main flow | 1. Open signup screen 2. Enter registration details (Name, Phone/Google credentials) 3. Submit form 4. System creates user record with default type `Buyer` |
+| Alternate / exception flows | Validation errors → correct and retry |
+| Related data | Users, Buyer |
+| Related APIs / integrations | FLOW-09; [databaseSchema.md](./databaseSchema.md) |
+
+##### UC-B02 — Buyer login and role auto-detect
+
+| Field | Content |
+|-------|---------|
+| ID | UC-B02 |
+| Name | Buyer login and role auto-detect |
+| Actor(s) | Buyer |
+| Goal | Log in and load the role-specific mobile interface |
+| Preconditions | User is registered and enabled |
+| Main flow | 1. Open login screen 2. Authenticate via Google or Phone 3. System validates credentials 4. System checks `user type` in `Users` table 5. System mounts the Buyer shell and navigation |
+| Alternate / exception flows | Disabled user → block access; Invalid credentials → error |
+| Related data | Users, Buyer |
+| Related APIs / integrations | FLOW-09; [securityAndCompliance.md](./securityAndCompliance.md) |
+
+##### UC-B03 — Choose village
+
+| Field | Content |
+|-------|---------|
+| ID | UC-B03 |
+| Name | Choose village |
+| Actor(s) | Buyer |
+| Goal | Select a village to filter gigs and catalogs |
+| Preconditions | Buyer is logged in |
+| Main flow | 1. Open village selection screen 2. Search or browse available villages 3. Select village 4. System saves village preference to Buyer profile |
+| Alternate / exception flows | No villages available → empty state |
+| Related data | Buyer, Villages |
+| Related APIs / integrations | FLOW-09; [uiAndNavigation.md](./uiAndNavigation.md) |
+
+##### UC-B04 — Browse active live gigs
+
+| Field | Content |
+|-------|---------|
+| ID | UC-B04 |
+| Name | Browse active live gigs |
+| Actor(s) | Buyer |
+| Goal | View in-transit gigs with ETAs to the selected village |
+| Preconditions | Buyer is logged in; village is selected (UC-B03) |
+| Main flow | 1. Open Home screen 2. View active gigs on route to selected village 3. View estimated time of arrival (ETA) for each gig |
+| Alternate / exception flows | No active gigs → empty state |
+| Related data | Buyer, Gig, Villages |
+| Related APIs / integrations | FLOW-09; [uiAndNavigation.md](./uiAndNavigation.md) |
+
+##### UC-B05 — Place order on catalog
+
+| Field | Content |
+|-------|---------|
+| ID | UC-B05 |
+| Name | Place order on catalog |
+| Actor(s) | Buyer |
+| Goal | Browse products and place an order before the gig reaches the village |
+| Preconditions | Buyer is logged in; village is selected; active gig catalog is published |
+| Main flow | 1. Open Catalog screen 2. Browse product pamphlet 3. Add items to cart 4. Place order 5. System verifies gig has *not yet reached* the village 6. Order is recorded and linked to the gig |
+| Alternate / exception flows | Gig already reached village → reject order placement; Empty cart → reject |
+| Related data | Buyer, Gig, Catalog, Cart, Order |
+| Related APIs / integrations | FLOW-09; [databaseSchema.md](./databaseSchema.md) |
+
+##### UC-B06 — Pickup package from merchant
+
+| Field | Content |
+|-------|---------|
+| ID | UC-B06 |
+| Name | Pickup package from merchant |
+| Actor(s) | Buyer; Merchant (fulfillment partner) |
+| Goal | Collect delivered packages from the local merchant |
+| Preconditions | Order is delivered to merchant (UC-R05) |
+| Main flow | 1. Buyer receives notification of package arrival 2. Buyer visits merchant 3. Merchant verifies buyer identity/order 4. Merchant hands over package 5. Package marked as picked up |
+| Alternate / exception flows | Package not found → dispute/support ticket |
+| Related data | Buyer, Order, Merchant |
+| Related APIs / integrations | FLOW-09; [uiAndNavigation.md](./uiAndNavigation.md) |
 
 ### Cross-cutting
 
 | Concern | Linked use cases | Flows |
 |---------|------------------|-------|
 | Distributor setup | UC-D01–UC-D04 | FLOW-01 |
-| Catalog | UC-D05, UC-M02 | FLOW-02, FLOW-05 |
+| Catalog | UC-D05, UC-M02, UC-B05 | FLOW-02, FLOW-05, FLOW-09 |
 | OTP gig handover | UC-D07, UC-R01 | FLOW-03 |
-| Gig trip + delivery/pickup | UC-R02–UC-R06, UC-M05, UC-M05b | FLOW-03 |
+| Gig trip + delivery/pickup | UC-R02–UC-R06, UC-M05, UC-M05b, UC-B06 | FLOW-03, FLOW-09 |
 | Merchant gig notifications | UC-M01 | FLOW-03, FLOW-04 |
-| Orders and cart | UC-M02–UC-M05, UC-M08 | FLOW-05 |
+| Orders and cart | UC-M02–UC-M05, UC-M08, UC-B05 | FLOW-05, FLOW-09 |
 | Dues and payments | UC-M06, UC-M07, UC-M09, UC-S11 | FLOW-06, FLOW-08 |
-| User admin / block | UC-S01–UC-S05 | FLOW-07 |
+| User admin / block | UC-S01–UC-S05, UC-B02 | FLOW-07, FLOW-09 |
 | Entity oversight | UC-S06–UC-S11 | FLOW-08 |
+| Buyer flows | UC-B01–UC-B06 | FLOW-09 |
 
 ## Open Items
 
-- [ ] Buyer use cases
+- [x] Buyer use cases — **Completed**: Added UC-B01 to UC-B06.
 - [ ] Complete Support distributor edit actions beyond village / merchant / driver
 - [ ] Order cancel rules and payment vs dues settlement rules
 - [ ] Notification channel per merchant event
@@ -586,3 +670,4 @@ Every use case below uses this structure:
 - [thirdPartyIntegration.md](./thirdPartyIntegration.md)
 - [financialSpec.md](./financialSpec.md)
 - [securityAndCompliance.md](./securityAndCompliance.md)
+- [uiAndNavigation.md](./uiAndNavigation.md)

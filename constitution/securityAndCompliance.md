@@ -23,7 +23,8 @@ Draft
 ### Authentication and authorization
 
 - Supported modes of authentication: **Google login**, **phone login**
-- When any new user is signed up, the **users** table gets a new entry; **user type** and corresponding **collection reference** are kept up to date in the users table
+- When any new user is signed up, the **users** table gets a new entry; **user type** defaults to `Buyer` and corresponding **collection reference** is set to `/Buyers/{uid}`. These are kept up to date in the users table.
+- Users cannot switch roles. The role is auto-detected upon authentication based on their `user type` in the `Users` table.
 - API token/session details: see [Specification.md](./Specification.md) (TBD)
 - Role-based access: Support, Distributor, Merchant, Driver, Buyer
 - Firebase security rules: **TBD**
@@ -143,3 +144,4 @@ Credential storage and rotation: **TBD** (see also [deploymentSpec.md](./deploym
 - [monitoringAndLogging.md](./monitoringAndLogging.md)
 - [useCases.md](./useCases.md)
 - [Flows.md](./Flows.md)
+- [uiAndNavigation.md](./uiAndNavigation.md)
