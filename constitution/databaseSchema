@@ -1,0 +1,18 @@
+Database : Firebase Realtime Database.
+
+tables : 
+Support, 
+Distributor,
+Merchant, 
+Driver, 
+Buyer,
+GeminiAI,
+
+  
+Routes[Name, Villages[], length, round trip time, average Revenue,  ],
+Villages[Name,location,],
+Event log
+
+
+  
+  
