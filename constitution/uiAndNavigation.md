@@ -1,11 +1,35 @@
 # UI and Navigation Specification
 
+## Table of contents
+- Registration Flow
+- Login Flow
+- OTPs are limited to
+
+### Registration Flow
+- Unauthorized users visits logikchain.com
+- selects Register on the Rural logistics Platform - Logikchain.com
+- registers as a certain user (Distributor, Merchant, Vehicled Partner,  Support Admin)
+- OTP Verified mobile number - These users can only register with mobile number.
+- gmail - verification
+
+
+### Login Flow
+- Unauthorized users visits logikchain.com
+- selects Logon to Rural logistics platform Logikchain.com
+- selects gmail
+
+### OTPs are limited to 
+- Mobile registration
+- Mobile number update
+- reset password
+- 
+
 ## Purpose
 
 Define the user interface guidelines, mobile-centric layout structures, and navigation flows for each user role in the LogikChain platform.
 
-## Scope
 
+## Scope
 - Mobile-centric design principles
 - Role auto-detection and shell mounting
 - Layouts, pages, navigation bar icons, and menu items for each user role:
