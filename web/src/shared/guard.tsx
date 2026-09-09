@@ -22,13 +22,23 @@ export function prefixFor(role: UserRole | null): string {
   return "";
 }
 
-function useAuthGate(allowSuspendedProfile: boolean) {
+function useAuthGate(allowSuspendedProfile: boolean, currentPrefix: string) {
   const { boot, user, profile } = useSession();
   const loc = useLocation();
   if (boot === "loading" || boot === "timeout") return <SplashScreen />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    if (currentPrefix !== "") {
+      window.location.replace("/login");
+      return null;
+    }
+    return <Navigate to="/login" replace />;
+  }
   if (profile?.status === "unauthorized" || profile?.status === "suspended") {
     if (allowSuspendedProfile && (loc.pathname === "/profile" || loc.pathname === "/unauthorized")) {
+      return null;
+    }
+    if (currentPrefix !== "") {
+      window.location.replace("/unauthorized");
       return null;
     }
     return <Navigate to="/unauthorized" replace />;
@@ -38,7 +48,17 @@ function useAuthGate(allowSuspendedProfile: boolean) {
 
 /** Shared account screens (profile, bell) — any approved role. */
 export function AccountGuard({ children }: { children: ReactNode }) {
-  const block = useAuthGate(true);
+  const loc = useLocation();
+  const prefix = loc.pathname.startsWith("/x")
+    ? "/x"
+    : loc.pathname.startsWith("/s")
+      ? "/s"
+      : loc.pathname.startsWith("/m")
+        ? "/m"
+        : loc.pathname.startsWith("/d")
+          ? "/d"
+          : "";
+  const block = useAuthGate(true, prefix);
   if (block) return block;
   return <>{children}</>;
 }
@@ -46,9 +66,14 @@ export function AccountGuard({ children }: { children: ReactNode }) {
 /** Role app screens — caller must match this entry's role. */
 export function Guard({ app, children }: { app: RoleApp; children: ReactNode }) {
   const { profile } = useSession();
-  const block = useAuthGate(false);
+  const appPrefix = prefixFor(APP_ROLE[app]);
+  const block = useAuthGate(false, appPrefix);
   if (block) return block;
   const role = profile?.role ?? "buyer";
-  if (role !== APP_ROLE[app]) return <Navigate to={roleHome(role)} replace />;
+  if (role !== APP_ROLE[app]) {
+    const dest = roleHome(role);
+    window.location.replace(dest);
+    return null;
+  }
   return <>{children}</>;
 }

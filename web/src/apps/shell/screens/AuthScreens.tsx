@@ -180,10 +180,15 @@ export function OtpScreen() {
   const [tries, setTries] = useState(0);
   const [cooldown, setCooldown] = useState(30);
   const [busy, setBusy] = useState(false);
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     const id = window.setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000);
     return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    inputsRef.current[0]?.focus();
   }, []);
 
   const code = digits.join("");
@@ -192,16 +197,74 @@ export function OtpScreen() {
     setBusy(true);
     try {
       await confirmOtp(code);
-      await registerToken();
+      try {
+        await registerToken();
+      } catch (tokErr) {
+        console.warn("Device token registration non-fatal error:", tokErr);
+      }
       nav("/", { replace: true });
-    } catch {
+    } catch (err: unknown) {
+      console.error("OTP verification failed:", err);
       setTries((n) => n + 1);
       setDigits(["", "", "", "", "", ""]);
-      push(t("wrongCode", { n: String(tries + 1) }));
+      inputsRef.current[0]?.focus();
+      const firebaseError = err as { code?: string; message?: string };
+      if (firebaseError?.code === "auth/invalid-verification-code") {
+        push(t("wrongCode", { n: String(tries + 1) }));
+      } else if (firebaseError?.code === "auth/code-expired") {
+        push("SMS code has expired. Please request a new one.");
+      } else {
+        push(firebaseError?.message ?? t("wrongCode", { n: String(tries + 1) }));
+      }
     } finally {
       setBusy(false);
     }
   }
+
+  const handleChange = (index: number, value: string) => {
+    const cleaned = value.replace(/\D/g, "");
+    if (!cleaned) {
+      const next = [...digits];
+      next[index] = "";
+      setDigits(next);
+      return;
+    }
+    if (cleaned.length > 1) {
+      const next = [...digits];
+      for (let j = 0; j < cleaned.length && index + j < 6; j++) {
+        next[index + j] = cleaned[j]!;
+      }
+      setDigits(next);
+      const targetIndex = Math.min(index + cleaned.length, 5);
+      inputsRef.current[targetIndex]?.focus();
+      return;
+    }
+    const next = [...digits];
+    next[index] = cleaned.slice(-1);
+    setDigits(next);
+    if (index < 5) {
+      inputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    const next = [...digits];
+    for (let j = 0; j < pasted.length; j++) {
+      next[j] = pasted[j]!;
+    }
+    setDigits(next);
+    const targetIndex = Math.min(pasted.length, 5);
+    inputsRef.current[targetIndex]?.focus();
+  };
 
   return (
     <AuthChrome>
@@ -209,18 +272,18 @@ export function OtpScreen() {
         ← {t("verifyPhone")}
       </button>
       <p>{t("codeSent", { phone: formatPhone(pendingPhone.slice(0, 3), pendingPhone.slice(3)) })}</p>
-      <div className="otp-row">
+      <div className="otp-row" onPaste={handlePaste}>
         {digits.map((d, i) => (
           <input
             key={i}
+            ref={(el) => {
+              inputsRef.current[i] = el;
+            }}
             inputMode="numeric"
             maxLength={1}
             value={d}
-            onChange={(e) => {
-              const next = [...digits];
-              next[i] = e.target.value.replace(/\D/g, "").slice(-1);
-              setDigits(next);
-            }}
+            onChange={(e) => handleChange(i, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
           />
         ))}
       </div>

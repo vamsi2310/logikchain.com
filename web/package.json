@@ -17,7 +17,9 @@
     "lint": "tsc -b --pretty false"
   },
   "dependencies": {
-    "firebase": "^11.4.0",
+    "caniuse-lite": "^1.0.30001810",
+    "es-abstract": "^1.24.2",
+    "firebase": "^11.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.3.0"

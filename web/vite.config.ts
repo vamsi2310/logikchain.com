@@ -135,5 +135,12 @@ export default defineConfig({
     port: 5173,
     host: true,
     fs: { allow: [root] },
+    proxy: {
+      "/v1": {
+        target: "https://asia-south1-logikchaindevelopment.cloudfunctions.net/api",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });

@@ -16,11 +16,15 @@ export function SplashScreen() {
     if (boot === "loading") return;
     if (boot === "timeout") return;
     if (!user) {
-      nav("/login", { replace: true });
+      if (window.location.pathname !== "/login") {
+        window.location.replace("/login");
+      }
       return;
     }
     if (profile?.status === "unauthorized" || profile?.status === "suspended") {
-      nav("/unauthorized", { replace: true });
+      if (window.location.pathname !== "/unauthorized") {
+        window.location.replace("/unauthorized");
+      }
       return;
     }
     if (roleChanged) {
@@ -31,7 +35,10 @@ export function SplashScreen() {
       nav("/setup", { replace: true });
       return;
     }
-    nav(roleHome(profile?.role ?? "buyer"), { replace: true });
+    const dest = roleHome(profile?.role ?? "buyer");
+    if (window.location.pathname !== dest) {
+      window.location.replace(dest);
+    }
   }, [boot, user, profile, roleChanged, nav]);
 
   return (

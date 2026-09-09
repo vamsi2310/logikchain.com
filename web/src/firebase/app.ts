@@ -39,9 +39,13 @@ export function getFirebaseAuth(): Auth {
 
 export function getDb(): Firestore {
   if (db) return db;
-  db = initializeFirestore(getFirebaseApp(), {
+  const settings = {
     localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
-  });
+  };
+  const dbId = env.firebase.databaseId;
+  db = dbId
+    ? initializeFirestore(getFirebaseApp(), settings, dbId)
+    : initializeFirestore(getFirebaseApp(), settings);
   if (env.useEmulators) {
     const [host, port] = env.emulators.firestore.split(":");
     connectFirestoreEmulator(db, host ?? "127.0.0.1", Number(port ?? 8080));

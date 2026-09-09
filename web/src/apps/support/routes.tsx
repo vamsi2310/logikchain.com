@@ -11,6 +11,7 @@ import {
   CountriesScreen,
   StatesScreen,
   DistrictsScreen,
+  VillagesScreen,
   HubsScreen,
   HubDetailScreen,
   PlansScreen,
@@ -30,10 +31,32 @@ import {
   SupportSubscriptionsScreen,
   SupportSimple,
 } from "./screens/SupportScreens";
+import {
+  ProfileScreen,
+  EditProfileScreen,
+  SecurityScreen,
+  PermissionsScreen,
+  VoiceScreen,
+  NotificationsScreen,
+  NotificationSettingsScreen,
+} from "@/apps/shell/screens/AccountScreens";
+import { LegalScreen } from "@/apps/shell/screens/AuthScreens";
 
 export function SupportRoutes() {
   return (
     <Routes>
+      <Route path="/x/profile" element={<Guard app="support"><ProfileScreen /></Guard>} />
+      <Route path="/x/profile/edit" element={<Guard app="support"><EditProfileScreen /></Guard>} />
+      <Route path="/x/profile/security" element={<Guard app="support"><SecurityScreen /></Guard>} />
+      <Route path="/x/profile/permissions" element={<Guard app="support"><PermissionsScreen /></Guard>} />
+      <Route path="/x/profile/voice" element={<Guard app="support"><VoiceScreen /></Guard>} />
+      <Route path="/x/notifications" element={<Guard app="support"><NotificationsScreen /></Guard>} />
+      <Route path="/x/notifications/settings" element={<Guard app="support"><NotificationSettingsScreen /></Guard>} />
+      <Route path="/x/legal/:doc" element={<LegalScreen />} />
+      <Route path="/profile" element={<Navigate to="/x/profile" replace />} />
+      <Route path="/profile/*" element={<Navigate to="/x/profile" replace />} />
+      <Route path="/notifications" element={<Navigate to="/x/notifications" replace />} />
+      <Route path="/legal/:doc" element={<LegalScreen />} />
       <Route path="/x/ops" element={<Guard app="support"><SupportOpsScreen /></Guard>} />
       <Route path="/x/users" element={<Guard app="support"><SupportUsersScreen /></Guard>} />
       <Route path="/x/users/new-supplier" element={<Guard app="support"><CreateSupplierScreen /></Guard>} />
@@ -45,6 +68,7 @@ export function SupportRoutes() {
       <Route path="/x/config/countries" element={<Guard app="support"><CountriesScreen /></Guard>} />
       <Route path="/x/config/states" element={<Guard app="support"><StatesScreen /></Guard>} />
       <Route path="/x/config/districts" element={<Guard app="support"><DistrictsScreen /></Guard>} />
+      <Route path="/x/config/villages" element={<Guard app="support"><VillagesScreen /></Guard>} />
       <Route path="/x/config/hubs" element={<Guard app="support"><HubsScreen /></Guard>} />
       <Route path="/x/config/hubs/:hubId" element={<Guard app="support"><HubDetailScreen /></Guard>} />
       <Route path="/x/config/plans" element={<Guard app="support"><PlansScreen /></Guard>} />

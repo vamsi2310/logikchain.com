@@ -73,6 +73,7 @@ export const env = {
     apiKey: read("REACT_APP_FIREBASE_API_KEY"),
     authDomain: read("REACT_APP_FIREBASE_AUTH_DOMAIN"),
     projectId: read("REACT_APP_FIREBASE_PROJECT_ID"),
+    databaseId: read("REACT_APP_FIREBASE_DATABASE_ID") || (alias === "dev" ? "default" : undefined),
     storageBucket: read("REACT_APP_FIREBASE_STORAGE_BUCKET"),
     messagingSenderId: read("REACT_APP_FIREBASE_MESSAGING_SENDER_ID"),
     appId: read("REACT_APP_FIREBASE_APP_ID"),

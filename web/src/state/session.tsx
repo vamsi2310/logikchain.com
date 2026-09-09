@@ -54,17 +54,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [roleChanged, setRoleChanged] = useState(false);
   const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
   const [pendingPhone, setPendingPhone] = useState("");
-  const cart = useCart();
+  const { hydrate: hydrateCart } = useCart();
 
   const refreshProfile = useCallback(async () => {
     const u = getFirebaseAuth().currentUser;
     if (!u) {
       setProfile(null);
+      setBoot("ready");
       return null;
     }
-    const res = await getDocument<UserProfile>(Col.UserProfiles, u.uid);
-    setProfile(res.data);
-    return res.data;
+    try {
+      await u.getIdTokenResult(true);
+      const res = await getDocument<UserProfile>(Col.UserProfiles, u.uid);
+      setProfile(res.data);
+      setBoot("ready");
+      return res.data;
+    } catch (err) {
+      console.error("[Session] Error in refreshProfile:", err);
+      setBoot("ready");
+      return null;
+    }
   }, []);
 
   const forceRefreshClaims = useCallback(async () => {
@@ -78,17 +87,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setUser(u);
       try {
         if (u) {
-          await u.getIdTokenResult(true);
+          try {
+            await u.getIdTokenResult(true);
+          } catch (tokErr) {
+            console.warn("[Session] Token refresh warning:", tokErr);
+          }
           const res = await getDocument<UserProfile>(Col.UserProfiles, u.uid);
           const p = res.data;
           setProfile(p);
-          cart.hydrate(u.uid);
+          hydrateCart(u.uid);
           const last = localStorage.getItem(ROLE_KEY);
           if (p?.role && last && last !== p.role) setRoleChanged(true);
           if (p?.role) localStorage.setItem(ROLE_KEY, p.role);
         } else {
           setProfile(null);
         }
+      } catch (err) {
+        console.error("[Session] Failed to load profile:", err);
       } finally {
         setBoot("ready");
         window.clearTimeout(t);
@@ -98,7 +113,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       unsub();
       window.clearTimeout(t);
     };
-  }, [cart]);
+  }, [hydrateCart]);
 
   const sendOtp = useCallback(async (e164: string, recaptcha: RecaptchaVerifier) => {
     const result = await signInWithPhoneNumber(getFirebaseAuth(), e164, recaptcha);

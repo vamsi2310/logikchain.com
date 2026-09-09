@@ -20,16 +20,26 @@ export function ProfileScreen() {
   const nav = useNavigate();
   const { profile, logout } = useSession();
   const [out, setOut] = useState(false);
-  const rows = [
-    { to: "/profile/edit", label: t("editProfile") },
-    { to: "/profile/security", label: t("security") },
-    { to: "/profile/permissions", label: t("permissions") },
-    { to: "/profile/voice", label: t("voice") },
-    { to: "/sync", label: t("sync") },
-    { to: "/install", label: t("install") },
-    { to: "/help", label: t("help") },
-    { to: "/legal/terms", label: t("legal") },
-  ];
+  const isSupport = profile?.role === "support";
+  const prefix = isSupport ? "/x" : "";
+  const rows = isSupport
+    ? [
+        { to: `${prefix}/profile/edit`, label: t("editProfile") },
+        { to: `${prefix}/profile/security`, label: t("security") },
+        { to: `${prefix}/profile/permissions`, label: t("permissions") },
+        { to: `${prefix}/profile/voice`, label: t("voice") },
+        { to: `${prefix}/legal/terms`, label: t("legal") },
+      ]
+    : [
+        { to: "/profile/edit", label: t("editProfile") },
+        { to: "/profile/security", label: t("security") },
+        { to: "/profile/permissions", label: t("permissions") },
+        { to: "/profile/voice", label: t("voice") },
+        { to: "/sync", label: t("sync") },
+        { to: "/install", label: t("install") },
+        { to: "/help", label: t("help") },
+        { to: "/legal/terms", label: t("legal") },
+      ];
   return (
     <Chrome title={t("profile")} screenId="SHR-07" back>
       <Card>
@@ -96,7 +106,7 @@ export function EditProfileScreen() {
 export function NotificationsScreen() {
   const { t } = useI18n();
   const nav = useNavigate();
-  const { user } = useSession();
+  const { user, profile } = useSession();
   const { rows, loading, reload } = useQuery<Notification>(
     user ? Col.Notifications : null,
     user ? [where("userId", "==", user.uid), orderBy("createdAt", "desc")] : [],
@@ -104,7 +114,11 @@ export function NotificationsScreen() {
   );
   return (
     <Chrome title={t("notifications")} screenId="SHR-08" back>
-      <button type="button" className="btn btn-tertiary" onClick={() => nav("/notifications/settings")}>
+      <button
+        type="button"
+        className="btn btn-tertiary"
+        onClick={() => nav(profile?.role === "support" ? "/x/notifications/settings" : "/notifications/settings")}
+      >
         {t("notificationSettings")}
       </button>
       {loading ? <Skeletons /> : null}

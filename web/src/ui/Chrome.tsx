@@ -1,11 +1,12 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { env } from "@/config/env";
 import { useI18n } from "@/state/locale";
 import { useOnline } from "@/state/offline";
-import { useSession, roleHome } from "@/state/session";
+import { useSession } from "@/state/session";
 import { useCart } from "@/state/cart";
-import { Banner } from "./primitives";
+import { Banner, Button } from "./primitives";
+import { Sheet } from "./overlays";
 import type { UserRole } from "@/types/domain";
 
 const TABS: Record<UserRole, Array<{ to: string; key: string; icon: string }>> = {
@@ -66,9 +67,10 @@ export function Chrome({
 }) {
   const { t } = useI18n();
   const { online } = useOnline();
-  const { profile } = useSession();
+  const { profile, logout } = useSession();
   const { count } = useCart();
   const nav = useNavigate();
+  const [signoutOpen, setSignoutOpen] = useState(false);
   const role = profile?.role ?? "buyer";
   const tabs = TABS[role];
   const audioOn = profile?.permissions?.audio !== false;
@@ -94,16 +96,26 @@ export function Chrome({
             🔊
           </button>
         ) : null}
-        <button className="icon-btn" type="button" aria-label={t("bell")} onClick={() => nav("/notifications")}>
+        <button
+          className="icon-btn"
+          type="button"
+          aria-label={t("bell")}
+          onClick={() => nav(supportXl ? "/x/notifications" : "/notifications")}
+        >
           🔔
           {unread > 0 ? <span className="badge">{unread > 99 ? "99+" : unread > 9 ? "9+" : unread}</span> : null}
         </button>
-        <button className="icon-btn" type="button" aria-label={t("avatar")} onClick={() => nav("/profile")}>
+        <button
+          className="icon-btn"
+          type="button"
+          aria-label={t("avatar")}
+          onClick={() => nav(supportXl ? "/x/profile" : "/profile")}
+        >
           👤
         </button>
       </header>
     ),
-    [audioOn, back, nav, speakText, t, title, unread],
+    [audioOn, back, nav, speakText, supportXl, t, title, unread],
   );
 
   const navBar = (
@@ -134,7 +146,7 @@ export function Chrome({
           +
         </button>
       ) : null}
-      {!noNav && !supportXl ? navBar : null}
+      {!noNav ? navBar : null}
     </>
   );
 
@@ -142,17 +154,62 @@ export function Chrome({
     return (
       <div className="support-shell app-shell">
         <aside className="rail">
-          <strong>{t("appName")}</strong>
-          {tabs.map((tab) => (
-            <NavLink key={tab.to} to={tab.to} style={{ padding: "12px 0", color: "inherit" }}>
-              {tab.icon} {t(tab.key)}
+          <div className="rail-brand">{t("appName")}</div>
+          <nav className="rail-nav" aria-label="Support Navigation">
+            {tabs.map((tab) => (
+              <NavLink
+                key={tab.to}
+                to={tab.to}
+                className={({ isActive }) => `rail-item ${isActive ? "active" : ""}`}
+              >
+                <span>{tab.icon}</span>
+                <span>{t(tab.key)}</span>
+              </NavLink>
+            ))}
+            <NavLink
+              to="/x/profile"
+              className={({ isActive }) => `rail-item ${isActive ? "active" : ""}`}
+            >
+              <span>👤</span>
+              <span>{t("profile")}</span>
             </NavLink>
-          ))}
-          <button type="button" className="btn btn-tertiary" onClick={() => nav(roleHome("support"))}>
-            {t("ops")}
-          </button>
+          </nav>
+          <div className="rail-footer">
+            <NavLink
+              to="/x/profile"
+              className={({ isActive }) => `rail-user-card ${isActive ? "active" : ""}`}
+              title={t("profile")}
+            >
+              <div className="rail-user-avatar">👤</div>
+              <div className="rail-user-info">
+                <div className="rail-user-name">{profile?.name || "Support"}</div>
+                <div className="rail-user-role">{profile?.email || profile?.phone || profile?.role || "support"}</div>
+              </div>
+            </NavLink>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              style={{ width: "100%", justifyContent: "center" }}
+              onClick={() => setSignoutOpen(true)}
+            >
+              🚪 {t("logout")}
+            </button>
+          </div>
         </aside>
         <div className="app-shell">{body}</div>
+        {signoutOpen ? (
+          <Sheet
+            title={t("logout")}
+            onClose={() => setSignoutOpen(false)}
+            footer={
+              <Button variant="danger" onClick={() => void logout()}>
+                {t("confirm")}
+              </Button>
+            }
+          >
+            <p>{t("logoutConfirm")}</p>
+          </Sheet>
+        ) : null}
       </div>
     );
   }
