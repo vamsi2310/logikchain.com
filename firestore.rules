@@ -79,7 +79,7 @@ service cloud.firestore {
     }
     match /Hubs/{id} {
       allow read: if signedIn();
-      allow write: if false;
+      allow write: if isSupport();
     }
     match /Villages/{id} {
       allow read: if signedIn();
