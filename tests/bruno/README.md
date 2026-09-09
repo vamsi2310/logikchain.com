@@ -12,7 +12,7 @@ npx bru run --env emulator
 npx bru run 03-orders --env emulator
 npx bru run 03-orders/placeOrder --env emulator
 npx bru run --env emulator --tags smoke
-npx bru run --env emulator --exclude-tags webhook --exclude-tags manual
+npx bru run --env emulator --exclude-tags webhook,manual
 ```
 
 Or open this folder in Bruno Desktop and run a request, a folder, or the collection.

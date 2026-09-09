@@ -3,7 +3,7 @@
   "private": true,
   "description": "Bruno /v1 collection. Law: constitution/Logikchain_API_Testing.md",
   "scripts": {
-    "test": "bru run --env emulator --exclude-tags webhook --exclude-tags manual",
+    "test": "bru run --env emulator --exclude-tags webhook,manual",
     "test:all": "bru run --env emulator",
     "test:smoke": "bru run --env emulator --tags smoke",
     "test:identity": "bru run 01-identity --env emulator",

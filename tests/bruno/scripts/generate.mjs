@@ -24,7 +24,10 @@ function bruPath(urlPath) {
 }
 
 function jsonBlock(value) {
-  return JSON.stringify(value, null, 2);
+  return JSON.stringify(value, null, 2)
+    .split("\n")
+    .map((l) => `  ${l}`)
+    .join("\n");
 }
 
 function tagsOf(op) {
@@ -59,13 +62,12 @@ function setupScript(op) {
   if (tokenVar && authEmulator && email && password && !bru.getVar(tokenVar)) {
     try {
       const key = bru.getEnvVar("firebaseWebApiKey") || "fake-api-key";
-      const resp = await fetch(authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, returnSecureToken: true })
+      const resp = await axios.post(authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key, {
+        email,
+        password,
+        returnSecureToken: true
       });
-      const json = await resp.json();
-      if (json.idToken) bru.setVar(tokenVar, json.idToken);
+      if (resp.data && resp.data.idToken) bru.setVar(tokenVar, resp.data.idToken);
     } catch (err) {
       console.warn("setup auth: " + (err && err.message ? err.message : err));
     }

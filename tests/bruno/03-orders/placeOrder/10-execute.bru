@@ -21,18 +21,18 @@ headers {
 }
 
 body:json {
-{
-  "gigId": "{{gigId}}",
-  "village": "{{villageId}}",
-  "merchantId": "{{merchantId}}",
-  "items": [
-    {
-      "productId": "{{productId}}",
-      "quantity": 1
-    }
-  ],
-  "paymentMode": "cash_on_pickup"
-}
+  {
+    "gigId": "{{gigId}}",
+    "village": "{{villageId}}",
+    "merchantId": "{{merchantId}}",
+    "items": [
+      {
+        "productId": "{{productId}}",
+        "quantity": 1
+      }
+    ],
+    "paymentMode": "cash_on_pickup"
+  }
 }
 
 assert {
@@ -54,13 +54,12 @@ script:pre-request {
   if (tokenVar && authEmulator && email && password && !bru.getVar(tokenVar)) {
     try {
       const key = bru.getEnvVar("firebaseWebApiKey") || "fake-api-key";
-      const resp = await fetch(authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, returnSecureToken: true })
+      const resp = await axios.post(authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key, {
+        email,
+        password,
+        returnSecureToken: true
       });
-      const json = await resp.json();
-      if (json.idToken) bru.setVar(tokenVar, json.idToken);
+      if (resp.data && resp.data.idToken) bru.setVar(tokenVar, resp.data.idToken);
     } catch (err) {
       console.warn("setup auth: " + (err && err.message ? err.message : err));
     }
