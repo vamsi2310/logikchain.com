@@ -7,7 +7,7 @@ import type { CallContext } from "../auth/caller";
 import { handlers } from "../handlers/registry";
 import { httpStatusForHttpsError, isHttpsError } from "../errors";
 import { fail } from "../errors";
-import { httpsOptions, isEmulator, paymentSecrets, mapsSecrets, smsSecrets } from "../runtime";
+import { httpsOptions, shouldEnforceAppCheck, paymentSecrets, mapsSecrets, smsSecrets } from "../runtime";
 import { matchRoute } from "./routes";
 
 const WEBHOOK_OPS = new Set(["handleGatewayWebhook", "recordPayoutSettlement"]);
@@ -46,7 +46,7 @@ export function callable(operationId: string) {
   return onCall(
     {
       ...httpsOptions({ isolation: ISOLATION.has(operationId), secrets: secretsFor(operationId) }),
-      enforceAppCheck: !WEBHOOK_OPS.has(operationId) && !isEmulator(),
+      enforceAppCheck: !WEBHOOK_OPS.has(operationId) && shouldEnforceAppCheck(),
     },
     async (req) => {
       const ctx = contextFromCallable(req, operationId);
@@ -65,9 +65,8 @@ function applyCors(res: import("express").Response): void {
 }
 
 export async function dispatchHttp(req: Request, res: import("express").Response): Promise<void> {
-  if (isEmulator()) applyCors(res);
+  applyCors(res);
   if (req.method === "OPTIONS") {
-    applyCors(res);
     res.status(204).send("");
     return;
   }
@@ -85,7 +84,7 @@ export async function dispatchHttp(req: Request, res: import("express").Response
   }
   try {
     const app = appCheckFromRequest(req);
-    if (!WEBHOOK_OPS.has(operationId) && !isEmulator() && !app.present && !PUBLIC_OPS.has(operationId)) {
+    if (!WEBHOOK_OPS.has(operationId) && shouldEnforceAppCheck() && !app.present && !PUBLIC_OPS.has(operationId)) {
       fail("UNAUTHENTICATED", "App Check token missing or invalid");
     }
     let uid: string | null = null;

@@ -8,8 +8,9 @@ if (!getApps().length) {
   initializeApp();
 }
 
+const databaseId = process.env.FIRESTORE_DATABASE_ID || "default";
 export const auth = getAuth();
-export const db = getFirestore();
+export const db = getFirestore(databaseId);
 export const messaging = getMessaging();
 export const storage = getStorage();
 export { FieldValue };

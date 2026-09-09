@@ -7,6 +7,7 @@ import {
   CUSTODY_CARVE_OUT_OPS,
   VEHICLE_OFFICIAL_CLIENT_OPS,
   isEmulator,
+  shouldEnforceAppCheck,
 } from "../runtime";
 
 export type UserRole = "buyer" | "merchant" | "vehicle" | "supplier" | "support";
@@ -116,7 +117,7 @@ export function contextFromCallable(
   req: CallableRequest<Record<string, unknown>>,
   operationId: string
 ): CallContext {
-  if (!isEmulator() && !req.app) {
+  if (shouldEnforceAppCheck() && !req.app) {
     fail("UNAUTHENTICATED", "App Check token missing or invalid");
   }
   const appId = req.app?.appId ?? null;

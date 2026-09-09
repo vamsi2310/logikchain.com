@@ -51,10 +51,18 @@ export function gcpProject(): string {
 export function aliasFromProject(): "emulator" | "dev" | "test" | "prod" {
   if (isEmulator()) return "emulator";
   const project = process.env.GCLOUD_PROJECT || "";
-  if (project.endsWith("-dev")) return "dev";
-  if (project.endsWith("-test")) return "test";
-  if (project.endsWith("-prod")) return "prod";
+  if (project.endsWith("-dev") || project.includes("dev") || project.includes("development")) return "dev";
+  if (project.endsWith("-test") || project.includes("test")) return "test";
+  if (project.endsWith("-prod") || project.includes("prod")) return "prod";
   return "dev";
+}
+
+export function shouldEnforceAppCheck(): boolean {
+  if (isEmulator()) return false;
+  if (process.env.ENFORCE_APP_CHECK === "false") return false;
+  const alias = aliasFromProject();
+  if (alias === "dev" && process.env.ENFORCE_APP_CHECK !== "true") return false;
+  return true;
 }
 
 const isolationMemory = "1GiB";
