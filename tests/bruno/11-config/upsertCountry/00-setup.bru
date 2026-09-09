@@ -1,0 +1,74 @@
+meta {
+  name: upsertCountry setup
+  type: http
+  seq: 0
+  tags: [
+    config
+    upsertCountry
+  ]
+}
+
+get {
+  url: {{baseUrl}}/v1/config/catalog?types=countries
+  body: none
+  auth: none
+}
+
+headers {
+  X-Correlation-Id: {{correlationId}}
+}
+
+script:pre-request {
+  const operationId = "upsertCountry";
+  const role = "support";
+  if (!bru.getVar("runId")) {
+    bru.setVar("runId", Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8));
+  }
+  bru.setVar("idempotencyKey", "idem-" + operationId + "-" + bru.getVar("runId"));
+  bru.setVar("correlationId", operationId + ":" + bru.getVar("runId"));
+  const authEmulator = bru.getEnvVar("authEmulator");
+  const email = bru.getEnvVar("seedSupportEmail");
+  const password = bru.getEnvVar("seedPassword");
+  const tokenVar = "supportAccessToken";
+  if (tokenVar && authEmulator && email && password && !bru.getVar(tokenVar)) {
+    try {
+      const key = bru.getEnvVar("firebaseWebApiKey") || "fake-api-key";
+      const resp = await fetch(authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, returnSecureToken: true })
+      });
+      const json = await resp.json();
+      if (json.idToken) bru.setVar(tokenVar, json.idToken);
+    } catch (err) {
+      console.warn("setup auth: " + (err && err.message ? err.message : err));
+    }
+  }
+  if (tokenVar) {
+    bru.setVar("accessToken", bru.getVar(tokenVar) || bru.getEnvVar(tokenVar) || "");
+  }
+  const seedKeys = ["seedGigId","seedVillageId","seedRouteId","seedPamphletId","seedProductId","seedBuyerId","seedMerchantId","seedSupplierId","seedVehicleId","seedCountryId","seedPlanId","seedTariffId","seedSubscriptionId","seedStateId","seedDistrictId"];
+  for (const key of seedKeys) {
+    const envVal = bru.getEnvVar(key);
+    const short = key.replace(/^seed/, "");
+    const runtime = short.charAt(0).toLowerCase() + short.slice(1);
+    if (envVal && !bru.getVar(runtime)) bru.setVar(runtime, envVal);
+    if (envVal && !bru.getVar(key)) bru.setVar(key, envVal);
+  }
+  const pathBinds = {"countryId":"country_bruno_"};
+  for (const key of Object.keys(pathBinds)) {
+    bru.setVar(key, pathBinds[key] + bru.getVar("runId"));
+  }
+}
+
+assert {
+  res.status: in [200, 401, 403]
+}
+
+docs {
+  operationId: upsertCountry
+  HTTP: PUT /v1/config/countries/{countryId}
+  Role: support
+  Setup: mint/refresh the support ID token, copy seed fixture vars, mint idempotencyKey and correlationId.
+  Does not call upsertCountry.
+}

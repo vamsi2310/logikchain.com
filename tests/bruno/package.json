@@ -1,0 +1,28 @@
+{
+  "name": "logikchain-api-bruno",
+  "private": true,
+  "description": "Bruno /v1 collection. Law: constitution/Logikchain_API_Testing.md",
+  "scripts": {
+    "test": "bru run --env emulator --exclude-tags webhook --exclude-tags manual",
+    "test:all": "bru run --env emulator",
+    "test:smoke": "bru run --env emulator --tags smoke",
+    "test:identity": "bru run 01-identity --env emulator",
+    "test:gigs": "bru run 02-gigs --env emulator",
+    "test:orders": "bru run 03-orders --env emulator",
+    "test:merchant-orders": "bru run 04-merchant-orders --env emulator",
+    "test:credit": "bru run 05-credit --env emulator",
+    "test:payments": "bru run 06-payments --env emulator",
+    "test:payouts": "bru run 07-payouts --env emulator",
+    "test:cash": "bru run 08-cash --env emulator",
+    "test:reports": "bru run 09-reports --env emulator",
+    "test:subscriptions": "bru run 10-subscriptions --env emulator",
+    "test:config": "bru run 11-config --env emulator",
+    "test:tax": "bru run 12-tax --env emulator",
+    "test:reconciliation": "bru run 13-reconciliation --env emulator",
+    "test:ops": "bru run 14-ops --env emulator",
+    "generate": "node scripts/generate.mjs"
+  },
+  "devDependencies": {
+    "@usebruno/cli": "^2.13.2"
+  }
+}

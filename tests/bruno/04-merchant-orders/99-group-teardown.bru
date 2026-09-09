@@ -1,0 +1,24 @@
+meta {
+  name: 04-merchant-orders group teardown
+  type: http
+  seq: 99
+  tags: [
+    merchant-orders
+  ]
+}
+
+get {
+  url: {{baseUrl}}/v1/config/catalog?types=countries
+  body: none
+  auth: none
+}
+
+script:post-response {
+  // Keep tokens; drop stale resource ids so the next group cannot reuse them by accident.
+  const drop = ["orderId","merchantOrderId","paymentIntentId","intentId","payoutRequestId","custodyTransferId","settlementId","discrepancyId"];
+  for (const key of drop) bru.deleteVar(key);
+}
+
+docs {
+  Group Merchant orders: clear cross-operation resource vars. Does not wipe ledgers.
+}

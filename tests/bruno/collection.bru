@@ -1,0 +1,38 @@
+meta {
+  name: Logikchain API
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+  X-Correlation-Id: {{correlationId}}
+}
+
+script:pre-request {
+  if (!bru.getVar("runId")) {
+    const runId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    bru.setVar("runId", runId);
+  }
+  if (!bru.getVar("correlationId")) {
+    bru.setVar("correlationId", `collection:${bru.getVar("runId")}`);
+  }
+  const overlay = bru.getEnvVar("accessToken");
+  if (overlay && !bru.getVar("accessToken")) {
+    bru.setVar("accessToken", overlay);
+  }
+}
+
+docs {
+  HTTP `/v1` collection for Logikchain. Law: constitution/Logikchain_API_Testing.md
+  Host: emulator by default. Do not point at test or prod.
+  Run: npx bru run --env emulator
+  Group: npx bru run 03-orders --env emulator
+  One API: npx bru run 03-orders/placeOrder --env emulator
+}

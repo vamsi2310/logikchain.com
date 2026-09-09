@@ -1,0 +1,111 @@
+meta {
+  name: cancelMerchantOrder
+  type: http
+  seq: 10
+  tags: [
+    merchant-orders
+    cancelMerchantOrder
+  ]
+}
+
+post {
+  url: {{baseUrl}}/v1/merchant-orders/{{merchantOrderId}}:cancel
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  X-Correlation-Id: {{correlationId}}
+}
+
+body:json {
+{
+  "merchantOrderId": "{{merchantOrderId}}"
+}
+}
+
+assert {
+  res.status: in [200, 400, 401, 403, 404, 409, 429]
+}
+
+script:pre-request {
+  const operationId = "cancelMerchantOrder";
+  const role = "merchant";
+  if (!bru.getVar("runId")) {
+    bru.setVar("runId", Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8));
+  }
+  bru.setVar("idempotencyKey", "idem-" + operationId + "-" + bru.getVar("runId"));
+  bru.setVar("correlationId", operationId + ":" + bru.getVar("runId"));
+  const authEmulator = bru.getEnvVar("authEmulator");
+  const email = bru.getEnvVar("seedMerchantEmail");
+  const password = bru.getEnvVar("seedPassword");
+  const tokenVar = "merchantAccessToken";
+  if (tokenVar && authEmulator && email && password && !bru.getVar(tokenVar)) {
+    try {
+      const key = bru.getEnvVar("firebaseWebApiKey") || "fake-api-key";
+      const resp = await fetch(authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, returnSecureToken: true })
+      });
+      const json = await resp.json();
+      if (json.idToken) bru.setVar(tokenVar, json.idToken);
+    } catch (err) {
+      console.warn("setup auth: " + (err && err.message ? err.message : err));
+    }
+  }
+  if (tokenVar) {
+    bru.setVar("accessToken", bru.getVar(tokenVar) || bru.getEnvVar(tokenVar) || "");
+  }
+  const seedKeys = ["seedGigId","seedVillageId","seedRouteId","seedPamphletId","seedProductId","seedBuyerId","seedMerchantId","seedSupplierId","seedVehicleId","seedCountryId","seedPlanId","seedTariffId","seedSubscriptionId","seedStateId","seedDistrictId"];
+  for (const key of seedKeys) {
+    const envVal = bru.getEnvVar(key);
+    const short = key.replace(/^seed/, "");
+    const runtime = short.charAt(0).toLowerCase() + short.slice(1);
+    if (envVal && !bru.getVar(runtime)) bru.setVar(runtime, envVal);
+    if (envVal && !bru.getVar(key)) bru.setVar(key, envVal);
+  }
+  const pathBinds = {};
+  for (const key of Object.keys(pathBinds)) {
+    bru.setVar(key, pathBinds[key] + bru.getVar("runId"));
+  }
+}
+
+script:post-response {
+  const status = res.getStatus();
+  const body = res.getBody();
+  if (status === 200 && body && typeof body === "object") {
+    const keys = ["supplierId","userId","gigId","orderId","merchantOrderId","paymentIntentId","intentId","pickupCode","handoverCode","payoutRequestId","payoutTransactionId","beneficiaryId","custodyTransferId","settlementId","discrepancyId","requestId","subscriptionId","authorizationId","certificateId","challanId","taxProfileId","configurationId","countryId","stateId","districtId","villageId","planId","tariffId","offerId","codeId","routeId","refundTransactionId","creditNoteId","exceptionId","periodId"];
+    for (const key of keys) {
+      if (body[key]) bru.setVar(key, body[key]);
+    }
+    if (body.paymentIntentId && !body.intentId) bru.setVar("intentId", body.paymentIntentId);
+  }
+}
+
+tests {
+  test("status is a spec HTTP code", function () {
+    expect([200, 400, 401, 403, 404, 409, 429]).to.include(res.getStatus());
+  });
+  test("envelope is spec-shaped", function () {
+    const status = res.getStatus();
+    const body = res.getBody();
+    if (status === 200) {
+      expect(body).to.be.an("object");
+        expect(body).to.have.property("success");
+    } else {
+      expect(body).to.have.property("error");
+      expect(body.error).to.have.property("code");
+      expect(body.error).to.have.property("message");
+    }
+  });
+}
+
+docs {
+  operationId: cancelMerchantOrder
+  HTTP: POST /v1/merchant-orders/{merchantOrderId}:cancel
+  Role: merchant
+  Execute: the spec request. Assert status + error envelope or listed success fields.
+  Teardown class: undefined
+}

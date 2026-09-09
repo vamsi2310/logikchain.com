@@ -1,0 +1,24 @@
+meta {
+  name: 02-gigs group teardown
+  type: http
+  seq: 99
+  tags: [
+    gigs
+  ]
+}
+
+get {
+  url: {{baseUrl}}/v1/config/catalog?types=countries
+  body: none
+  auth: none
+}
+
+script:post-response {
+  // Keep tokens; drop stale resource ids so the next group cannot reuse them by accident.
+  const drop = ["orderId","merchantOrderId","paymentIntentId","intentId","payoutRequestId","custodyTransferId","settlementId","discrepancyId"];
+  for (const key of drop) bru.deleteVar(key);
+}
+
+docs {
+  Group Gigs: clear cross-operation resource vars. Does not wipe ledgers.
+}

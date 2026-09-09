@@ -1,0 +1,56 @@
+# Dependencies and build output
+node_modules/
+functions/lib/
+web/dist/
+*.js.map
+
+# Per-alias env (templates stay: .env.example, .env.*.example, .env.emulator)
+.env
+.env.development
+.env.test
+.env.production
+.env.local
+.env.*.local
+web/.env
+web/.env.development
+web/.env.test
+web/.env.production
+web/.env.local
+web/.env.*.local
+functions/.env
+functions/.env.dev
+functions/.env.test
+functions/.env.prod
+functions/.env.local
+
+# Secrets and keys
+**/serviceAccount*.json
+**/*-firebase-adminsdk-*.json
+**/*.pem
+**/*.p12
+
+# Firebase / Google local
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+.crashlytics/
+
+# Android local
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+
+# Bruno local overlays and run output
+tests/bruno/environments/*.local.bru
+tests/bruno/results/
+tests/bruno/node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

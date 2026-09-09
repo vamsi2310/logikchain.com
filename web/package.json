@@ -1,0 +1,33 @@
+{
+  "name": "logikchain-web",
+  "private": true,
+  "description": "Logikchain PWA — buyer, Support, and supplier desktop. Official client per role is constitution/Logikchain_Architecture.md.",
+  "type": "module",
+  "scripts": {
+    "start": "vite --mode development",
+    "start:dev": "vite --mode development",
+    "start:test": "vite --mode test",
+    "start:prod": "vite --mode production",
+    "start:emulator": "vite --mode emulator",
+    "build": "tsc -b && vite build --mode development",
+    "build:dev": "tsc -b && vite build --mode development",
+    "build:test": "tsc -b && vite build --mode test",
+    "build:prod": "tsc -b && vite build --mode production",
+    "preview": "vite preview --mode development",
+    "lint": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "firebase": "^11.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0",
+    "vite-plugin-pwa": "^1.3.0"
+  }
+}

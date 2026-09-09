@@ -1,0 +1,25 @@
+meta {
+  name: 14-ops group setup
+  type: http
+  seq: 0
+  tags: [
+    ops
+  ]
+}
+
+get {
+  url: {{baseUrl}}/v1/config/catalog?types=countries
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (!bru.getVar("runId")) {
+    bru.setVar("runId", Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8));
+  }
+  bru.setVar("correlationId", "14-ops:" + bru.getVar("runId"));
+}
+
+docs {
+  Group Ops: prepare runId before the operations in this folder.
+}

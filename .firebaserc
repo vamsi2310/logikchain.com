@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "dev": "logikchain-dev",
+    "test": "logikchain-test",
+    "prod": "logikchain-prod"
+  }
+}

@@ -1,0 +1,25 @@
+meta {
+  name: 11-config group setup
+  type: http
+  seq: 0
+  tags: [
+    config
+  ]
+}
+
+get {
+  url: {{baseUrl}}/v1/config/catalog?types=countries
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (!bru.getVar("runId")) {
+    bru.setVar("runId", Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8));
+  }
+  bru.setVar("correlationId", "11-config:" + bru.getVar("runId"));
+}
+
+docs {
+  Group Config: prepare runId before the operations in this folder.
+}

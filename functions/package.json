@@ -1,0 +1,26 @@
+{
+  "name": "logikchain-functions",
+  "private": true,
+  "description": "Logikchain Firebase Functions 2nd gen. Export names are constitution API spec operationIds.",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "lint": "tsc --noEmit",
+    "serve": "npm run build && firebase emulators:start --only auth,firestore,functions,storage,pubsub",
+    "serve:functions": "npm run build && firebase emulators:start --only functions --project dev",
+    "deploy:dev": "npm run build && firebase deploy --project dev --only functions --non-interactive",
+    "deploy:test": "echo test is CI on main. Use scripts/deploy.sh test --ci-recovery only to recover broken CI. && exit 1",
+    "deploy:prod": "echo Local prod deploy is forbidden. Production is CI on tag v* only. && exit 1"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

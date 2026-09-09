@@ -1,0 +1,11 @@
+{
+  "version": "1",
+  "name": "Logikchain API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git",
+    "results",
+    "scripts"
+  ]
+}

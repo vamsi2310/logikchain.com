@@ -1,0 +1,397 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function isSupport() {
+      return signedIn() && (
+        request.auth.token.isAdmin == true ||
+        role() == "support"
+      );
+    }
+
+    function isApproved() {
+      return signedIn() && request.auth.token.status == "approved";
+    }
+
+    function profilePath() {
+      return /databases/$(database)/documents/UserProfiles/$(uid());
+    }
+
+    function callerProfile() {
+      return get(profilePath()).data;
+    }
+
+    function onlyKeys(allowed) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
+    }
+
+    function profileSelfServiceKeys() {
+      return [
+        "name", "address", "contactInfo", "location", "villageId",
+        "selectedMerchantId", "shopDetails", "gstin", "vehicleNumber",
+        "vehicleType", "permissions"
+      ];
+    }
+
+    function profileForbiddenKeys() {
+      return [
+        "role", "status", "supplierId", "activeSubscriptionId",
+        "deviceTokens", "activeBeneficiaryId", "payoutMethod", "panNumber"
+      ];
+    }
+
+    function activeGeo() {
+      return resource.data.status == "active";
+    }
+
+    match /UserProfiles/{userId} {
+      allow read: if signedIn() && (uid() == userId || isSupport());
+      allow update: if signedIn() && uid() == userId
+        && !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(profileForbiddenKeys())
+        && onlyKeys(profileSelfServiceKeys());
+      allow create, delete: if false;
+    }
+
+    match /Countries/{id} {
+      allow read: if signedIn() && (activeGeo() || isSupport());
+      allow write: if false;
+    }
+    match /States/{id} {
+      allow read: if signedIn() && (activeGeo() || isSupport());
+      allow write: if false;
+    }
+    match /Districts/{id} {
+      allow read: if signedIn() && (activeGeo() || isSupport());
+      allow write: if false;
+    }
+    match /Hubs/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /Villages/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /VillageRequests/{id} {
+      allow read: if signedIn() && (resource.data.requestedBy == uid() || isSupport());
+      allow create: if signedIn()
+        && request.resource.data.requestedBy == uid()
+        && request.resource.data.status == "pending_support_review";
+      allow update, delete: if false;
+    }
+
+    match /SubscriptionPlans/{id} {
+      allow read: if signedIn() && (resource.data.status == "active" || isSupport());
+      allow write: if false;
+    }
+    match /PlanTariffs/{id} {
+      allow read: if signedIn() && (resource.data.status == "active" || isSupport());
+      allow write: if false;
+    }
+    match /SubscriptionOffers/{id} {
+      allow read: if signedIn() && (resource.data.status == "active" || isSupport());
+      allow write: if false;
+    }
+    match /OfferDiscountCodes/{id} {
+      allow read: if signedIn() && (resource.data.status == "active" || isSupport());
+      allow write: if false;
+    }
+    match /PlatformSubscriptions/{id} {
+      allow read: if signedIn() && (
+        resource.data.subscriberId == uid() ||
+        isSupport()
+      );
+      allow write: if false;
+    }
+    match /SubscriptionInvoices/{id} {
+      allow read: if signedIn() && (
+        resource.data.subscriberId == uid() ||
+        isSupport()
+      );
+      allow write: if false;
+    }
+
+    match /Products/{id} {
+      allow read: if signedIn();
+      allow create: if isApproved() && role() == "supplier"
+        && request.resource.data.supplierId == uid();
+      allow delete: if isApproved() && role() == "supplier"
+        && resource.data.supplierId == uid();
+      allow update: if isApproved() && role() == "supplier"
+        && resource.data.supplierId == uid()
+        && request.resource.data.supplierId == uid()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["stock"]);
+    }
+
+    match /Pamphlets/{id} {
+      allow read: if signedIn();
+      allow create: if isApproved() && role() == "supplier"
+        && request.resource.data.supplierId == uid();
+      allow update, delete: if isApproved() && role() == "supplier"
+        && resource.data.supplierId == uid();
+    }
+
+    match /Routes/{id} {
+      allow read: if signedIn();
+      allow create: if isApproved() && role() == "supplier"
+        && request.resource.data.supplierId == uid();
+      allow update, delete: if isApproved() && role() == "supplier"
+        && resource.data.supplierId == uid();
+    }
+
+    match /Discounts/{id} {
+      allow read: if signedIn();
+      allow create: if isApproved() && role() == "supplier"
+        && request.resource.data.supplierId == uid();
+      allow update, delete: if isApproved() && role() == "supplier"
+        && resource.data.supplierId == uid();
+    }
+
+    match /Gigs/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.supplierId == uid() ||
+        resource.data.vehicleId == uid() ||
+        uid() in resource.data.merchantIds ||
+        (role() == "buyer" && callerProfile().villageId in resource.data.villageIds)
+      );
+      allow write: if false;
+    }
+
+    match /Orders/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.buyer == uid() ||
+        resource.data.merchantId == uid() ||
+        resource.data.supplierId == uid() ||
+        resource.data.vehicleId == uid()
+      );
+      allow write: if false;
+
+      match /private/{doc} {
+        allow read: if signedIn() && (
+          isSupport() ||
+          get(/databases/$(database)/documents/Orders/$(id)).data.buyer == uid()
+        );
+        allow write: if false;
+      }
+    }
+
+    match /MerchantOrders/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.merchantId == uid() ||
+        resource.data.supplierId == uid() ||
+        resource.data.vehicleId == uid()
+      );
+      allow write: if false;
+
+      match /private/{doc} {
+        allow read: if signedIn() && (
+          isSupport() ||
+          get(/databases/$(database)/documents/MerchantOrders/$(id)).data.merchantId == uid()
+        );
+        allow write: if false;
+      }
+    }
+
+    match /CashLedgerEntries/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.holderId == uid() ||
+        resource.data.supplierId == uid() ||
+        resource.data.merchantId == uid() ||
+        resource.data.buyerId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /CustodyTransfers/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.fromPartyId == uid() ||
+        resource.data.toPartyId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /CashSettlements/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.driverId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+
+      match /private/{doc} {
+        allow read: if signedIn() && (
+          isSupport() ||
+          get(/databases/$(database)/documents/CashSettlements/$(id)).data.supplierId == uid()
+        );
+        allow write: if false;
+      }
+    }
+
+    match /CashDiscrepancies/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.raisedBy == uid() ||
+        resource.data.againstPartyId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /CreditTransactions/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.merchantId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /CreditProfiles/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        id == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /CreditIncreaseRequests/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.merchantId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /PaymentIntents/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.payerId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /PaymentTransactions/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.payerId == uid() ||
+        resource.data.payeeId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /PaymentStatusEvents/{id} {
+      allow read: if signedIn() && isSupport();
+      allow write: if false;
+    }
+
+    match /RefundTransactions/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.payerId == uid() ||
+        resource.data.payeeId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /CreditNotes/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.recipientId == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /PayoutTransactions/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.beneficiaryUserId == uid() ||
+        resource.data.approvedBySupplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /PayoutStatusEvents/{id} {
+      allow read: if signedIn() && isSupport();
+      allow write: if false;
+    }
+
+    match /BeneficiaryAccounts/{id} {
+      allow read, write: if false;
+    }
+
+    match /VerificationCodeBatches/{id} {
+      allow read, write: if false;
+    }
+
+    match /VerificationFallbackAuthorizations/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        resource.data.grantedTo == uid() ||
+        resource.data.grantedBy == uid()
+      );
+      allow write: if false;
+    }
+
+    match /DriverEarnings/{id} {
+      allow read: if signedIn() && (
+        isSupport() ||
+        id == uid() ||
+        resource.data.supplierId == uid()
+      );
+      allow write: if false;
+    }
+
+    match /ReconciliationRuns/{id} {
+      allow read: if isSupport();
+      allow write: if false;
+    }
+    match /ReconciliationExceptions/{id} {
+      allow read: if isSupport();
+      allow write: if false;
+    }
+    match /AccountingPeriods/{id} {
+      allow read: if isSupport();
+      allow write: if false;
+    }
+    match /AuditLogEntries/{id} {
+      allow read: if isSupport() || (signedIn() && resource.data.subjectId == uid());
+      allow write: if false;
+    }
+
+    match /Notifications/{id} {
+      allow read: if signedIn() && resource.data.userId == uid();
+      allow update: if signedIn() && resource.data.userId == uid()
+        && onlyKeys(["read"]);
+      allow create, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

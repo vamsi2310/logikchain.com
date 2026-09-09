@@ -1,0 +1,7 @@
+node_modules/
+lib/
+*.local
+.env
+.env.dev
+.env.test
+.env.prod

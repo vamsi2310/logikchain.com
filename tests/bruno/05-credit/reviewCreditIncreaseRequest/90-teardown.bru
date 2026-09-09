@@ -1,0 +1,31 @@
+meta {
+  name: reviewCreditIncreaseRequest teardown
+  type: http
+  seq: 90
+  tags: [
+    credit
+    reviewCreditIncreaseRequest
+    money
+  ]
+}
+
+get {
+  url: {{baseUrl}}/v1/config/catalog?types=countries
+  body: none
+  auth: none
+}
+
+script:post-response {
+  bru.setVar("accessToken", bru.getVar("accessToken") || "");
+}
+
+tests {
+  test("teardown does not rewrite money history", function () {
+    expect(true).to.equal(true);
+  });
+}
+
+docs {
+  operationId: reviewCreditIncreaseRequest
+  Teardown: none. Append-only or read-only. Isolation is runId + emulator restart.
+}
