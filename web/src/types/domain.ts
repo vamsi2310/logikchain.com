@@ -27,6 +27,7 @@ export interface UserProfile {
   role: UserRole;
   status: UserStatus;
   name?: string;
+  photoUrl?: string;
   phone?: string;
   email?: string;
   createdAt?: string;
@@ -383,3 +384,33 @@ export class ApiError extends Error {
     this.name = "ApiError";
   }
 }
+
+export type StorageFolderCategory =
+  | "profiles"
+  | "products"
+  | "proofs"
+  | "documents"
+  | "exports"
+  | "system";
+
+export type DocumentCategory =
+  | "kyc"
+  | "pan"
+  | "gstin"
+  | "license"
+  | "vehicle_rc"
+  | "tax"
+  | "invoice"
+  | "other";
+
+export interface FileValidationOptions {
+  maxSizeMb?: number;
+  allowedTypes?: string[];
+}
+
+export interface StorageUploadProgress {
+  bytesTransferred: number;
+  totalBytes: number;
+  progressPercentage: number;
+}
+

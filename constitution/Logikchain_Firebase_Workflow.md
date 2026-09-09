@@ -86,6 +86,7 @@ A UID on `dev` is not the same person as a UID on `prod`, even if the phone numb
 | `.firebaserc.example` | yes | Template |
 | `firebase.json` | yes | Functions `nodejs20`, emulator ports, Hosting `web/dist`, rewrites `/v1/**` → `api` (`asia-south1`) and `/m` `/d` `/s` `/x` → role HTML |
 | `firestore.rules` / `firestore.indexes.json` / `storage.rules` | yes | Same artifacts, every remote alias |
+| `storage/` | yes | Storage architecture, `cors.json`, and rules definition |
 | `functions/` | yes | 2nd gen TypeScript. Export names **are** the API spec names. `src/` is source; `lib/` is `tsc` output |
 | `functions/.env.dev` `.env.test` `.env.prod` | **no** | Non-secrets per alias. Secrets → Secret Manager |
 | `functions/.env.example` | yes | Placeholders for those files |

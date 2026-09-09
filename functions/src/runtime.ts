@@ -65,15 +65,18 @@ export function httpsOptions(opts?: {
   secrets?: ReturnType<typeof defineSecret>[];
   invoker?: "public" | "private";
 }): HttpsOptions {
-  return {
+  const options: HttpsOptions = {
     region: FUNCTIONS_REGION,
     minInstances: 0,
     concurrency: 40,
     memory: opts?.isolation ? isolationMemory : standardMemory,
     cpu: 1,
-    secrets: opts?.secrets,
     invoker: opts?.invoker ?? "public",
   };
+  if (opts?.secrets && opts.secrets.length > 0) {
+    options.secrets = opts.secrets;
+  }
+  return options;
 }
 
 export const VEHICLE_OFFICIAL_CLIENT_OPS = new Set([

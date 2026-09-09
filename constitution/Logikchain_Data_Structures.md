@@ -376,6 +376,7 @@ export interface UserProfile {
   role: UserRole;
   status: UserStatus;
   name?: string;
+  photoUrl?: string; // Cloud Storage URL (under /profiles/{userId}/); public read, owner write
   phone?: string;
   email?: string;
   createdAt?: string;
@@ -750,7 +751,7 @@ export interface Product {
   stock: number;
   unit: string;
   hsnCode: string;
-  imageUrl?: string;
+  imageUrl?: string; // Cloud Storage URL (under /products/{supplierId}/{productId}/); public read, supplier write
   lowStockAlert?: number; // Supplier-owned threshold. Not stock. SUP-06 sorts on stock <= this.
 }
 
@@ -3571,3 +3572,37 @@ export interface AccountDeletionRequest {
   reviewedBy?: string;
   reviewedAt?: string;
 }
+
+/**
+ * Storage folder category prefixes per constitution/Logikchain_Architecture.md §3.1
+ */
+export type StorageFolderCategory =
+  | "profiles"
+  | "products"
+  | "proofs"
+  | "documents"
+  | "exports"
+  | "system";
+
+/**
+ * Categories for statutory and verification documents stored under /documents/{userId}/{category}/
+ */
+export type DocumentCategory =
+  | "kyc"
+  | "pan"
+  | "gstin"
+  | "license"
+  | "vehicle_rc"
+  | "tax"
+  | "invoice"
+  | "other";
+
+export interface StorageFileMetadata {
+  storagePath: string;
+  downloadUrl: string;
+  contentType: string;
+  sizeBytes: number;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+

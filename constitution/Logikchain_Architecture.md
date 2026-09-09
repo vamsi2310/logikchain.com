@@ -114,7 +114,7 @@ A buyer must not download Support chrome. A Support operator must not wait on a 
 │  Auth (phone, Google) + custom claims `{ role, status }`     │
 │  Firestore + Security Rules                                  │
 │  Firebase Functions 2nd gen (onCall, onRequest, onSchedule)  │
-│  Cloud Storage (proof photos) · FCM · App Check              │
+│  Cloud Storage (media, profiles, products, proofs) · FCM · App Check │
 ├──────────────────────────────────────────────────────────────┤
 │  GCP in the same project                                     │
 │  Cloud KMS · Secret Manager · Vertex AI                      │
@@ -128,7 +128,7 @@ A buyer must not download Support chrome. A Support operator must not wait on a 
 | Authorisation | Custom claims + `/UserProfiles/{uid}` re-read on every callable | Claims are a convenience for rules. The profile document is the authority for a mutation. See `suspendUser` |
 | Reads | Firestore | Offline cache, security rules, the document shapes in `constitution/Logikchain_Data_Structures.md` |
 | Mutations | Firebase Functions 2nd gen | The entire API spec. A UI tap that changes order, gig, credit, cash, or payout state always calls an `onCall` / `onRequest` / `onSchedule` export |
-| Proof binaries | Cloud Storage | Photos and signatures; download URLs are minted server-side |
+| Storage & Media | Cloud Storage | Profile pictures, product inventory photos, proofs, KYC docs, evidence payloads, exports |
 | Push | FCM | `DeviceToken.platform` is `"web"`, `"android"`, or `"ios"`; `registerDeviceToken` keeps up to five |
 | Secrets at rest | Cloud KMS | PAN, VPA, account numbers. No client and no Support console decrypts |
 | Function secrets | Secret Manager | Razorpay, SMS, webhook secrets. Never in the APK or the PWA bundle |
@@ -137,6 +137,23 @@ A buyer must not download Support chrome. A Support operator must not wait on a 
 | Webhook retries / payout drain | Cloud Tasks + Scheduler | Provider callbacks and approved-payout workers, not client timers |
 
 A workload leaves Firestore only when a measured reason exists: heavy reporting already goes through `getFinanceReport` / BigQuery-shaped exports; high-volume location pings may later need their own **Firebase Function** export. None of those is a licence to move Auth, the callable contract, or the ledger onto a Cloud Run service.
+
+---
+
+### 3.1 Cloud Storage Architecture
+
+Cloud Storage houses media assets, proofs, compliance files, and system evidence across all client runtimes. The single bucket per alias (`logikchain-{alias}.firebasestorage.app`) is partitioned into well-defined top-level prefixes governed by `storage.rules`:
+
+| Prefix | Category | Read Access | Write Access | Max Size | Allowed Types | Notes |
+| ------ | -------- | ----------- | ------------ | -------- | ------------- | ----- |
+| `/profiles/{uid}/*` | Profile Pictures | Public (`true`) | Owner or Support | 5 MB | `image/*` | Buyer, merchant, driver, supplier avatars. |
+| `/products/{supplierId}/*` | Product & Catalog | Public (`true`) | Supplier or Support | 10 MB | `image/*` | Inventory item pictures and promotional pamphlets. |
+| `/proofs/{uid}/*` | Delivery Proofs | Auth (parties + roles) | Owner | 8 MB | `image/*` | Arrival and handover evidence (`photoUrl`). |
+| `/documents/{uid}/*` | KYC & Regulatory | Owner or Support | Owner or Support | 15 MB | `image/*`, `application/pdf` | PAN cards, GSTIN, driving licenses, vehicle RC. |
+| `/exports/{uid}/*` | Data Exports | Owner or Support | Functions (Admin SDK) | 50 MB | Any (`text/csv`, `json`, `zip`) | User privacy downloads and finance reports. |
+| `/payloads/*`, `/challans/*` | System Evidence | Server only (`false`) | Functions (Admin SDK) | 20 MB | `application/json`, `pdf` | Raw webhook records and stamped tax challans. |
+
+Direct client uploads utilize the Firebase Storage SDK with client-side size and MIME validation (`web/src/storage/index.ts`). Server-side URL signing, evidence archival, and data purge actions execute through `functions/src/lib/storage.ts`.
 
 ---
 

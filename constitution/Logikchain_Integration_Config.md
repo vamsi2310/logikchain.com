@@ -13,6 +13,7 @@ This guide details the integration parameters, provisioning steps, and security 
    - 1.3 Android App Config
    - 1.4 App Check
    - 1.5 Firebase Functions 2nd gen
+   - 1.6 Firebase Storage Provisioning
 2. [Google Maps Platform](#2-google-maps-platform)
 3. [Gemini API](#3-gemini-api)
 4. [Razorpay Payments](#4-razorpay-payments)
@@ -128,6 +129,33 @@ Store captured values in the file named for that alias. Do not keep one `.env` t
 *   **Parameters to Capture**:
     *   `FUNCTIONS_REGION=asia-south1`
     *   Secret Manager resource names **per alias** (Razorpay, webhook, SMS, KMS key path)
+
+### 1.6 Firebase Storage Provisioning
+
+Firebase Storage provides binary object storage for user avatars, product pictures, handover proof photos, KYC documents, and system audit archives.
+
+#### 1.6.1 Provisioning Steps (per remote alias)
+1. Open the [Firebase Console](https://console.firebase.google.com/) for that project (`logikchain-dev`, `logikchain-test`, `logikchain-prod`).
+2. In the left navigation, select **Build** > **Storage**.
+3. Click **Get Started**.
+4. In the Security rules dialog, proceed with standard rules (they will be overwritten by repo deploy).
+5. In Cloud Storage location, select **`asia-south1`** (Mumbai) to align with Functions compute and minimize regional egress.
+6. Click **Done** to initialize the default bucket (`<project-id>.firebasestorage.app`).
+
+#### 1.6.2 CORS Configuration
+Apply `storage/cors.json` to allow web and mobile direct uploads and cross-origin reads:
+```bash
+gsutil cors set storage/cors.json gs://<project-id>.firebasestorage.app
+```
+
+#### 1.6.3 Deploying Storage Rules
+Deploy the repo ruleset:
+```bash
+firebase deploy --project <alias> --only storage
+```
+
+*   **Parameters to Capture (per alias):**
+    *   `REACT_APP_FIREBASE_STORAGE_BUCKET` (e.g. `logikchaindevelopment.firebasestorage.app`)
 
 ---
 

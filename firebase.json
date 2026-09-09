@@ -1,15 +1,19 @@
 {
   "functions": [
     {
-      "source": "functions",
       "codebase": "default",
-      "runtime": "nodejs20",
       "ignore": [
         "node_modules",
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
         "*.local"
+      ],
+      "source": "functions",
+      "runtime": "nodejs20",
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
   ],
@@ -35,14 +39,38 @@
           "region": "asia-south1"
         }
       },
-      { "source": "/m", "destination": "/m/index.html" },
-      { "source": "/m/**", "destination": "/m/index.html" },
-      { "source": "/d", "destination": "/d/index.html" },
-      { "source": "/d/**", "destination": "/d/index.html" },
-      { "source": "/s", "destination": "/s/index.html" },
-      { "source": "/s/**", "destination": "/s/index.html" },
-      { "source": "/x", "destination": "/x/index.html" },
-      { "source": "/x/**", "destination": "/x/index.html" },
+      {
+        "source": "/m",
+        "destination": "/m/index.html"
+      },
+      {
+        "source": "/m/**",
+        "destination": "/m/index.html"
+      },
+      {
+        "source": "/d",
+        "destination": "/d/index.html"
+      },
+      {
+        "source": "/d/**",
+        "destination": "/d/index.html"
+      },
+      {
+        "source": "/s",
+        "destination": "/s/index.html"
+      },
+      {
+        "source": "/s/**",
+        "destination": "/s/index.html"
+      },
+      {
+        "source": "/x",
+        "destination": "/x/index.html"
+      },
+      {
+        "source": "/x/**",
+        "destination": "/x/index.html"
+      },
       {
         "source": "**",
         "destination": "/index.html"
@@ -50,13 +78,28 @@
     ]
   },
   "emulators": {
-    "auth": { "port": 9099 },
-    "functions": { "port": 5001 },
-    "firestore": { "port": 8080 },
-    "storage": { "port": 9199 },
-    "pubsub": { "port": 8085 },
-    "hosting": { "port": 5000 },
-    "ui": { "enabled": true, "port": 4000 },
+    "auth": {
+      "port": 9099
+    },
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "storage": {
+      "port": 9199
+    },
+    "pubsub": {
+      "port": 8085
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
     "singleProjectMode": true
   }
 }
