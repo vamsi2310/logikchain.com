@@ -189,7 +189,7 @@ export async function updateUserProfile(ctx: CallContext) {
     }
     if (key === "panNumber" && typeof value === "string") {
       validatePan(value);
-      patch.panNumberEncrypted = encryptSecret(value.toUpperCase());
+      patch.panNumberEncrypted = await encryptSecret(value.toUpperCase());
       patch.panNumberMasked = maskPan(value.toUpperCase());
       updatedFields.push("panNumber");
       continue;

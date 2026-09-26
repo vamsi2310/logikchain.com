@@ -4,7 +4,7 @@
   "description": "Logikchain Firebase Functions 2nd gen. Export names are constitution API spec operationIds.",
   "main": "lib/index.js",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "scripts": {
     "build": "tsc",
@@ -17,6 +17,7 @@
     "deploy:prod": "echo Local prod deploy is forbidden. Production is CI on tag v* only. && exit 1"
   },
   "dependencies": {
+    "@google-cloud/kms": "^6.2.0",
     "firebase-admin": "^13.0.2",
     "firebase-functions": "^6.3.2"
   },

@@ -1,109 +1,148 @@
 import type { CallContext } from "../auth/caller";
-import * as identity from "./identity";
-import * as gigs from "./gigs";
-import * as orders from "./orders";
-import * as credit from "./credit";
-import * as cash from "./cash";
-import * as payments from "./payments";
-import * as payouts from "./payouts";
-import * as remaining from "./remaining";
-import * as config from "./config";
-import * as reconciliation from "./reconciliation";
-import * as scheduled from "./scheduled";
-import * as webhooks from "./webhooks";
 
 export type Handler = (ctx: CallContext) => Promise<unknown>;
 
-export const handlers: Record<string, Handler> = {
-  createSupplier: identity.createSupplier,
-  convertBuyerToRole: identity.convertBuyerToRole,
-  updateUserProfile: identity.updateUserProfile,
-  disassociateMerchant: identity.disassociateMerchant,
-  suspendUser: identity.suspendUser,
-  restoreUser: identity.restoreUser,
-  composeGig: gigs.composeGig,
-  startGig: gigs.startGig,
-  updateGigLocation: gigs.updateGigLocation,
-  completeAndFinalizeGig: gigs.completeAndFinalizeGig,
-  suspendGig: gigs.suspendGig,
-  reassignGigDriver: gigs.reassignGigDriver,
-  placeOrder: orders.placeOrder,
-  cancelOrder: orders.cancelOrder,
-  markOrderDelivered: orders.markOrderDelivered,
-  placeMerchantOrder: orders.placeMerchantOrder,
-  updateMerchantOrderStatus: orders.updateMerchantOrderStatus,
-  cancelMerchantOrder: orders.cancelMerchantOrder,
-  requestCreditIncrease: credit.requestCreditIncrease,
-  setMerchantCreditLimit: credit.setMerchantCreditLimit,
-  reviewCreditIncreaseRequest: credit.reviewCreditIncreaseRequest,
-  setProvisionalCreditPolicy: credit.setProvisionalCreditPolicy,
-  createPaymentIntent: payments.createPaymentIntent,
-  processPayment: payments.processPayment,
-  refundOrder: payments.refundOrder,
-  issueCreditNote: payments.issueCreditNote,
-  requestPayout: payouts.requestPayout,
-  reviewPayoutRequest: payouts.reviewPayoutRequest,
-  registerPayoutBeneficiary: payouts.registerPayoutBeneficiary,
-  blockPayoutBeneficiary: payouts.blockPayoutBeneficiary,
-  recordPayoutSettlement: payouts.recordPayoutSettlement,
-  verifyManualPayout: payouts.verifyManualPayout,
-  retryPayout: payouts.retryPayout,
-  resendHandoverCode: cash.resendHandoverCode,
-  issueOfflineCodeBatch: cash.issueOfflineCodeBatch,
-  authorizeVerificationFallback: cash.authorizeVerificationFallback,
-  initiateCreditRepayment: cash.initiateCreditRepayment,
-  confirmCreditRepayment: cash.confirmCreditRepayment,
-  getCashCustodySummary: cash.getCashCustodySummary,
-  declareCashHandover: cash.declareCashHandover,
-  confirmCashSettlement: cash.confirmCashSettlement,
-  raiseCashDiscrepancy: cash.raiseCashDiscrepancy,
-  resolveCashDiscrepancy: cash.resolveCashDiscrepancy,
-  getFinancialReport: remaining.getFinancialReport,
-  getFinanceReport: remaining.getFinanceReport,
-  exportFinanceReport: remaining.exportFinanceReport,
-  scheduleFinanceReport: remaining.scheduleFinanceReport,
-  getEntitlements: remaining.getEntitlements,
-  previewPlanChange: remaining.previewPlanChange,
-  changeSubscriptionPlan: remaining.changeSubscriptionPlan,
-  registerDeviceToken: remaining.registerDeviceToken,
-  acknowledgeGig: remaining.acknowledgeGig,
-  adjustProductStock: remaining.adjustProductStock,
-  updateDriverPayRates: remaining.updateDriverPayRates,
-  requestVerificationFallback: remaining.requestVerificationFallback,
-  rejectVillageRequest: remaining.rejectVillageRequest,
-  reassignOrderMerchant: remaining.reassignOrderMerchant,
-  resumeOrderOnGig: remaining.resumeOrderOnGig,
-  extendSubscriptionGrace: remaining.extendSubscriptionGrace,
-  computeRouteMetrics: remaining.computeRouteMetrics,
-  upsertRoute: remaining.upsertRoute,
-  getSystemHealth: remaining.getSystemHealth,
-  requestMyDataExport: remaining.requestMyDataExport,
-  requestAccountDeletion: remaining.requestAccountDeletion,
-  subscribeToPlan: remaining.subscribeToPlan,
-  assignSubscription: remaining.assignSubscription,
-  cancelSubscription: remaining.cancelSubscription,
-  upsertCountry: config.upsertCountry,
-  upsertState: config.upsertState,
-  upsertDistrict: config.upsertDistrict,
-  requestVillage: config.requestVillage,
-  upsertVillage: config.upsertVillage,
-  upsertSubscriptionPlan: config.upsertSubscriptionPlan,
-  upsertPlanTariff: config.upsertPlanTariff,
-  upsertSubscriptionOffer: config.upsertSubscriptionOffer,
-  upsertOfferDiscountCode: config.upsertOfferDiscountCode,
-  deactivateConfigurationRecord: config.deactivateConfigurationRecord,
-  listConfigurationCatalog: config.listConfigurationCatalog,
-  upsertTaxProfile: config.upsertTaxProfile,
-  upsertTdsConfiguration: config.upsertTdsConfiguration,
-  recordTdsChallan: config.recordTdsChallan,
-  issueTdsCertificate: config.issueTdsCertificate,
-  getTdsRegister: config.getTdsRegister,
-  runReconciliation: reconciliation.runReconciliation,
-  resolveReconciliationException: reconciliation.resolveReconciliationException,
-  closeAccountingPeriod: reconciliation.closeAccountingPeriod,
-  reopenAccountingPeriod: reconciliation.reopenAccountingPeriod,
-  handleGatewayWebhook: webhooks.handleGatewayWebhook,
-  postDueCreditRelief: async () => scheduled.postDueCreditRelief(),
+const MODULE_BY_OPERATION: Record<string, string> = {
+  createSupplier: "identity",
+  convertBuyerToRole: "identity",
+  updateUserProfile: "identity",
+  disassociateMerchant: "identity",
+  suspendUser: "identity",
+  restoreUser: "identity",
+  composeGig: "gigs",
+  startGig: "gigs",
+  updateGigLocation: "gigs",
+  completeAndFinalizeGig: "gigs",
+  suspendGig: "gigs",
+  reassignGigDriver: "gigs",
+  placeOrder: "orders",
+  cancelOrder: "orders",
+  markOrderDelivered: "orders",
+  placeMerchantOrder: "orders",
+  updateMerchantOrderStatus: "orders",
+  cancelMerchantOrder: "orders",
+  requestCreditIncrease: "credit",
+  setMerchantCreditLimit: "credit",
+  reviewCreditIncreaseRequest: "credit",
+  setProvisionalCreditPolicy: "credit",
+  createPaymentIntent: "payments",
+  processPayment: "payments",
+  refundOrder: "payments",
+  issueCreditNote: "payments",
+  requestPayout: "payouts",
+  reviewPayoutRequest: "payouts",
+  registerPayoutBeneficiary: "payouts",
+  blockPayoutBeneficiary: "payouts",
+  recordPayoutSettlement: "payouts",
+  verifyManualPayout: "payouts",
+  retryPayout: "payouts",
+  resendHandoverCode: "cash",
+  issueOfflineCodeBatch: "cash",
+  authorizeVerificationFallback: "cash",
+  initiateCreditRepayment: "cash",
+  confirmCreditRepayment: "cash",
+  getCashCustodySummary: "cash",
+  declareCashHandover: "cash",
+  confirmCashSettlement: "cash",
+  raiseCashDiscrepancy: "cash",
+  resolveCashDiscrepancy: "cash",
+  getFinancialReport: "remaining",
+  getFinanceReport: "remaining",
+  exportFinanceReport: "remaining",
+  scheduleFinanceReport: "remaining",
+  getEntitlements: "remaining",
+  previewPlanChange: "remaining",
+  changeSubscriptionPlan: "remaining",
+  registerDeviceToken: "remaining",
+  acknowledgeGig: "remaining",
+  adjustProductStock: "remaining",
+  updateDriverPayRates: "remaining",
+  requestVerificationFallback: "remaining",
+  rejectVillageRequest: "remaining",
+  reassignOrderMerchant: "remaining",
+  resumeOrderOnGig: "remaining",
+  extendSubscriptionGrace: "remaining",
+  computeRouteMetrics: "remaining",
+  upsertRoute: "remaining",
+  getSystemHealth: "remaining",
+  requestMyDataExport: "remaining",
+  requestAccountDeletion: "remaining",
+  subscribeToPlan: "remaining",
+  assignSubscription: "remaining",
+  cancelSubscription: "remaining",
+  upsertCountry: "config",
+  upsertState: "config",
+  upsertDistrict: "config",
+  requestVillage: "config",
+  upsertVillage: "config",
+  upsertSubscriptionPlan: "config",
+  upsertPlanTariff: "config",
+  upsertSubscriptionOffer: "config",
+  upsertOfferDiscountCode: "config",
+  deactivateConfigurationRecord: "config",
+  listConfigurationCatalog: "config",
+  upsertTaxProfile: "config",
+  upsertTdsConfiguration: "config",
+  recordTdsChallan: "config",
+  issueTdsCertificate: "config",
+  getTdsRegister: "config",
+  runReconciliation: "reconciliation",
+  resolveReconciliationException: "reconciliation",
+  closeAccountingPeriod: "reconciliation",
+  reopenAccountingPeriod: "reconciliation",
+  handleGatewayWebhook: "webhooks",
+  postDueCreditRelief: "scheduled",
 };
 
-export { payouts, scheduled };
+export function hasHandler(operationId: string): boolean {
+  return operationId in MODULE_BY_OPERATION;
+}
+
+export async function getHandler(operationId: string): Promise<Handler | null> {
+  const moduleName = MODULE_BY_OPERATION[operationId];
+  if (!moduleName) return null;
+
+  let loaded: Record<string, unknown>;
+  switch (moduleName) {
+    case "identity":
+      loaded = await import("./identity");
+      break;
+    case "gigs":
+      loaded = await import("./gigs");
+      break;
+    case "orders":
+      loaded = await import("./orders");
+      break;
+    case "credit":
+      loaded = await import("./credit");
+      break;
+    case "cash":
+      loaded = await import("./cash");
+      break;
+    case "payments":
+      loaded = await import("./payments");
+      break;
+    case "payouts":
+      loaded = await import("./payouts");
+      break;
+    case "remaining":
+      loaded = await import("./remaining");
+      break;
+    case "config":
+      loaded = await import("./config");
+      break;
+    case "reconciliation":
+      loaded = await import("./reconciliation");
+      break;
+    case "scheduled":
+      loaded = await import("./scheduled");
+      break;
+    case "webhooks":
+      loaded = await import("./webhooks");
+      break;
+    default:
+      return null;
+  }
+  const handler = loaded[operationId];
+  return typeof handler === "function" ? (handler as Handler) : null;
+}

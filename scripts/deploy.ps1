@@ -3,7 +3,7 @@
   Deploy Logikchain to a Firebase alias. Always passes --project <alias>.
 
 .PARAMETER Alias
-  dev | test | prod   (emulator starts local emulators; it does not deploy)
+  dev | test | prod
 
 .PARAMETER Only
   Firebase --only targets. Default matches the playbook for that alias.
@@ -14,11 +14,10 @@
 .EXAMPLE
   .\scripts\deploy.ps1 -Alias dev
   .\scripts\deploy.ps1 -Alias dev -Only functions
-  .\scripts\deploy.ps1 -Alias emulator
 #>
 param(
   [Parameter(Mandatory = $true, Position = 0)]
-  [ValidateSet("emulator", "dev", "test", "prod")]
+  [ValidateSet("dev", "test", "prod")]
   [string]$Alias,
 
   [string]$Only = "",
@@ -34,16 +33,6 @@ function Assert-NoBareDeploy {
   if ($Args -notcontains "--project") {
     throw "Deploy without --project <alias> is forbidden."
   }
-}
-
-if ($Alias -eq "emulator") {
-  Write-Host "Starting emulator playbook (no firebase deploy)."
-  Push-Location functions
-  if (-not (Test-Path node_modules)) { npm install }
-  npm run build
-  Pop-Location
-  firebase emulators:start --only auth,firestore,functions,storage,pubsub
-  exit $LASTEXITCODE
 }
 
 if ($Alias -eq "prod") {

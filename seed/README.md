@@ -1,8 +1,8 @@
 # Development seed data (not for production)
 
-This folder holds mock configuration and user fixtures for local development and the Firebase Emulator only.
+This folder holds mock configuration and user fixtures for local test tooling only.
 
-**This folder belongs to the `emulator` playbook only** (`constitution/Logikchain_Firebase_Workflow.md` §4). Do not import, bundle, or deploy these files into `dev`, `test`, or `prod`. `dev` may have throwaway Support-created records; it still does not run a seed import. `test` and `prod` receive geography and plans only through Support Config functions on that alias.
+**This folder is not a lifecycle environment or promotion source.** Do not import, bundle, or deploy these files into `dev`, `test`, or `prod`. `dev` may have throwaway Support-created records; it still does not run a seed import. `test` and `prod` receive geography and plans only through Support Config functions on that alias.
 
 | File | Use |
 | --- | --- |

@@ -241,7 +241,7 @@ export async function registerPayoutBeneficiary(ctx: CallContext) {
     normalized = vpa.toLowerCase();
     vpaHandle = vpa.split("@")[1];
     maskedLabel = `${vpa.slice(0, 2)}***@${vpaHandle}`;
-    encrypted = encryptSecret(vpa);
+    encrypted = await encryptSecret(vpa);
   } else {
     const accountNumber = requireNonEmpty(ctx.data.accountNumber, "accountNumber");
     const confirm = requireNonEmpty(ctx.data.accountNumberConfirm, "accountNumberConfirm");
@@ -252,7 +252,7 @@ export async function registerPayoutBeneficiary(ctx: CallContext) {
     normalized = `${accountNumber}:${ifsc.toUpperCase()}`;
     accountNumberLast4 = accountNumber.slice(-4);
     maskedLabel = `****${accountNumberLast4} ${ifsc.toUpperCase()}`;
-    encrypted = encryptSecret(accountNumber);
+    encrypted = await encryptSecret(accountNumber);
   }
   const fp = fingerprint(normalized, "beneficiary");
   const dup = await db.collection(Col.BeneficiaryAccounts).where("fingerprint", "==", fp).where("status", "==", "active").limit(1).get();
@@ -289,7 +289,7 @@ export async function registerPayoutBeneficiary(ctx: CallContext) {
     vpaHandle: vpaHandle ?? null,
     vpaEncrypted: type === "upi" ? encrypted : null,
     accountNumberEncrypted: type === "bank" ? encrypted : null,
-    ifscEncrypted: type === "bank" ? encryptSecret(String(ctx.data.ifsc)) : null,
+    ifscEncrypted: type === "bank" ? await encryptSecret(String(ctx.data.ifsc)) : null,
     coolingPeriodEndsAt,
     createdAt: nowIso(),
   });
@@ -386,9 +386,10 @@ export async function initiatePayoutTransfer(data: { payoutTransactionId: string
   const result = await initiatePayoutOnRail({
     amountRupees: p.netAmount,
     idempotencyKey: `payout:${payoutTransactionId}`,
-    vpa: b.vpaEncrypted ? decryptSecret(b.vpaEncrypted) : undefined,
-    accountNumber: b.accountNumberEncrypted ? decryptSecret(b.accountNumberEncrypted) : undefined,
-    ifsc: b.ifscEncrypted ? decryptSecret(b.ifscEncrypted) : undefined,
+    mode: rail,
+    vpa: b.vpaEncrypted ? await decryptSecret(b.vpaEncrypted) : undefined,
+    accountNumber: b.accountNumberEncrypted ? await decryptSecret(b.accountNumberEncrypted) : undefined,
+    ifsc: b.ifscEncrypted ? await decryptSecret(b.ifscEncrypted) : undefined,
     name: String(b.maskedLabel ?? "driver"),
   });
   if (!result.accepted) {
@@ -412,7 +413,9 @@ export async function recordPayoutSettlement(ctx: CallContext) {
   const isWebhook = Boolean(ctx.rawBody);
   if (isWebhook) {
     const sig = String(ctx.headers["x-razorpay-signature"] ?? ctx.data.providerSignature ?? "");
-    if (!verifyWebhookSignature(ctx.rawBody ?? Buffer.from(""), sig)) fail("INVALID_SIGNATURE");
+    if (!verifyWebhookSignature(ctx.rawBody ?? Buffer.from(""), sig, "payout")) {
+      fail("INVALID_SIGNATURE");
+    }
   } else {
     await requireCaller(ctx, { roles: ["support"] });
   }

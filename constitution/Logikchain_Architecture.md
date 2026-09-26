@@ -33,7 +33,7 @@ Logikchain is **one git tree**, **three Firebase projects** (`dev`, `test`, `pro
 
 Inside one project there is one Auth directory, one Firestore, one set of Firebase Functions, one FCM configuration. A user who starts as a buyer on the PWA and is upgraded by `convertBuyerToRole` does not re-register. They receive new custom claims on the same UID and, when the new role's official client is Android, a handoff into the Play app. They do not hop between `dev` and `prod` on that UID: environments do not share users.
 
-The backend is **Firebase-hosted**, not a raw Google Cloud rewrite. Compute is **Firebase Functions 2nd gen** only — **Node 20**, scale to zero, region `asia-south1`. That product *is* Cloud Run functions under the hood; the team does not `gcloud run deploy` a container, does not use 1st-gen Functions or Python Functions, and does not stand up Cloud SQL, GKE, or a custom auth service. GCP services that Firebase does not provide — Cloud KMS, Secret Manager, Vertex AI, Maps Platform, Cloud Scheduler, Cloud Tasks — run in the **same project as that environment** and are invoked only from Firebase Functions.
+The backend is **Firebase-hosted**, not a raw Google Cloud rewrite. Compute is **Firebase Functions 2nd gen** only — **Node 22**, scale to zero, region `asia-south1`. That product *is* Cloud Run functions under the hood; the team does not `gcloud run deploy` a container, does not use 1st-gen Functions or Python Functions, and does not stand up Cloud SQL, GKE, or a custom auth service. GCP services that Firebase does not provide — Cloud KMS, Secret Manager, Vertex AI, Maps Platform, Cloud Scheduler, Cloud Tasks — run in the **same project as that environment** and are invoked only from Firebase Functions.
 
 This split exists because the four things the platform optimises for pull in different directions, and pretending they do not is how a rural logistics product ends up with either an always-on bill or a driver who cannot close a handover:
 
@@ -159,11 +159,11 @@ Direct client uploads utilize the Firebase Storage SDK with client-side size and
 
 ## 4. Compute: Firebase Functions 2nd gen
 
-Use **Firebase Functions 2nd gen** on **Node 20** (TypeScript), scale to zero, region **`asia-south1`**. That *is* Google’s serverless / Cloud Run functions product, deployed and named through the Firebase Functions API so the callable contract, App Check, Auth context, and emulator stay the ones this constitution specifies. Python is not the Functions runtime: the Admin SDK, callable types, and emulator story are one language with the PWA contract.
+Use **Firebase Functions 2nd gen** on **Node 22** (TypeScript), scale to zero, region **`asia-south1`**. That *is* Google’s serverless / Cloud Run functions product, deployed and named through the Firebase Functions API so the callable contract, App Check, Auth context, and emulator stay the ones this constitution specifies. Python is not the Functions runtime: the Admin SDK, callable types, and emulator story are one language with the PWA contract.
 
 | Option | Verdict |
 | ------ | ------- |
-| Firebase Functions **2nd gen** (`onCall` / `onRequest` / `onSchedule` / `onTaskDispatched`), Node 20 | **Required.** Free tier covers early volume. Concurrency 20–80 on one instance. |
+| Firebase Functions **2nd gen** (`onCall` / `onRequest` / `onSchedule` / `onTaskDispatched`), Node 22 | **Required.** Free tier covers early volume. Concurrency 20–80 on one instance. |
 | “Google Cloud Functions” / “Cloud Run functions” via `gcloud` | Same billing, wrong toolchain. Loses callable SDK, emulator, and the export names in the API spec. |
 | Cloud Run **services** (team-built containers, `gcloud run deploy`) | Not cheaper at rural bursty volume. Costs a second API and a `minInstances` temptation. Forbidden for v1. |
 | Firebase / Cloud Functions **1st gen** | One request per instance. The expensive option. Forbidden. |
@@ -171,7 +171,7 @@ Use **Firebase Functions 2nd gen** on **Node 20** (TypeScript), scale to zero, r
 
 **Locked settings** (every export, every project):
 
-- Runtime **Node 20**. `firebase.json` `runtime: nodejs20`. `functions/package.json` `engines.node` is `"20"`.
+- Runtime **Node 22**. `firebase.json` `runtime: nodejs22`. `functions/package.json` `engines.node` is `"22"`.
 - `minInstances: 0` — an always-on container is tens of dollars a month before anyone opens the app.
 - Memory 512 MB for ordinary callables; **1 GiB** only for the isolation list below.
 - CPU allocated only during the request.
@@ -189,20 +189,19 @@ Deploy, aliases, and who may touch `prod` are `constitution/Logikchain_Firebase_
 
 ## 5. Environments
 
-Speech uses **aliases only**: `emulator`, `dev`, `test`, `prod`. Project IDs live in `.firebaserc`. There is no environment called `logikchainTest` — that string is a retired console name, mapped in `constitution/Logikchain_Firebase_Workflow.md` §11 if the GCP project still exists.
+Speech uses **aliases only**: `dev`, `test`, `prod`. Project IDs live in `.firebaserc`. There is no environment called `logikchainTest` — that string is a retired console name, mapped in `constitution/Logikchain_Firebase_Workflow.md` §10 if the GCP project still exists. Firebase emulators are local test tools within development, not an environment or lifecycle stage.
 
 One git SHA is promoted. Users, documents, and secrets are not. Each alias has its own playbook; they do not share commands, client builds, or third-party keys.
 
 | Alias | Project ID | Playbook | Client build |
 | ----- | ---------- | -------- | ------------ |
-| `emulator` | *(not GCP)* | Laptop + `seed/`. No `firebase deploy`. | Emulator hosts only |
 | `dev` | `logikchain-dev` | Developer sandbox. Local deploy allowed. | Vite `--mode development` → `web/.env.development`, Android `dev` flavor |
 | `test` | `logikchain-test` | QA. CI on `main`. | Vite `--mode test` → `web/.env.test`, `test.logikchain.com`, Android `test` flavor |
 | `prod` | `logikchain-prod` | Live money. CI on tag only. | Vite `--mode production` → `web/.env.production`, `logikchain.com`, Android `prod` flavor |
 
 The PWA backend switch is **build-time only**. Vite `--mode` selects the alias file. Screens import `env` from `web/src/config/env.ts` and never read `import.meta.env` themselves. There is no runtime environment picker in the UI. A production build must not be able to retarget `dev`, `test`, or the emulator.
 
-`web/.env.local` is a personal overlay (gitignored). It may set `REACT_APP_USE_LOCAL_FUNCTIONS=true` so `/v1` hits the Functions emulator while Auth and Firestore stay on the Vite `--mode` alias. It must not set `FIREBASE_PROJECT_ALIAS`. That overlay is ignored for production builds. Do not start Auth/Firestore emulators in that hybrid playbook — Functions would write local data while the PWA reads the remote alias.
+`web/.env.local` is a personal overlay (gitignored). It may set `REACT_APP_USE_LOCAL_FUNCTIONS=true` so `/v1` hits the Functions emulator while Auth and Firestore stay on the Vite `--mode` alias. It must not set `FIREBASE_PROJECT_ALIAS`. That overlay is ignored for production builds. Do not start Auth/Firestore emulators in that hybrid local setup — Functions would write local data while the PWA reads the remote alias.
 
 Firebase app nicknames are env-specific (`logikchain-web-dev`, `logikchain-android-test`, …). Reusing `logikchainSuperApp` on every project is how the console becomes one blur. Function **names** stay identical; the **build** selects the project. A production APK that can retarget `dev` is a defect.
 
@@ -289,7 +288,7 @@ Provisioning — Android package, SHA-256, App Check, restricted Maps keys — l
 - A second backend (Cloud Run services + Cloud SQL + custom auth, or "the Android app talks to a different API").
 - Firebase Functions **1st gen**, or a `gcloud run deploy` of a container that re-implements the API spec.
 - `minInstances > 0` without a dated amendment in §4 that names the export and the measured reason.
-- One Firebase project for “everyone”, a fourth project “for Android” / “for Cloud Run”, or treating `logikchainTest` as a live alias (retired; workflow §11).
+- One Firebase project for “everyone”, a fourth project “for Android” / “for Cloud Run”, or treating `logikchainTest` as a live alias (retired; workflow §10).
 - Crossing playbooks: `seed/` on `test`/`prod`, live Razorpay on `dev`/`test`, a `prod` client that can retarget `dev`.
 - `firebase deploy` without an explicit project alias, or a human deploying to `prod` from a laptop (`constitution/Logikchain_Firebase_Workflow.md`).
 - Hard-coded project IDs or webhook URLs in function source.
@@ -314,7 +313,8 @@ Provisioning — Android package, SHA-256, App Check, restricted Maps keys — l
 | Document | What it owns |
 | -------- | ------------ |
 | `constitution/Logikchain_API_Specifications.md` | HTTP contract §0B (`GET`/`POST`/`PATCH`/`PUT`/`DELETE`), Security block per operation, Firebase Functions runtime §0A |
-| `constitution/Logikchain_Firebase_Workflow.md` | Naming law, isolation, distinct playbooks for `emulator` / `dev` / `test` / `prod`, SHA-only promotion |
+| `constitution/Logikchain_Software_Development_Lifecycle.md` | End-to-end development, review, validation, release, and rollback process |
+| `constitution/Logikchain_Firebase_Workflow.md` | Naming law, isolation, distinct playbooks for `dev` / `test` / `prod`, SHA-only promotion |
 | `constitution/Logikchain_Data_Structures.md` | Document and request/response types, including `DeviceToken.platform` and `officialClient` |
 | `constitution/Logikchain_API_Swagger_Spec.md` | Machine-readable contract |
 | `constitution/Logikchain_API_Testing.md` | Bruno `/v1` collection law: groups, setup / execute / teardown, `emulator` only |
