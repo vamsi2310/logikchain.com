@@ -14,6 +14,8 @@ import {
   VillagesScreen,
   HubsScreen,
   HubDetailScreen,
+  PreConfiguredRoutesScreen,
+  PreConfiguredRouteDetailScreen,
   PlansScreen,
   TariffsScreen,
   OffersScreen,
@@ -71,6 +73,8 @@ export function SupportRoutes() {
       <Route path="/x/config/villages" element={<Guard app="support"><VillagesScreen /></Guard>} />
       <Route path="/x/config/hubs" element={<Guard app="support"><HubsScreen /></Guard>} />
       <Route path="/x/config/hubs/:hubId" element={<Guard app="support"><HubDetailScreen /></Guard>} />
+      <Route path="/x/config/routes" element={<Guard app="support"><PreConfiguredRoutesScreen /></Guard>} />
+      <Route path="/x/config/routes/:routeId" element={<Guard app="support"><PreConfiguredRouteDetailScreen /></Guard>} />
       <Route path="/x/config/plans" element={<Guard app="support"><PlansScreen /></Guard>} />
       <Route path="/x/config/tariffs" element={<Guard app="support"><TariffsScreen /></Guard>} />
       <Route path="/x/config/offers" element={<Guard app="support"><OffersScreen /></Guard>} />

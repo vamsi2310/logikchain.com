@@ -194,6 +194,13 @@ export interface RouteDoc {
     journeyTimeFromOrigin: number;
     location: { latitude: number; longitude: number };
   }>;
+  isPreConfigured?: boolean;
+  status?: "active" | "inactive" | "draft";
+  description?: string;
+  hubId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
 }
 
 export interface Gig {

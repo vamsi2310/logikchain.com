@@ -1,155 +1,214 @@
 # Logikchain Deployment Scripts
 
-This directory contains standardized, safe scripts for deploying Logikchain components to Firebase environments (`dev`, `test`, `prod`).
+This directory contains standardized, safe scripts for building, testing, and deploying Logikchain components to Firebase environments (`dev`, `test`, `prod`).
 
-Scripts are provided in both **PowerShell (`.ps1`)** for Windows and **Bash (`.sh`)** for Linux/macOS/CI.
+Scripts are organized into clean, modular subdirectories with dedicated scripts for PowerShell (`.ps1`) and Bash (`.sh`):
+
+```text
+scripts/
+├── functions/      # Cloud Functions build and deployment
+│   ├── build.ps1 / .sh
+│   ├── deploy.ps1 / .sh
+│   ├── deploy-dev.ps1 / .sh
+│   ├── deploy-test.ps1 / .sh
+│   └── deploy-prod.ps1 / .sh
+├── web/            # Web App (Vite multi-role PWA) build and hosting deployment
+│   ├── build.ps1 / .sh
+│   ├── build-dev.ps1 / .sh
+│   ├── build-test.ps1 / .sh
+│   ├── build-prod.ps1 / .sh
+│   ├── deploy.ps1 / .sh
+│   ├── deploy-dev.ps1 / .sh
+│   ├── deploy-test.ps1 / .sh
+│   └── deploy-prod.ps1 / .sh
+├── stack/          # Full-stack deployments (functions, rules, indexes, storage, hosting)
+│   ├── deploy.ps1 / .sh
+│   ├── deploy-dev.ps1 / .sh
+│   ├── deploy-test.ps1 / .sh
+│   └── deploy-prod.ps1 / .sh
+├── tools/          # Utilities, testing, and seed tools
+│   ├── run-bruno-tests.ps1 / .sh
+│   └── seed-emulator.mjs
+├── deploy.ps1      # Root convenience entrypoint (forwards to stack/deploy.ps1)
+├── deploy.sh       # Root convenience entrypoint (forwards to stack/deploy.sh)
+└── README.md
+```
 
 ---
 
 ## Environment Mapping (`.firebaserc`)
 
-| Alias | Firebase Project ID | Build Mode / Target |
-| :--- | :--- | :--- |
-| `dev` | `logikchaindevelopment` | `functions` (Node 24, 2nd gen) / `web` (`--mode development`) |
-| `test` | `logikchain-test` | `functions` (Node 24, 2nd gen) / `web` (`--mode test`) |
-| `prod` | `logikchain-prod` | `functions` (Node 24, 2nd gen) / `web` (`--mode production`) |
+| Alias | Firebase Project ID | Functions Target | Web Target / Mode |
+| :--- | :--- | :--- | :--- |
+| `dev` | `logikchaindevelopment` | Node 24 (2nd gen) | Vite `--mode development` (`web/.env.development`) |
+| `test` | `logikchain-test` | Node 24 (2nd gen) | Vite `--mode test` (`web/.env.test`) |
+| `prod` | `logikchain-prod` | Node 24 (2nd gen) | Vite `--mode production` (`web/.env.production`) |
 
 ---
 
-## 0. Building Cloud Functions
+## 1. Cloud Functions (`scripts/functions/`)
 
+### Build Scripts
 Compile TypeScript source code (`functions/src`) to JavaScript (`functions/lib`):
 
 ```powershell
 # Standard compilation
-.\scripts\build-functions.ps1
+.\scripts\functions\build.ps1
 
 # Clean previous build artifacts and compile
-.\scripts\build-functions.ps1 -Clean
+.\scripts\functions\build.ps1 -Clean
 
-# Run TypeScript compiler in watch mode (auto-rebuilds on file save)
-.\scripts\build-functions.ps1 -Watch
+# Run TypeScript compiler in watch mode
+.\scripts\functions\build.ps1 -Watch
 
 # Type-check source without emitting JavaScript
-.\scripts\build-functions.ps1 -CheckOnly
+.\scripts\functions\build.ps1 -CheckOnly
 ```
 
-### Bash Equivalents
+**Bash Equivalents:**
 ```bash
-./scripts/build-functions.sh [--clean] [--watch] [--check-only]
+./scripts/functions/build.sh [--clean] [--watch] [--check-only]
 ```
 
-### NPM Shortcuts (inside functions/)
-```bash
-npm run build        # Compile TypeScript
-npm run build:clean  # Clean lib and compile
-npm run build:watch  # Continuous compilation on change
-npm run lint         # Type check without output
-```
+### Deploy Scripts
+Deploy Cloud Functions to Firebase:
 
----
-
-## 1. Cloud Functions Deployment
-
-### Direct Scripts
 ```powershell
 # Deploy to DEV (logikchaindevelopment)
-.\scripts\deploy-functions-dev.ps1
+.\scripts\functions\deploy-dev.ps1
 
 # Deploy to TEST (logikchain-test)
-.\scripts\deploy-functions-test.ps1
+.\scripts\functions\deploy-test.ps1
 
 # Deploy to PROD (logikchain-prod) — asks for confirmation unless -Force is passed
-.\scripts\deploy-functions-prod.ps1
+.\scripts\functions\deploy-prod.ps1 -Force
+
+# Parameterized script: deploy a single function
+.\scripts\functions\deploy.ps1 -Alias dev -OnlyFunction api
 ```
 
-### Parameterized Script
-```powershell
-# Syntax: .\scripts\deploy-functions.ps1 -Alias <dev|test|prod> [-OnlyFunction <name>] [-Force] [-Interactive]
-
-# Deploy only the 'api' function to dev:
-.\scripts\deploy-functions.ps1 -Alias dev -OnlyFunction api
-
-# Deploy to prod skipping interactive confirmation:
-.\scripts\deploy-functions.ps1 -Alias prod -Force
-```
-
-### Bash Equivalents
+**Bash Equivalents:**
 ```bash
-./scripts/deploy-functions-dev.sh
-./scripts/deploy-functions-test.sh
-./scripts/deploy-functions-prod.sh
-# or parameterized:
-./scripts/deploy-functions.sh dev [--only-function <name>] [--force] [--interactive]
+./scripts/functions/deploy-dev.sh
+./scripts/functions/deploy-test.sh
+./scripts/functions/deploy-prod.sh
+./scripts/functions/deploy.sh dev [--only-function <name>] [--skip-build] [--force]
 ```
 
 ---
 
-## 2. Web App (Hosting) Deployment
+## 2. Web App (`scripts/web/`)
 
-Each web deploy script automatically runs the appropriate Vite build for the target environment before uploading to Firebase Hosting (`web/dist`):
+Compiles the 5 role entries (buyer `/`, merchant `/m/`, driver `/d/`, supplier `/s/`, support `/x/`) and deploys to Firebase Hosting.
 
-| Target | Build Command Triggered | Output Directory |
-| :--- | :--- | :--- |
-| `dev` | `npm run build:dev` | `web/dist` |
-| `test` | `npm run build:test` | `web/dist` |
-| `prod` | `npm run build:prod` | `web/dist` |
+### Build Scripts
 
-### Direct Scripts
+```powershell
+# Build for DEV
+.\scripts\web\build-dev.ps1
+
+# Build for TEST
+.\scripts\web\build-test.ps1
+
+# Build for PROD
+.\scripts\web\build-prod.ps1
+
+# Parameterized build with options
+.\scripts\web\build.ps1 -Alias prod -Clean
+.\scripts\web\build.ps1 -CheckOnly
+```
+
+**Bash Equivalents:**
+```bash
+./scripts/web/build-dev.sh
+./scripts/web/build-test.sh
+./scripts/web/build-prod.sh
+./scripts/web/build.sh <dev|test|prod> [--clean] [--check-only]
+```
+
+### Deploy Scripts
+Deploys the bundle to Firebase Hosting (`web/dist`), automatically building for the selected environment first:
+
 ```powershell
 # Deploy Web App to DEV
-.\scripts\deploy-web-dev.ps1
+.\scripts\web\deploy-dev.ps1
 
 # Deploy Web App to TEST
-.\scripts\deploy-web-test.ps1
+.\scripts\web\deploy-test.ps1
 
 # Deploy Web App to PROD — asks for confirmation unless -Force is passed
-.\scripts\deploy-web-prod.ps1
+.\scripts\web\deploy-prod.ps1 -Force
+
+# Parameterized deploy (skip build if current dist is ready)
+.\scripts\web\deploy.ps1 -Alias dev -SkipBuild
 ```
 
-### Parameterized Script
-```powershell
-# Syntax: .\scripts\deploy-web.ps1 -Alias <dev|test|prod> [-SkipBuild] [-Force] [-Interactive]
-
-# Deploy without rebuilding (uses current web/dist):
-.\scripts\deploy-web.ps1 -Alias dev -SkipBuild
-
-# Deploy to prod skipping interactive prompt:
-.\scripts\deploy-web.ps1 -Alias prod -Force
-```
-
-### Bash Equivalents
+**Bash Equivalents:**
 ```bash
-./scripts/deploy-web-dev.sh
-./scripts/deploy-web-test.sh
-./scripts/deploy-web-prod.sh
-# or parameterized:
-./scripts/deploy-web.sh dev [--skip-build] [--force] [--interactive]
+./scripts/web/deploy-dev.sh
+./scripts/web/deploy-test.sh
+./scripts/web/deploy-prod.sh
+./scripts/web/deploy.sh <dev|test|prod> [--skip-build] [--force]
 ```
 
 ---
 
-## 3. Full-Stack Deployment (All Targets)
+## 3. Full-Stack Deployment (`scripts/stack/` & `scripts/`)
 
 Deploys Cloud Functions, Firestore Rules & Indexes, Storage Rules, and Web Hosting together:
 
 ```powershell
 # Deploy all to DEV
-.\scripts\deploy-dev.ps1
+.\scripts\stack\deploy-dev.ps1
 
 # Deploy all to TEST
-.\scripts\deploy-test.ps1 -Force
+.\scripts\stack\deploy-test.ps1 -Force
 
 # Deploy all to PROD
-.\scripts\deploy-prod.ps1 -Force
+.\scripts\stack\deploy-prod.ps1 -Force
 
-# Custom targets via main deploy script:
+# Root shortcut (delegates to stack/deploy.ps1):
+.\scripts\deploy.ps1 -Alias dev
 .\scripts\deploy.ps1 -Alias dev -Only functions,hosting
+```
+
+**Bash Equivalents:**
+```bash
+./scripts/stack/deploy-dev.sh
+./scripts/stack/deploy-test.sh
+./scripts/stack/deploy-prod.sh
+./scripts/deploy.sh dev [--only <targets>] [--force]
+```
+
+---
+
+## 4. Tools & Testing (`scripts/tools/`)
+
+### Bruno API Test Runner
+Runs the automated Bruno test suite against Dev Cloud or Local Emulators:
+
+```powershell
+# Run smoke tests on Dev Cloud
+.\scripts\tools\run-bruno-tests.ps1 -Smoke
+
+# Run specific folder tests
+.\scripts\tools\run-bruno-tests.ps1 -Group 11-config
+
+# Run tests against local emulator
+.\scripts\tools\run-bruno-tests.ps1 -Env emulator
+```
+
+### Emulator Data Seeder
+Seeds local Firestore and Auth emulators with foundational test records:
+
+```powershell
+node .\scripts\tools\seed-emulator.mjs
 ```
 
 ---
 
 ## Safety & Best Practices
+
 1. **Always Aliased**: Scripts always pass `--project <alias>` to Firebase CLI, preventing accidental deploys to an unintended active project.
 2. **Production Safeguard**: Deploys to `prod` prompt for explicit confirmation `Type 'yes'` unless `-Force` / `--force` is specified.
 3. **Automated Bundle Integrity**: Web deploy scripts build the bundle with the correct environment configuration before running Firebase Hosting upload, ensuring no environment variables or endpoints get crossed.

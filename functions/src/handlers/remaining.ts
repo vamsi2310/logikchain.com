@@ -491,8 +491,9 @@ export async function computeRouteMetrics(ctx: CallContext) {
 export async function upsertRoute(ctx: CallContext) {
   const caller = await requireCaller(ctx, { roles: ["supplier", "support"] });
   const routeId = (ctx.data.routeId as string) || (ctx.data.id as string) || randomId("rte");
-  const supplierId = caller.role === "support"
-    ? requireNonEmpty(ctx.data.supplierId, "supplierId")
+  const isSupport = caller.role === "support";
+  const supplierId = isSupport
+    ? ((ctx.data.supplierId as string) || "GLOBAL")
     : caller.id;
   if (caller.role === "supplier" && supplierId !== caller.id) fail("PERMISSION_DENIED");
   const villages = ctx.data.villages as Array<{ villageId?: string; location?: unknown }>;
@@ -502,6 +503,7 @@ export async function upsertRoute(ctx: CallContext) {
   await db.collection(Col.Routes).doc(routeId).set({
     ...ctx.data,
     supplierId,
+    isPreConfigured: isSupport ? (ctx.data.isPreConfigured ?? true) : Boolean(ctx.data.isPreConfigured),
     updatedAt: nowIso(),
   }, { merge: true });
   return { success: true, routeId };

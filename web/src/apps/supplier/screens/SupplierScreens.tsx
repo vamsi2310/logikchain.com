@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { where, orderBy } from "firebase/firestore";
 import { doc, setDoc } from "firebase/firestore";
 import { getDb } from "@/firebase/app";
@@ -201,34 +201,326 @@ export function SupplierInventoryScreen() {
 export function SupplierRoutesScreen() {
   const { profile } = useSession();
   const nav = useNavigate();
-  const q = useQuery<RouteDoc>(
-    profile ? Col.Routes : null,
-    profile ? [where("supplierId", "==", profile.id)] : [],
-    [profile?.id],
+  const [tab, setTab] = useState<"all" | "standard" | "custom">("all");
+
+  const routesQuery = useQuery<RouteDoc>(Col.Routes, [], []);
+
+  const standardRoutes = routesQuery.rows.filter(
+    (r) => r.isPreConfigured === true || r.supplierId === "GLOBAL" || r.supplierId === "SYSTEM",
   );
+  const customRoutes = routesQuery.rows.filter(
+    (r) => profile && r.supplierId === profile.id && !r.isPreConfigured && r.supplierId !== "GLOBAL",
+  );
+
+  const displayedRoutes =
+    tab === "standard" ? standardRoutes : tab === "custom" ? customRoutes : routesQuery.rows;
+
   return (
     <Chrome title="Routes" screenId="SUP-07">
-      {q.rows.map((r) => (
-        <Card key={r.id} onClick={() => nav(`/s/routes/${r.id}`)}>
-          <p className="card-title">{r.name}</p>
-          <p className="muted">
-            {r.origin} → {r.destination}
-          </p>
-        </Card>
-      ))}
+      <div style={{ marginBottom: 16 }}>
+        <p className="muted" style={{ margin: 0 }}>
+          Browse standard delivery corridors pre-configured by Support, or manage your custom supply routes.
+        </p>
+      </div>
+
+      {/* Segmented Filter Tabs */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, overflowX: "auto" }}>
+        <button
+          type="button"
+          onClick={() => setTab("all")}
+          style={{
+            padding: "8px 14px",
+            fontSize: 12.5,
+            fontWeight: 600,
+            borderRadius: 6,
+            border: "1px solid var(--border)",
+            background: tab === "all" ? "var(--primary)" : "var(--surface)",
+            color: tab === "all" ? "#fff" : "var(--foreground)",
+            cursor: "pointer",
+          }}
+        >
+          All Routes ({routesQuery.rows.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("standard")}
+          style={{
+            padding: "8px 14px",
+            fontSize: 12.5,
+            fontWeight: 600,
+            borderRadius: 6,
+            border: "1px solid var(--border)",
+            background: tab === "standard" ? "var(--primary)" : "var(--surface)",
+            color: tab === "standard" ? "#fff" : "var(--foreground)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <span>🌟 Pre-configured ({standardRoutes.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("custom")}
+          style={{
+            padding: "8px 14px",
+            fontSize: 12.5,
+            fontWeight: 600,
+            borderRadius: 6,
+            border: "1px solid var(--border)",
+            background: tab === "custom" ? "var(--primary)" : "var(--surface)",
+            color: tab === "custom" ? "#fff" : "var(--foreground)",
+            cursor: "pointer",
+          }}
+        >
+          My Custom ({customRoutes.length})
+        </button>
+      </div>
+
+      {/* Routes List */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {displayedRoutes.map((r) => {
+          const isStandard = r.isPreConfigured === true || r.supplierId === "GLOBAL" || r.supplierId === "SYSTEM";
+          const stopsCount = r.villages?.length ?? 0;
+          return (
+            <Card key={r.id}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                    <p className="card-title" style={{ margin: 0, fontSize: 16 }}>{r.name}</p>
+                    {isStandard ? (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          padding: "2px 7px",
+                          borderRadius: 4,
+                          background: "rgba(99, 102, 241, 0.12)",
+                          color: "#4f46e5",
+                          fontWeight: 600,
+                        }}
+                      >
+                        ✓ Support Pre-configured
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          padding: "2px 7px",
+                          borderRadius: 4,
+                          background: "rgba(100, 116, 139, 0.12)",
+                          color: "#64748b",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Custom Route
+                      </span>
+                    )}
+                  </div>
+                  <p className="muted" style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 500 }}>
+                    {r.origin} <span style={{ color: "var(--primary)" }}>➔</span> {r.destination}
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => nav(`/s/routes/${r.id}`)}
+                    style={{ fontSize: 12, padding: "6px 10px" }}
+                  >
+                    View Stops
+                  </Button>
+                  <Button
+                    onClick={() => nav(`/s/gigs/new?routeId=${r.id}`)}
+                    style={{ fontSize: 12, padding: "6px 12px" }}
+                  >
+                    Use in Gig ➔
+                  </Button>
+                </div>
+              </div>
+
+              {/* Metrics */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  alignItems: "center",
+                  margin: "10px 0 6px",
+                  fontSize: 12,
+                  color: "var(--muted)",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span>📏 <strong>{r.length || 0} km</strong></span>
+                <span>⏱ <strong>{r.duration || 0} mins</strong> turnaround</span>
+                <span>🏡 <strong>{stopsCount} stops</strong></span>
+              </div>
+
+              {r.description && (
+                <p style={{ margin: "4px 0 8px", fontSize: 12, color: "var(--muted)", lineHeight: 1.4 }}>
+                  {r.description}
+                </p>
+              )}
+
+              {/* Stop chips */}
+              {r.villages && r.villages.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                  {r.villages.map((v, i) => (
+                    <span
+                      key={v.villageId || i}
+                      style={{
+                        fontSize: 11,
+                        padding: "2px 8px",
+                        borderRadius: 10,
+                        background: "var(--surface)",
+                        border: "1px solid var(--border)",
+                      }}
+                    >
+                      {i + 1}. {v.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+
+        {displayedRoutes.length === 0 && (
+          <EmptyState
+            glyph="🛣"
+            title="No routes found"
+            hint={
+              tab === "custom"
+                ? "You haven't created any custom routes. You can use any of the Support Pre-configured routes anytime."
+                : "No routes match this filter."
+            }
+            action={
+              tab === "custom" ? (
+                <Button onClick={() => setTab("standard")}>
+                  View Support Pre-configured Routes
+                </Button>
+              ) : undefined
+            }
+          />
+        )}
+      </div>
     </Chrome>
   );
 }
 
 export function SupplierRouteBuilderScreen() {
   const { routeId } = useParams();
+  const nav = useNavigate();
   const r = useDoc<RouteDoc>(Col.Routes, routeId);
+  const route = r.data;
+  const isStandard =
+    route?.isPreConfigured === true || route?.supplierId === "GLOBAL" || route?.supplierId === "SYSTEM";
+
   return (
-    <Chrome title="Route builder" screenId="SUP-07.1" back>
-      <p>{r.data?.name}</p>
-      {r.data?.villages.map((v) => (
-        <p key={v.villageId}>{v.name}</p>
-      ))}
+    <Chrome title={route?.name ?? "Route Details"} screenId="SUP-07.1" back>
+      {route ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {isStandard && (
+            <Banner>
+              🌟 <strong>Support Pre-configured Corridor:</strong> This standard route is managed by Logikchain Support and verified for all platform suppliers. You can immediately assign deliveries and compose gigs on this route.
+            </Banner>
+          )}
+
+          <Card>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, flexWrap: "wrap" }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{route.name}</h2>
+                <p className="muted" style={{ margin: "4px 0 0", fontSize: 14 }}>
+                  {route.origin} <span style={{ color: "var(--primary)" }}>➔</span> {route.destination}
+                </p>
+              </div>
+              <Button onClick={() => nav(`/s/gigs/new?routeId=${route.id}`)}>
+                Compose Gig on this Route ➔
+              </Button>
+            </div>
+
+            {route.description && (
+              <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
+                {route.description}
+              </p>
+            )}
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+                gap: 8,
+                marginTop: 14,
+                padding: 10,
+                background: "var(--surface)",
+                borderRadius: 6,
+                border: "1px solid var(--border)",
+              }}
+            >
+              <div>
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>Total Distance</span>
+                <p style={{ margin: "2px 0 0", fontSize: 15, fontWeight: 700 }}>{route.length} km</p>
+              </div>
+              <div>
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>Turnaround</span>
+                <p style={{ margin: "2px 0 0", fontSize: 15, fontWeight: 700 }}>{route.duration} mins</p>
+              </div>
+              <div>
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>Total Stops</span>
+                <p style={{ margin: "2px 0 0", fontSize: 15, fontWeight: 700 }}>{route.villages?.length ?? 0}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <p className="card-title" style={{ marginBottom: 12 }}>
+              Delivery Sequence & Waypoints ({route.villages?.length ?? 0} stops)
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--foreground)", color: "var(--background)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>
+                  O
+                </span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: 13.5 }}>{route.origin}</p>
+                  <span style={{ fontSize: 11, color: "var(--muted)" }}>Dispatch Origin (T+0 min)</span>
+                </div>
+              </div>
+
+              {route.villages?.map((v, i) => (
+                <div key={v.villageId || i} style={{ display: "flex", alignItems: "flex-start", gap: 10, paddingLeft: 4 }}>
+                  <span style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, marginTop: 2 }}>
+                    {i + 1}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>{v.name}</p>
+                      <span style={{ fontSize: 12, color: "var(--primary)", fontWeight: 600 }}>
+                        +{v.journeyTimeFromOrigin} min
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 11, color: "var(--muted)" }}>
+                      Village ID: {v.villageId} · GPS: {v.location.latitude.toFixed(4)}, {v.location.longitude.toFixed(4)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 22, height: 22, borderRadius: "50%", background: "var(--foreground)", color: "var(--background)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>
+                  D
+                </span>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: 13.5 }}>{route.destination}</p>
+                  <span style={{ fontSize: 11, color: "var(--muted)" }}>End of Route (T+{route.duration} min)</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      ) : (
+        <EmptyState glyph="🛣" title="Route not found" hint="This route does not exist." />
+      )}
     </Chrome>
   );
 }
@@ -256,35 +548,109 @@ export function SupplierGigComposerScreen() {
   const { profile } = useSession();
   const { push } = useToast();
   const nav = useNavigate();
-  const routes = useQuery<RouteDoc>(
-    profile ? Col.Routes : null,
-    profile ? [where("supplierId", "==", profile.id)] : [],
-    [profile?.id],
-  );
+  const [searchParams] = useSearchParams();
+
+  const routesQuery = useQuery<RouteDoc>(Col.Routes, [], []);
+
   const [title, setTitle] = useState("");
-  const [routeId, setRouteId] = useState("");
+  const [routeId, setRouteId] = useState(searchParams.get("routeId") || "");
   const [date, setDate] = useState("");
+
+  const standardRoutes = routesQuery.rows.filter(
+    (r) => r.isPreConfigured === true || r.supplierId === "GLOBAL" || r.supplierId === "SYSTEM",
+  );
+  const customRoutes = routesQuery.rows.filter(
+    (r) => profile && r.supplierId === profile.id && !r.isPreConfigured && r.supplierId !== "GLOBAL",
+  );
+
+  const selectedRoute = routesQuery.rows.find((r) => r.id === routeId);
+  const isSelectedStandard =
+    selectedRoute?.isPreConfigured === true ||
+    selectedRoute?.supplierId === "GLOBAL" ||
+    selectedRoute?.supplierId === "SYSTEM";
+
   return (
     <Chrome title="Compose gig" screenId="SUP-09" back>
       {!profile?.activeSubscriptionId ? <Banner>Subscription required</Banner> : null}
       <Field label="Title">
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Morning Grocery & Farm Inputs Run"
+        />
       </Field>
       <Field label="Route">
-        <select value={routeId} onChange={(e) => setRouteId(e.target.value)} style={{ minHeight: 48, width: "100%" }}>
-          <option value="">—</option>
-          {routes.rows.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name}
-            </option>
-          ))}
+        <select
+          value={routeId}
+          onChange={(e) => setRouteId(e.target.value)}
+          style={{ minHeight: 48, width: "100%" }}
+        >
+          <option value="">— Select a Route —</option>
+          {standardRoutes.length > 0 && (
+            <optgroup label="🌟 Standard Pre-configured Routes (Available to all suppliers)">
+              {standardRoutes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name} ({r.origin} ➔ {r.destination}, {r.length}km, {r.villages?.length ?? 0} stops)
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {customRoutes.length > 0 && (
+            <optgroup label="📋 My Custom Routes">
+              {customRoutes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name} ({r.origin} ➔ {r.destination})
+                </option>
+              ))}
+            </optgroup>
+          )}
         </select>
       </Field>
+
+      {/* Selected Route Preview */}
+      {selectedRoute && (
+        <div
+          style={{
+            padding: "10px 12px",
+            background: isSelectedStandard ? "rgba(99, 102, 241, 0.06)" : "var(--surface)",
+            borderRadius: 6,
+            border: isSelectedStandard ? "1px solid rgba(99, 102, 241, 0.2)" : "1px solid var(--border)",
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            {isSelectedStandard && (
+              <span
+                style={{
+                  fontSize: 10.5,
+                  padding: "2px 6px",
+                  background: "#4f46e5",
+                  color: "#fff",
+                  borderRadius: 3,
+                  fontWeight: 700,
+                }}
+              >
+                SUPPORT PRE-CONFIGURED
+              </span>
+            )}
+            <strong style={{ fontSize: 13 }}>{selectedRoute.name}</strong>
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+            📍 {selectedRoute.origin} ➔ {selectedRoute.destination} · {selectedRoute.length} km · {selectedRoute.duration} mins turnaround · {selectedRoute.villages?.length ?? 0} village stops
+          </p>
+          {selectedRoute.villages && selectedRoute.villages.length > 0 && (
+            <p style={{ margin: "4px 0 0", fontSize: 11.5, color: "var(--foreground)" }}>
+              Stops: {selectedRoute.villages.map((v) => v.name).join(" ➔ ")}
+            </p>
+          )}
+        </div>
+      )}
+
       <Field label="Date">
         <input value={date} onChange={(e) => setDate(e.target.value)} placeholder="YYYY-MM-DD" />
       </Field>
       <Button
-        disabled={!profile?.activeSubscriptionId}
+        disabled={!profile?.activeSubscriptionId || !routeId}
         onClick={async () => {
           try {
             const res = (await ops.composeGig({

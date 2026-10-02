@@ -25,10 +25,13 @@ export async function composeGig(ctx: CallContext) {
   if (!routeSnap.exists) fail("NOT_FOUND", "Route not found");
   const route = routeSnap.data() as {
     supplierId: string;
+    isPreConfigured?: boolean;
+    isGlobal?: boolean;
     villages?: Array<{ villageId?: string; name?: string; location?: { latitude: number; longitude: number } }>;
     length?: number;
   };
-  if (route.supplierId !== caller.id) fail("PERMISSION_DENIED");
+  const isPreConfigured = route.isPreConfigured === true || route.isGlobal === true || route.supplierId === "GLOBAL" || route.supplierId === "SYSTEM";
+  if (!isPreConfigured && route.supplierId !== caller.id) fail("PERMISSION_DENIED");
 
   const driverSnap = await db.collection(Col.UserProfiles).doc(vehicleId).get();
   if (!driverSnap.exists) fail("NOT_FOUND", "vehicle profile not found");

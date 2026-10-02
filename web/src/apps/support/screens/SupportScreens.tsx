@@ -6,29 +6,44 @@ import { Col } from "@/data/collections";
 import { useDoc, useQuery } from "@/data/hooks";
 import { getDb } from "@/firebase/app";
 import { useToast } from "@/state/toast";
-import { Chrome } from "@/ui/Chrome";
-import { Button, Card, EmptyState, Field, Skeletons, StatusChip } from "@/ui/primitives";
+import { SupportChrome as Chrome, SptField as Field, SptEmpty as EmptyState, SptSkeletons as Skeletons, SptStatusChip as StatusChip } from "../SupportChrome";
+import { Button, Card } from "@/ui/primitives";
 import { formatDate, formatMoney } from "@/format";
 import type { Order, UserProfile, Village, VillageRequest } from "@/types/domain";
+
+const OPS_ITEMS: Array<{ to: string; icon: string; label: string; hint: string }> = [
+  { to: "/x/orders/suspended", icon: "⏸", label: "Suspended orders", hint: "Orders paused for review" },
+  { to: "/x/villages/requests", icon: "📍", label: "Village requests", hint: "Pending new-village approvals" },
+  { to: "/x/subscriptions", icon: "📋", label: "Subscriptions", hint: "Active platform subscriptions" },
+  { to: "/x/audit", icon: "📝", label: "Audit log", hint: "Full system event trail" },
+  { to: "/x/cash", icon: "₹", label: "Cash custody", hint: "Cash in transit tracking" },
+  { to: "/x/money-exceptions", icon: "⚠", label: "Money exceptions", hint: "Payment discrepancy queue" },
+  { to: "/x/reconciliation", icon: "⇄", label: "Reconciliation", hint: "Ledger vs. payout matching" },
+  { to: "/x/period-close", icon: "🔒", label: "Period close", hint: "Month-end accounting close" },
+];
 
 export function SupportOpsScreen() {
   const nav = useNavigate();
   return (
     <Chrome title="Operations" screenId="SPT-01">
-      {[
-        ["/x/orders/suspended", "Suspended orders"],
-        ["/x/villages/requests", "Village requests"],
-        ["/x/subscriptions", "Subscriptions"],
-        ["/x/audit", "Audit log"],
-        ["/x/cash", "Cash custody"],
-        ["/x/money-exceptions", "Money exceptions"],
-        ["/x/reconciliation", "Reconciliation"],
-        ["/x/period-close", "Period close"],
-      ].map(([to, label]) => (
-        <button key={to} type="button" className="list-row" style={{ marginTop: 12 }} onClick={() => nav(to!)}>
-          {label} ›
-        </button>
-      ))}
+      <p className="spt-section-sub">Platform health and operational tasks</p>
+      <div className="spt-list-rows">
+        {OPS_ITEMS.map((item) => (
+          <button
+            key={item.to}
+            type="button"
+            className="spt-list-row"
+            onClick={() => nav(item.to)}
+          >
+            <div className="spt-list-row-icon" aria-hidden>{item.icon}</div>
+            <div className="spt-list-row-content">
+              <div className="spt-list-row-title">{item.label}</div>
+              <div className="spt-list-row-sub">{item.hint}</div>
+            </div>
+            <div className="spt-list-row-right">›</div>
+          </button>
+        ))}
+      </div>
     </Chrome>
   );
 }
@@ -268,27 +283,38 @@ export function VillageRequestsScreen() {
   );
 }
 
+const CONFIG_ITEMS: Array<{ to: string; icon: string; label: string; hint: string }> = [
+  { to: "/x/config/countries", icon: "🌐", label: "Countries", hint: "Operating territories" },
+  { to: "/x/config/states", icon: "🗺", label: "States", hint: "State-level config" },
+  { to: "/x/config/districts", icon: "📍", label: "Districts", hint: "District mapping" },
+  { to: "/x/config/villages", icon: "🏡", label: "Villages", hint: "Village coverage" },
+  { to: "/x/config/hubs", icon: "⬡", label: "Hubs", hint: "Logistics hubs" },
+  { to: "/x/config/routes", icon: "🛣", label: "Pre-configured Routes", hint: "Standard corridors for suppliers" },
+  { to: "/x/config/plans", icon: "📦", label: "Plans", hint: "Subscription plans" },
+  { to: "/x/config/tariffs", icon: "₹", label: "Tariffs", hint: "Pricing & rates" },
+  { to: "/x/config/offers", icon: "🏷", label: "Offers", hint: "Active promotions" },
+  { to: "/x/config/codes", icon: "#", label: "Discount codes", hint: "Promo code batches" },
+  { to: "/x/config/tax", icon: "📊", label: "Tax", hint: "GST / VAT config" },
+  { to: "/x/config/tds", icon: "📋", label: "TDS", hint: "TDS filing quarters" },
+];
+
 export function ConfigHomeScreen() {
   const nav = useNavigate();
-  const items = [
-    ["/x/config/countries", "Countries"],
-    ["/x/config/states", "States"],
-    ["/x/config/districts", "Districts"],
-    ["/x/config/villages", "Villages"],
-    ["/x/config/hubs", "Hubs"],
-    ["/x/config/plans", "Plans"],
-    ["/x/config/tariffs", "Tariffs"],
-    ["/x/config/offers", "Offers"],
-    ["/x/config/codes", "Discount codes"],
-    ["/x/config/tax", "Tax"],
-    ["/x/config/tds", "TDS"],
-  ];
   return (
-    <Chrome title="Config" screenId="SPT-05">
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        {items.map(([to, label]) => (
-          <button key={to} type="button" className="card" onClick={() => nav(to!)}>
-            {label}
+    <Chrome title="Configuration" screenId="SPT-05">
+      <p className="spt-section-sub">System-wide configuration and reference data</p>
+      <div className="spt-grid-auto" style={{ gap: 10 }}>
+        {CONFIG_ITEMS.map((item) => (
+          <button
+            key={item.to}
+            type="button"
+            className="spt-card"
+            style={{ padding: "16px 18px", textAlign: "left", display: "block", width: "100%", cursor: "pointer", borderRadius: "var(--spt-radius-md)", background: "var(--spt-content-surface)", border: "1px solid var(--spt-content-border)", transition: "border-color 200ms, box-shadow 200ms" }}
+            onClick={() => nav(item.to)}
+          >
+            <div style={{ fontSize: 22, marginBottom: 10 }} aria-hidden>{item.icon}</div>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--spt-ink)", marginBottom: 3 }}>{item.label}</div>
+            <div style={{ fontSize: 12, color: "var(--spt-ink-muted)" }}>{item.hint}</div>
           </button>
         ))}
       </div>
@@ -1565,3 +1591,6 @@ export function SupportSimple({ title, id }: { title: string; id: string }) {
     </Chrome>
   );
 }
+
+export { PreConfiguredRoutesScreen, PreConfiguredRouteDetailScreen } from "./SupportPreConfiguredRoutesScreen";
+

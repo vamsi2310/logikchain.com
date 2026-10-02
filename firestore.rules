@@ -146,10 +146,10 @@ service cloud.firestore {
 
     match /Routes/{id} {
       allow read: if signedIn();
-      allow create: if isApproved() && role() == "supplier"
-        && request.resource.data.supplierId == uid();
-      allow update, delete: if isApproved() && role() == "supplier"
-        && resource.data.supplierId == uid();
+      allow create: if (isApproved() && role() == "supplier"
+        && request.resource.data.supplierId == uid()) || isSupport();
+      allow update, delete: if (isApproved() && role() == "supplier"
+        && resource.data.supplierId == uid()) || isSupport();
     }
 
     match /Discounts/{id} {
