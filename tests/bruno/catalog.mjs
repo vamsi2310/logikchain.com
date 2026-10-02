@@ -18,7 +18,7 @@ export const groups = [
 
 export const operations = [
   // 01 identity
-  { id: "createSupplier", group: "01-identity", method: "post", path: "/v1/suppliers", role: "support", successFields: ["success", "supplierId"], body: { email: "bruno-supplier-{{runId}}@logikchain.test", name: "Bruno Supplier {{runId}}", phone: "+919000000001", countryId: "{{seedCountryId}}" } },
+  { id: "createSupplier", group: "01-identity", method: "post", path: "/v1/suppliers", role: "support", successFields: ["success", "supplierId"], body: { email: "bruno-supplier-{{runId}}@logikchain.test", name: "Bruno Supplier {{runId}}", phone: "{{supplierPhone}}", countryId: "{{seedCountryId}}" } },
   { id: "convertBuyerToRole", group: "01-identity", method: "post", path: "/v1/buyers/{buyerId}/role", role: "supplier", successFields: ["success"], body: { buyerId: "{{buyerId}}", targetRole: "merchant" } },
   { id: "updateUserProfile", group: "01-identity", method: "patch", path: "/v1/users/{userId}", role: "buyer", successFields: ["success", "userId"], body: { userId: "{{userId}}", name: "Bruno Buyer {{runId}}", locale: "en-IN" } },
   { id: "disassociateMerchant", group: "01-identity", method: "post", path: "/v1/merchants/{merchantId}:disassociate", role: "supplier", successFields: ["success"], body: { merchantId: "{{merchantId}}", reason: "bruno disassociate {{runId}}" } },

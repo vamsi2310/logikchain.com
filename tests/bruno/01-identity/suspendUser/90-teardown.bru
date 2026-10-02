@@ -35,12 +35,16 @@ script:pre-request {
   }
   bru.setVar("idempotencyKey", "idem-" + operationId + "-" + bru.getVar("runId"));
   bru.setVar("correlationId", operationId + ":" + bru.getVar("runId"));
+  if (!bru.getVar("supplierPhone")) {
+    const randomDigits = Math.floor(100000000 + Math.random() * 900000000).toString();
+    bru.setVar("supplierPhone", "+919" + randomDigits);
+  }
   const authEmulator = bru.getEnvVar("authEmulator");
-  const email = bru.getEnvVar("seedSupportEmail");
-  const password = bru.getEnvVar("seedPassword");
+  const email = bru.getEnvVar("seedSupportEmail") || bru.getEnvVar("seedSupportEmail") || "vamsi2310@gmail.com";
+  const password = bru.getEnvVar("seedPassword") || "TestPassword123!";
   const tokenVar = "supportAccessToken";
   if (tokenVar && !bru.getVar(tokenVar)) {
-    const existingToken = bru.getEnvVar(tokenVar) || bru.getEnvVar("accessToken");
+    const existingToken = bru.getVar(tokenVar) || bru.getEnvVar(tokenVar) || bru.getVar("supportAccessToken") || bru.getEnvVar("supportAccessToken") || bru.getVar("accessToken") || bru.getEnvVar("accessToken");
     if (existingToken) {
       bru.setVar(tokenVar, existingToken);
     } else if (email && password) {
@@ -49,16 +53,27 @@ script:pre-request {
         const authUrl = authEmulator
           ? authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key
           : "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key;
-        const resp = await fetch(authUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, returnSecureToken: true })
-        });
-        const data = await resp.json();
+        let data;
+        if (typeof bru.sendRequest === "function") {
+          const resp = await bru.sendRequest({
+            url: authUrl,
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            data: { email, password, returnSecureToken: true }
+          });
+          data = resp ? resp.data : null;
+        } else if (typeof fetch === "function") {
+          const resp = await fetch(authUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, returnSecureToken: true })
+          });
+          data = await resp.json();
+        }
         if (data && data.idToken) {
           bru.setVar(tokenVar, data.idToken);
         } else if (data && data.error) {
-          console.warn("setup auth failed: " + data.error.message);
+          console.warn("setup auth failed: " + (data.error.message || JSON.stringify(data.error)));
         }
       } catch (err) {
         console.warn("setup auth: " + (err && err.message ? err.message : err));
@@ -66,7 +81,7 @@ script:pre-request {
     }
   }
   if (tokenVar) {
-    bru.setVar("accessToken", bru.getVar(tokenVar) || bru.getEnvVar(tokenVar) || bru.getEnvVar("accessToken") || "");
+    bru.setVar("accessToken", bru.getVar(tokenVar) || bru.getEnvVar(tokenVar) || bru.getVar("accessToken") || bru.getEnvVar("accessToken") || "");
   }
   const seedKeys = ["seedGigId","seedVillageId","seedRouteId","seedPamphletId","seedProductId","seedBuyerId","seedMerchantId","seedSupplierId","seedVehicleId","seedCountryId","seedPlanId","seedTariffId","seedSubscriptionId","seedStateId","seedDistrictId"];
   for (const key of seedKeys) {

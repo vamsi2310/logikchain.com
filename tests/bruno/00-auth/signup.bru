@@ -1,0 +1,63 @@
+meta {
+  name: 01-signup
+  type: http
+  seq: 1
+  tags: [
+    auth
+    signup
+  ]
+}
+
+post {
+  url: {{authEndpoint}}/v1/accounts:signUp?key={{firebaseWebApiKey}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{authEmail}}",
+    "password": "{{authPassword}}",
+    "returnSecureToken": true
+  }
+}
+
+script:pre-request {
+  const authEmulator = bru.getEnvVar("authEmulator");
+  const authEndpoint = authEmulator
+    ? authEmulator + "/identitytoolkit.googleapis.com"
+    : "https://identitytoolkit.googleapis.com";
+  bru.setVar("authEndpoint", authEndpoint);
+
+  if (!bru.getVar("authEmail")) {
+    const email = "test_user_" + Date.now().toString(36) + "@logikchain.test";
+    bru.setVar("authEmail", email);
+  }
+  if (!bru.getVar("authPassword")) {
+    const password = bru.getEnvVar("seedPassword") || "TestPassword123!";
+    bru.setVar("authPassword", password);
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (data && data.idToken) {
+    bru.setVar("accessToken", data.idToken);
+    bru.setVar("userId", data.localId);
+    bru.setVar("refreshToken", data.refreshToken);
+    bru.setVar("userEmail", data.email);
+  }
+}
+
+assert {
+  res.status: in [200, 400]
+}
+
+docs {
+  Registers a new user in Firebase Authentication using Identity Toolkit REST API.
+  Saves the returned idToken to {{accessToken}} and localId to {{userId}} for subsequent requests.
+}

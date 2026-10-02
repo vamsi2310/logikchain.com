@@ -35,6 +35,29 @@ script:pre-request {
   if (appId && typeof req.setHeader === "function") {
     req.setHeader("X-Firebase-AppId", appId);
   }
+  if (!bru.getVar("accessToken")) {
+    const authEmulator = bru.getEnvVar("authEmulator");
+    const email = bru.getEnvVar("seedSupportEmail") || "vamsi2310@gmail.com";
+    const password = bru.getEnvVar("seedPassword") || "TestPassword123!";
+    const key = bru.getEnvVar("firebaseWebApiKey") || "fake-api-key";
+    if (email && password && typeof bru.sendRequest === "function") {
+      try {
+        const authUrl = authEmulator
+          ? authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key
+          : "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key;
+        const resp = await bru.sendRequest({
+          url: authUrl,
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          data: { email, password, returnSecureToken: true }
+        });
+        if (resp && resp.data && resp.data.idToken) {
+          bru.setVar("accessToken", resp.data.idToken);
+          bru.setVar("supportAccessToken", resp.data.idToken);
+        }
+      } catch (err) {}
+    }
+  }
 }
 
 docs {

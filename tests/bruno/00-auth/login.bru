@@ -1,0 +1,63 @@
+meta {
+  name: 02-login
+  type: http
+  seq: 2
+  tags: [
+    auth
+    login
+  ]
+}
+
+post {
+  url: {{authEndpoint}}/v1/accounts:signInWithPassword?key={{firebaseWebApiKey}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{authEmail}}",
+    "password": "{{authPassword}}",
+    "returnSecureToken": true
+  }
+}
+
+script:pre-request {
+  const authEmulator = bru.getEnvVar("authEmulator");
+  const authEndpoint = authEmulator
+    ? authEmulator + "/identitytoolkit.googleapis.com"
+    : "https://identitytoolkit.googleapis.com";
+  bru.setVar("authEndpoint", authEndpoint);
+
+  if (!bru.getVar("authEmail")) {
+    const email = bru.getEnvVar("seedSupportEmail") || bru.getVar("userEmail") || "support@logikchaindevelopment.com";
+    bru.setVar("authEmail", email);
+  }
+  if (!bru.getVar("authPassword")) {
+    const password = bru.getEnvVar("seedPassword") || "TestPassword123!";
+    bru.setVar("authPassword", password);
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+  if (data && data.idToken) {
+    bru.setVar("accessToken", data.idToken);
+    bru.setVar("userId", data.localId);
+    bru.setVar("refreshToken", data.refreshToken);
+    bru.setVar("userEmail", data.email);
+  }
+}
+
+assert {
+  res.status: in [200, 400]
+}
+
+docs {
+  Signs in with email and password to Firebase Authentication using Identity Toolkit REST API.
+  Saves the returned idToken to {{accessToken}} for subsequent Bruno requests.
+}
