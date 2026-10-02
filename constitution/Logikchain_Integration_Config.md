@@ -119,13 +119,13 @@ Store captured values in the file named for that alias. Do not keep one `.env` t
     *   Debug App Check tokens are allowed on `dev` and the emulator only. `test` and `prod` enforce.
 
 ### 1.5 Firebase Functions 2nd gen
-*   **Purpose**: The only compute. Callable, HTTPS (`api` + webhooks), scheduled, and task exports named in `constitution/Logikchain_API_Specifications.md`. Runtime is **Node 20**.
+*   **Purpose**: The only compute. Callable, HTTPS (`api` + webhooks), scheduled, and task exports named in `constitution/Logikchain_API_Specifications.md`. Runtime is **Node 24**.
 *   **Provisioning Steps**:
     1. Enable Cloud Functions, Cloud Run, Artifact Registry, Cloud Build, Cloud Scheduler, Cloud Tasks, and Secret Manager on each project.
-    2. Set the Functions region to `asia-south1`. Confirm no leftover `us-central1` exports exist. Confirm `firebase.json` `runtime` is `nodejs20`.
+    2. Set the Functions region to `asia-south1`. Confirm no leftover `us-central1` exports exist. Confirm `firebase.json` `runtime` is `nodejs24`.
     3. Store secrets with `firebase functions:secrets:set <NAME> --project <alias>`. Do not use deprecated `functions.config()`.
     4. Deploy only through `scripts/deploy.ps1` / `scripts/deploy.sh` or CI, always `firebase deploy --project <alias> --only functions` as in `constitution/Logikchain_Firebase_Workflow.md`.
-*   **Locked settings:** Node 20. `minInstances: 0`. No 1st-gen exports. No Python. No `gcloud run deploy`. Isolation list and handler/`lib` split: `constitution/Logikchain_Architecture.md` §4.
+*   **Locked settings:** Node 24. `minInstances: 0`. No 1st-gen exports. No Python. No `gcloud run deploy`. Isolation list and handler/`lib` split: `constitution/Logikchain_Architecture.md` §4.
 *   **Parameters to Capture**:
     *   `FUNCTIONS_REGION=asia-south1`
     *   Secret Manager resource names **per alias** (Razorpay, webhook, SMS, KMS key path)

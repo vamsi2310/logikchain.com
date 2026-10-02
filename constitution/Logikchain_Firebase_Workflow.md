@@ -75,7 +75,7 @@ A UID on `dev` is not the same person as a UID on `prod`, even if the phone numb
 
 ## 3. Required repo files
 
-`2026-09-09.` Constitution markdown and wireframes live under `constitution/`. `seed/` stays at repo root (emulator only). Runtime trees are `functions/` (Node 20, 2nd gen), `web/` (Vite role apps), and `android/`. DevOps for this product lives here: `firebase.json`, `scripts/deploy.*`, rules, and `.github/workflows/`.
+`2026-09-09.` Constitution markdown and wireframes live under `constitution/`. `seed/` stays at repo root (emulator only). Runtime trees are `functions/` (Node 24, 2nd gen), `web/` (Vite role apps), and `android/`. DevOps for this product lives here: `firebase.json`, `scripts/deploy.*`, rules, and `.github/workflows/`.
 
 | File | Committed? | Role |
 | ---- | ---------- | ---- |
@@ -84,7 +84,7 @@ A UID on `dev` is not the same person as a UID on `prod`, even if the phone numb
 | `seed/` | yes | Emulator fixtures only. Never imported into `dev` / `test` / `prod` |
 | `.firebaserc` | yes (IDs only) | Alias → project ID |
 | `.firebaserc.example` | yes | Template |
-| `firebase.json` | yes | Functions `nodejs20`, emulator ports, Hosting `web/dist`, rewrites `/v1/**` → `api` (`asia-south1`) and `/m` `/d` `/s` `/x` → role HTML |
+| `firebase.json` | yes | Functions `nodejs24`, emulator ports, Hosting `web/dist`, rewrites `/v1/**` → `api` (`asia-south1`) and `/m` `/d` `/s` `/x` → role HTML |
 | `firestore.rules` / `firestore.indexes.json` / `storage.rules` | yes | Same artifacts, every remote alias |
 | `storage/` | yes | Storage architecture, `cors.json`, and rules definition |
 | `functions/` | yes | 2nd gen TypeScript. Export names **are** the API spec names. `src/` is source; `lib/` is `tsc` output |
@@ -103,7 +103,7 @@ A UID on `dev` is not the same person as a UID on `prod`, even if the phone numb
 | `android/app/src/dev\|test\|prod/google-services.json` | flavor copies; no unrestricted Maps/Gemini keys | Android per alias |
 | `.github/workflows/` | yes | `deploy-test` on `main` and `workflow_dispatch`; `deploy-prod` on tag `v*` only |
 
-`firebase.json` runtime is **Node 20**, codebase 2nd gen. No `firebase-functions/v1` import. `functions/package.json` `deploy:test` and `deploy:prod` exit 1 so a laptop npm script cannot skip the playbook.
+`firebase.json` runtime is **Node 24**, codebase 2nd gen. No `firebase-functions/v1` import. `functions/package.json` `deploy:test` and `deploy:prod` exit 1 so a laptop npm script cannot skip the playbook.
 
 ---
 
@@ -271,7 +271,7 @@ These settings apply to `dev`, `test`, and `prod`. They do not apply to `emulato
 firebase deploy --project <alias> --only functions
 ```
 
-- **2nd gen only, Node 20:** `onCall` / `onRequest` / `onSchedule` / `onTaskDispatched` from `firebase-functions/v2/*`.
+- **2nd gen only, Node 24:** `onCall` / `onRequest` / `onSchedule` / `onTaskDispatched` from `firebase-functions/v2/*`.
 - **Region:** `asia-south1`. A `us-central1` leftover is out of contract.
 - **Scale:** `minInstances: 0`. Concurrency 20–80. Memory 512 MB except the isolation list in `constitution/Logikchain_Architecture.md` §4 (1 GiB).
 - **Isolation list** (own export, still 2nd gen): `handleGatewayWebhook`, `recordPayoutSettlement`, `initiatePayoutTransfer`, `runReconciliation`, `postDueCreditRelief`, `closeAccountingPeriod`, `reopenAccountingPeriod`, `issueCreditNote`, `getFinanceReport`, `exportFinanceReport`, `computeRouteMetrics`, Vertex-backed helpers.

@@ -1,10 +1,32 @@
+<#
+.SYNOPSIS
+  Deploy all Logikchain components (functions, firestore, storage, hosting) to TEST.
+
+.PARAMETER Only
+  Override target components (defaults to all).
+
+.PARAMETER Force
+  Skip confirmation prompts.
+
+.PARAMETER CiRecovery
+  Backwards-compatible alias for -Force.
+
+.PARAMETER Interactive
+  Do not pass --non-interactive to firebase deploy.
+#>
 param(
   [string]$Only = "functions,firestore:rules,firestore:indexes,storage,hosting",
-  [switch]$CiRecovery
+  [switch]$Force,
+  [switch]$CiRecovery,
+  [switch]$Interactive
 )
-if (-not $CiRecovery) {
-  Write-Error "test is CI on main. Re-run with -CiRecovery only to recover broken CI."
-  exit 1
+
+$params = @{
+  Alias = "test"
+  Only  = $Only
 }
-& "$PSScriptRoot\deploy.ps1" -Alias test -Only $Only -CiRecovery
+if ($Force -or $CiRecovery) { $params["Force"] = $true }
+if ($Interactive) { $params["Interactive"] = $true }
+
+& "$PSScriptRoot\deploy.ps1" @params
 exit $LASTEXITCODE

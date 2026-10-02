@@ -33,7 +33,7 @@ Logikchain is **one git tree**, **three Firebase projects** (`dev`, `test`, `pro
 
 Inside one project there is one Auth directory, one Firestore, one set of Firebase Functions, one FCM configuration. A user who starts as a buyer on the PWA and is upgraded by `convertBuyerToRole` does not re-register. They receive new custom claims on the same UID and, when the new role's official client is Android, a handoff into the Play app. They do not hop between `dev` and `prod` on that UID: environments do not share users.
 
-The backend is **Firebase-hosted**, not a raw Google Cloud rewrite. Compute is **Firebase Functions 2nd gen** only — **Node 20**, scale to zero, region `asia-south1`. That product *is* Cloud Run functions under the hood; the team does not `gcloud run deploy` a container, does not use 1st-gen Functions or Python Functions, and does not stand up Cloud SQL, GKE, or a custom auth service. GCP services that Firebase does not provide — Cloud KMS, Secret Manager, Vertex AI, Maps Platform, Cloud Scheduler, Cloud Tasks — run in the **same project as that environment** and are invoked only from Firebase Functions.
+The backend is **Firebase-hosted**, not a raw Google Cloud rewrite. Compute is **Firebase Functions 2nd gen** only — **Node 24**, scale to zero, region `asia-south1`. That product *is* Cloud Run functions under the hood; the team does not `gcloud run deploy` a container, does not use 1st-gen Functions or Python Functions, and does not stand up Cloud SQL, GKE, or a custom auth service. GCP services that Firebase does not provide — Cloud KMS, Secret Manager, Vertex AI, Maps Platform, Cloud Scheduler, Cloud Tasks — run in the **same project as that environment** and are invoked only from Firebase Functions.
 
 This split exists because the four things the platform optimises for pull in different directions, and pretending they do not is how a rural logistics product ends up with either an always-on bill or a driver who cannot close a handover:
 
@@ -159,11 +159,11 @@ Direct client uploads utilize the Firebase Storage SDK with client-side size and
 
 ## 4. Compute: Firebase Functions 2nd gen
 
-Use **Firebase Functions 2nd gen** on **Node 20** (TypeScript), scale to zero, region **`asia-south1`**. That *is* Google’s serverless / Cloud Run functions product, deployed and named through the Firebase Functions API so the callable contract, App Check, Auth context, and emulator stay the ones this constitution specifies. Python is not the Functions runtime: the Admin SDK, callable types, and emulator story are one language with the PWA contract.
+Use **Firebase Functions 2nd gen** on **Node 24** (TypeScript), scale to zero, region **`asia-south1`**. That *is* Google’s serverless / Cloud Run functions product, deployed and named through the Firebase Functions API so the callable contract, App Check, Auth context, and emulator stay the ones this constitution specifies. Python is not the Functions runtime: the Admin SDK, callable types, and emulator story are one language with the PWA contract.
 
 | Option | Verdict |
 | ------ | ------- |
-| Firebase Functions **2nd gen** (`onCall` / `onRequest` / `onSchedule` / `onTaskDispatched`), Node 20 | **Required.** Free tier covers early volume. Concurrency 20–80 on one instance. |
+| Firebase Functions **2nd gen** (`onCall` / `onRequest` / `onSchedule` / `onTaskDispatched`), Node 24 | **Required.** Free tier covers early volume. Concurrency 20–80 on one instance. |
 | “Google Cloud Functions” / “Cloud Run functions” via `gcloud` | Same billing, wrong toolchain. Loses callable SDK, emulator, and the export names in the API spec. |
 | Cloud Run **services** (team-built containers, `gcloud run deploy`) | Not cheaper at rural bursty volume. Costs a second API and a `minInstances` temptation. Forbidden for v1. |
 | Firebase / Cloud Functions **1st gen** | One request per instance. The expensive option. Forbidden. |
@@ -171,7 +171,7 @@ Use **Firebase Functions 2nd gen** on **Node 20** (TypeScript), scale to zero, r
 
 **Locked settings** (every export, every project):
 
-- Runtime **Node 20**. `firebase.json` `runtime: nodejs20`. `functions/package.json` `engines.node` is `"20"`.
+- Runtime **Node 24**. `firebase.json` `runtime: nodejs24`. `functions/package.json` `engines.node` is `"24"`.
 - `minInstances: 0` — an always-on container is tens of dollars a month before anyone opens the app.
 - Memory 512 MB for ordinary callables; **1 GiB** only for the isolation list below.
 - CPU allocated only during the request.

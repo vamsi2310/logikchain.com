@@ -14,7 +14,10 @@
     "build:test": "tsc -b && vite build --mode test",
     "build:prod": "tsc -b && vite build --mode production",
     "preview": "vite preview --mode development",
-    "lint": "tsc -b --pretty false"
+    "lint": "tsc -b --pretty false",
+    "deploy:dev": "npm run build:dev && firebase deploy --project dev --only hosting --non-interactive",
+    "deploy:test": "npm run build:test && firebase deploy --project test --only hosting --non-interactive",
+    "deploy:prod": "npm run build:prod && firebase deploy --project prod --only hosting --non-interactive"
   },
   "dependencies": {
     "caniuse-lite": "^1.0.30001810",

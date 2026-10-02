@@ -40,7 +40,7 @@ The platform ships two client **runtimes** against **one Firebase project per al
 
 ### 0A. Runtime (Firebase Functions 2nd gen) and project targeting
 
-Every heading below that says **Callable**, **HTTPS**, **Scheduled**, or **Server-Only** is a **Firebase Functions 2nd gen** export on **Node 20**. The heading name **is** the exported function name (`placeOrder`, `handleGatewayWebhook`, `runReconciliation`). Clients call that name through the Firebase Functions SDK **or** the §0B HTTP path. There is no parallel Cloud Run service, no 1st-gen `functions.https.onCall`, no Python runtime, and no per-environment rename.
+Every heading below that says **Callable**, **HTTPS**, **Scheduled**, or **Server-Only** is a **Firebase Functions 2nd gen** export on **Node 24**. The heading name **is** the exported function name (`placeOrder`, `handleGatewayWebhook`, `runReconciliation`). Clients call that name through the Firebase Functions SDK **or** the §0B HTTP path. There is no parallel Cloud Run service, no 1st-gen `functions.https.onCall`, no Python runtime, and no per-environment rename.
 
 Hosting on every remote alias rewrites `/v1/**` to the `api` `onRequest` export in `asia-south1`. That function dispatches to the same handler registry as the named callables. A second HTTP gateway is a second API.
 
