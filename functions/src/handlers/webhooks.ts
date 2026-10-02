@@ -1,10 +1,10 @@
-import { storage } from "../admin";
 import type { CallContext } from "../auth/caller";
 import { fail } from "../errors";
 import { randomId } from "../lib/crypto";
 import { verifyWebhookSignature } from "../lib/razorpay";
+import { archiveProviderPayload } from "../lib/storage";
 import { nowIso } from "../lib/time";
-import { WEBHOOK_REPLAY_WINDOW_MS, gcpProject, isEmulator } from "../runtime";
+import { WEBHOOK_REPLAY_WINDOW_MS, isEmulator } from "../runtime";
 import { applySuccessfulPayment } from "./payments";
 import { recordPayoutSettlement } from "./payouts";
 
@@ -31,8 +31,11 @@ export async function handleGatewayWebhook(ctx: CallContext) {
   const eventId = String((payload as { id?: string }).id ?? randomId("evt"));
   try {
     if (!isEmulator()) {
-      const bucket = storage.bucket(`${gcpProject()}.appspot.com`);
-      await bucket.file(`webhooks/${eventId}.json`).save(raw, { contentType: "application/json" });
+      await archiveProviderPayload({
+        provider: "razorpay",
+        eventId,
+        rawBody: raw,
+      });
     }
   } catch {
     // Evidence write must not block acknowledgement.

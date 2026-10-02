@@ -4,20 +4,26 @@ import { onTaskDispatched } from "firebase-functions/v2/tasks";
 import type { Request } from "firebase-functions/v2/https";
 import { contextFromCallable, verifyBearer, appCheckFromRequest, isAndroidAppCheck } from "../auth/caller";
 import type { CallContext } from "../auth/caller";
-import { handlers } from "../handlers/registry";
+import { getHandler, hasHandler } from "../handlers/registry";
 import { httpStatusForHttpsError, isHttpsError } from "../errors";
 import { fail } from "../errors";
-import { httpsOptions, shouldEnforceAppCheck, paymentSecrets, mapsSecrets, smsSecrets } from "../runtime";
+import {
+  httpsOptions,
+  shouldEnforceAppCheck,
+  paymentSecrets,
+  mapsSecrets,
+  smsSecrets,
+} from "../runtime";
 import { matchRoute } from "./routes";
 
 const WEBHOOK_OPS = new Set(["handleGatewayWebhook", "recordPayoutSettlement"]);
 const PUBLIC_OPS = new Set(["listConfigurationCatalog"]);
 
 function secretsFor(name: string) {
-  if (["createPaymentIntent", "processPayment", "refundOrder", "handleGatewayWebhook", "recordPayoutSettlement", "initiatePayoutTransfer", "retryPayout"].includes(name)) {
+  if (["createPaymentIntent", "processPayment", "refundOrder", "handleGatewayWebhook"].includes(name)) {
     return paymentSecrets;
   }
-  if (["resendHandoverCode", "initiateCreditRepayment", "completeAndFinalizeGig", "placeOrder", "placeMerchantOrder"].includes(name)) {
+  if (["resendHandoverCode", "initiateCreditRepayment", "completeAndFinalizeGig", "suspendGig", "placeOrder", "placeMerchantOrder"].includes(name)) {
     return [...smsSecrets];
   }
   if (name === "computeRouteMetrics" || name === "getSystemHealth") return mapsSecrets;
@@ -39,8 +45,7 @@ const ISOLATION = new Set([
 ]);
 
 export function callable(operationId: string) {
-  const handler = handlers[operationId];
-  if (!handler) {
+  if (!hasHandler(operationId)) {
     throw new Error(`No handler registered for ${operationId}`);
   }
   return onCall(
@@ -50,6 +55,8 @@ export function callable(operationId: string) {
     },
     async (req) => {
       const ctx = contextFromCallable(req, operationId);
+      const handler = await getHandler(operationId);
+      if (!handler) throw new Error(`No handler registered for ${operationId}`);
       return handler(ctx);
     }
   );
@@ -77,7 +84,7 @@ export async function dispatchHttp(req: Request, res: import("express").Response
     return;
   }
   const { operationId, params } = matched;
-  const handler = handlers[operationId];
+  const handler = await getHandler(operationId);
   if (!handler) {
     res.status(501).json({ error: { code: "UNIMPLEMENTED", message: operationId } });
     return;
@@ -136,7 +143,13 @@ export async function dispatchHttp(req: Request, res: import("express").Response
 }
 
 export const api = onRequest(
-  httpsOptions({ secrets: [...paymentSecrets, ...smsSecrets, ...mapsSecrets] }),
+  httpsOptions({
+    secrets: [
+      ...paymentSecrets,
+      ...smsSecrets,
+      ...mapsSecrets,
+    ],
+  }),
   dispatchHttp
 );
 
@@ -150,7 +163,8 @@ export function scheduledJob(operationId: "postDueCreditRelief" | "runReconcilia
       minInstances: 0,
     },
     async () => {
-      const handler = handlers[operationId];
+      const handler = await getHandler(operationId);
+      if (!handler) throw new Error(`No handler registered for ${operationId}`);
       await handler({
         uid: null,
         profile: null,
@@ -168,8 +182,9 @@ export function scheduledJob(operationId: "postDueCreditRelief" | "runReconcilia
 export function webhookHttps(operationId: "handleGatewayWebhook" | "recordPayoutSettlement") {
   const path =
     operationId === "handleGatewayWebhook" ? "/v1/webhooks/gateway" : "/v1/webhooks/payout-settlement";
+  const secrets = operationId === "handleGatewayWebhook" ? paymentSecrets : undefined;
   return onRequest(
-    httpsOptions({ isolation: true, secrets: paymentSecrets }),
+    httpsOptions({ isolation: true, secrets }),
     async (req, res) => {
       Object.defineProperty(req, "path", { value: path, configurable: true });
       (req as { method: string }).method = "POST";
@@ -187,7 +202,7 @@ export function payoutWorker() {
       region: "asia-south1",
     },
     async (req) => {
-      const { payouts } = await import("../handlers/registry");
+      const payouts = await import("../handlers/payouts");
       await payouts.initiatePayoutTransfer(req.data as { payoutTransactionId: string });
     }
   );

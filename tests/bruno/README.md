@@ -2,6 +2,8 @@
 
 HTTP `/v1` tests. The standard is `constitution/Logikchain_API_Testing.md`.
 
+The Bruno profile named `emulator` targets local Firebase test processes. It is not a deploy environment or lifecycle stage; development begins in `dev`.
+
 ## Run
 
 Emulators must already be up (`functions` `npm run serve`). Seed Auth users with `emulator-only-password`.

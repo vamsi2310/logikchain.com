@@ -1,6 +1,5 @@
 import type { CallableRequest } from "firebase-functions/v2/https";
 import type { Request } from "firebase-functions/v2/https";
-import { auth, db } from "../admin";
 import { Col } from "../collections";
 import { fail } from "../errors";
 import {
@@ -56,6 +55,7 @@ export function isAndroidAppCheck(appId?: string | null): boolean {
 }
 
 export async function loadProfile(uid: string): Promise<CallerProfile> {
+  const { db } = await import("../admin");
   const snap = await db.collection(Col.UserProfiles).doc(uid).get();
   if (!snap.exists) fail("NOT_FOUND", "Caller profile does not exist");
   return { id: uid, role: "buyer", status: "unauthorized", ...(snap.data() as object) } as CallerProfile;
@@ -142,6 +142,7 @@ export async function verifyBearer(req: Request): Promise<string | null> {
   }
   const token = header.slice("Bearer ".length).trim();
   if (!token) return null;
+  const { auth } = await import("../admin");
   const decoded = await auth.verifyIdToken(token);
   return decoded.uid;
 }

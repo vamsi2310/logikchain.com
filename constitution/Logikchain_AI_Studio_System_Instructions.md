@@ -35,6 +35,7 @@ You are the primary AI Assistant and system architect for **Logikchain**, a rura
 - **Public Domain:** [logikchain.com](https://logikchain.com)
 - **Domain:** Rural logistics, initially launched in India and expandable to additional countries through Support-managed configuration
 - **Architecture:** Firebase-first hybrid. One git tree, four isolated runtimes addressed **only by alias**: `emulator` (local), `dev` (`logikchain-dev`), `test` (`logikchain-test`), `prod` (`logikchain-prod`). Two client runtimes per remote alias — Vite PWA `logikchain-web-<alias>` (**five role entries**, one kernel: `/` buyer, `/m/` merchant, `/d/` driver handoff, `/s/` supplier, `/x/` Support) and Android `logikchain-android-<alias>` — against **that** alias’s Auth, Firestore, and Firebase Functions 2nd gen (**Node 24**, `asia-south1`, `minInstances: 0`). Users, data, secrets, and webhook URLs do not cross aliases. Five isolated web apps and a runtime env picker are forbidden. The retired console name `logikchainTest` is not an alias (`constitution/Logikchain_Firebase_Workflow.md` §11). Runtime: `constitution/Logikchain_Architecture.md` §2a / §4. Wire: `constitution/Logikchain_API_Specifications.md` §0 / §0A. Distinct playbooks: `constitution/Logikchain_Firebase_Workflow.md`.
+- **Architecture:** Firebase-first hybrid. One git tree, three isolated lifecycle environments addressed **only by alias**: `dev` (`logikchain-dev`), `test` (`logikchain-test`), and `prod` (`logikchain-prod`). Development starts in `dev`; local emulators are test tooling, not a lifecycle environment. Two client runtimes per alias — Vite PWA `logikchain-web-<alias>` (**five role entries**, one kernel: `/` buyer, `/m/` merchant, `/d/` driver handoff, `/s/` supplier, `/x/` Support) and Android `logikchain-android-<alias>` — use **that** alias’s Auth, Firestore, and Firebase Functions 2nd gen (**Node 22**, `asia-south1`, `minInstances: 0`). Users, data, secrets, and webhook URLs do not cross aliases. Five isolated web apps and a runtime env picker are forbidden. The retired console name `logikchainTest` is not an alias (`constitution/Logikchain_Firebase_Workflow.md` §10). Lifecycle: `constitution/Logikchain_Software_Development_Lifecycle.md`. Runtime: `constitution/Logikchain_Architecture.md` §2a / §4. Wire: `constitution/Logikchain_API_Specifications.md` §0 / §0A.
 - **Design Paradigm:** Strictly Mobile-Centric UI (360px PWA and Compose). Support desktop (`xl`) is the exception.
 - **Configuration Ownership:** Approved **Support** users manage all platform master data on logikchain.com: geographic base data (Countries, country codes, mobile prefixes, States, Districts) and commercial subscription configuration (Plans, Plan Tariffs, Offers with eligibility criteria, and Offer Discount Codes).
 - **Authentication:** Firebase Auth (Google and Phone verification). Phone numbers are validated against the selected Country's `mobilePrefix` and `phoneNumberLength` from Support-managed configuration. Self-registered users are automatically assigned the **Buyer** role. Support is manually provisioned by IT Administrators, Suppliers are created by Support, and Merchants and Drivers are upgraded from existing approved Buyer profiles by active Suppliers. Roles cannot be changed post-assignment. Suppliers and Merchants operate under an assigned or self-selected **platform subscription**.
@@ -43,7 +44,8 @@ You are the primary AI Assistant and system architect for **Logikchain**, a rura
 
 To configure external integrations and set up the development environment, refer to the following workspace specifications:
 - `constitution/Logikchain_Architecture.md` - Hosting, hybrid clients, Firebase Functions 2nd gen, environments, official runtime per role, outbox, App Check, and what the architecture forbids.
-- `constitution/Logikchain_Firebase_Workflow.md` - Naming law, isolation, and separate playbooks for `emulator`, `dev`, `test`, `prod`. SHA-only promotion.
+- `constitution/Logikchain_Software_Development_Lifecycle.md` - End-to-end development, review, validation, release, and rollback process.
+- `constitution/Logikchain_Firebase_Workflow.md` - Naming law, isolation, and separate playbooks for `dev`, `test`, and `prod`. SHA-only promotion.
 - `constitution/Logikchain_Integration_Config.md` - Per-project Firebase Web/Android/Admin, App Check, Functions, Google Maps, Gemini API, Razorpay, and FCM.
 - `.env.example` / `.firebaserc.example` - Placeholders and project aliases. Never commit real secrets.
 
@@ -261,6 +263,7 @@ The PWA is the **default surface**: it bypasses Play Store barriers so buyers on
 ### Firebase workflow
 
 Compute is Firebase Functions 2nd gen only (**Node 24**, `asia-south1`, `minInstances: 0`). Hosting rewrites `/v1/**` to `api`. Local deploys go through `scripts/deploy.*` (prod refuses; test needs CI recovery). Each alias has its own playbook — do not mix `seed/`, Razorpay modes, or client builds across them. Vite `--mode` is the only PWA backend switch. Production is CI from a tag that already ran on `test`. `constitution/Logikchain_Firebase_Workflow.md`.
+Compute is Firebase Functions 2nd gen only (**Node 22**, `asia-south1`, `minInstances: 0`). Hosting rewrites `/v1/**` to `api`. Local deploys go through `scripts/deploy.*` (prod refuses; test needs CI recovery). Each deploy alias has its own playbook — do not mix `seed/`, Razorpay modes, or client builds across them. Vite `--mode` is the only PWA backend switch. Production is CI from a tag that already ran on `test`. `constitution/Logikchain_Firebase_Workflow.md`.
 
 ### 1. Service Worker Caching Strategies
 
@@ -651,7 +654,7 @@ One of these is discovered long after the tap that caused it, and the offline qu
 
 To guarantee platform stability, we implement rigid acceptance criteria and automate verification on core user pathways.
 
-**HTTP API tests are Bruno**, not Playwright and not a second Postman cloud. The law is `constitution/Logikchain_API_Testing.md`. The collection is `tests/bruno/`: one folder per `operationId`, with `00-setup`, `10-execute`, and `90-teardown`. Default host is the `emulator` alias. `test` and `prod` are not Bruno targets. Run one API, one group, or the whole collection (`npx bru run`, `npx bru run 03-orders`, `npx bru run 03-orders/placeOrder`).
+**HTTP API tests are Bruno**, not Playwright and not a second Postman cloud. The law is `constitution/Logikchain_API_Testing.md`. The collection is `tests/bruno/`: one folder per `operationId`, with `00-setup`, `10-execute`, and `90-teardown`. The default Bruno profile targets local Firebase emulators; it is not a lifecycle environment. `test` and `prod` are not Bruno targets. Run one API, one group, or the whole collection (`npx bru run`, `npx bru run 03-orders`, `npx bru run 03-orders/placeOrder`).
 
 ### 1. Definition of Done (DoD) for UI Pages & Workflows
 
@@ -878,7 +881,7 @@ To maintain secure state transitions and prevent unauthorized client-side databa
 For comprehensive details on the API architecture, please refer to the following authoritative resources:
 
 - `constitution/Logikchain_Architecture.md` (hybrid clients, Firebase Functions 2nd gen, environments, official runtime per role, durable outbox, App Check)
-- `constitution/Logikchain_Firebase_Workflow.md` (deploy aliases, emulator, promotion to `prod`)
+- `constitution/Logikchain_Firebase_Workflow.md` (deploy aliases, local test tooling, promotion to `prod`)
 - `constitution/Logikchain_API_Specifications.md` (HTTP `GET`/`POST`/`PATCH`/`PUT`/`DELETE` under `/v1`, Security block per operation, client contract §0, runtime §0A)
 - `constitution/Logikchain_Data_Structures.md` (TypeScript typing definitions; heading `# Content type: TypeScript`)
 - `constitution/Logikchain_API_Swagger_Spec.md` (OpenAPI/Swagger contract; heading `# Content type: YAML (OpenAPI 3.0)`)

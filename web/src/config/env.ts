@@ -22,9 +22,10 @@
  * Do not add a runtime environment picker.
  */
 
-export type ProjectAlias = "emulator" | "dev" | "test" | "prod";
+export type DeployAlias = "dev" | "test" | "prod";
+export type RuntimeTarget = "emulator" | DeployAlias;
 
-const MODE_TO_ALIAS: Record<string, ProjectAlias> = {
+const MODE_TO_ALIAS: Record<string, RuntimeTarget> = {
   emulator: "emulator",
   development: "dev",
   test: "test",
@@ -35,7 +36,7 @@ function read(name: keyof ImportMetaEnv): string {
   return (import.meta.env[name] ?? "").trim();
 }
 
-function resolveAlias(): ProjectAlias {
+function resolveAlias(): RuntimeTarget {
   const explicit = read("FIREBASE_PROJECT_ALIAS");
   if (explicit === "emulator" || explicit === "dev" || explicit === "test" || explicit === "prod") {
     return explicit;

@@ -3,7 +3,7 @@
   Deploy Logikchain to a Firebase alias. Always passes --project <alias>.
 
 .PARAMETER Alias
-  dev | test | prod   (emulator starts local emulators; it does not deploy)
+  dev | test | prod
 
 .PARAMETER Only
   Firebase --only targets. Default: functions,firestore:rules,firestore:indexes,storage,hosting
@@ -27,7 +27,7 @@
 #>
 param(
   [Parameter(Mandatory = $true, Position = 0)]
-  [ValidateSet("emulator", "dev", "test", "prod")]
+  [ValidateSet("dev", "test", "prod")]
   [string]$Alias,
 
   [string]$Only = "",

@@ -46,18 +46,17 @@ Open the Firebase console for **one** alias and finish §1.1–1.5, Maps, Razorp
 | `test` | `logikchain-test` | `logikchain-web-test` | `logikchain-android-test` | `test.logikchain.com` | `com.logikchain.app.test` |
 | `prod` | `logikchain-prod` | `logikchain-web-prod` | `logikchain-android-prod` | `logikchain.com` | `com.logikchain.app` |
 
-`emulator` is not in this table: it is not provisioned in the console (`constitution/Logikchain_Firebase_Workflow.md` §4). The retired console name `logikchainTest` is not an alias; see workflow §11. Region for Functions on all three remote aliases: **`asia-south1`**.
+The lifecycle starts with `dev`. Firebase emulators require no console provisioning and are local test tools, not an alias or lifecycle stage. The retired console name `logikchainTest` is not an alias; see workflow §10. Region for Functions on all three aliases: **`asia-south1`**.
 
 Store captured values in the file named for that alias. Do not keep one `.env` that is “whatever I deployed last”. There is no runtime picker in the PWA.
 
 | Alias | Vite `--mode` | Web env file (gitignored) | Functions env (gitignored) |
 | ----- | ------------- | ------------------------- | -------------------------- |
-| `emulator` | `emulator` | `web/.env.emulator` | *(none — emulator stubs)* |
 | `dev` | `development` | `web/.env.development` | `functions/.env.dev` |
 | `test` | `test` | `web/.env.test` | `functions/.env.test` |
 | `prod` | `production` | `web/.env.production` | `functions/.env.prod` |
 
-`web/.env.local` is a personal overlay. It may set `REACT_APP_USE_LOCAL_FUNCTIONS=true` so `/v1` hits `127.0.0.1:5001` while Auth/Firestore stay on the Vite `--mode` alias. It must not set `FIREBASE_PROJECT_ALIAS`. Ignored for production builds. Committed samples: `web/.env.development.example`, `web/.env.test.example`, `web/.env.production.example`, `web/.env.local.example`, `web/.env.emulator`, `functions/.env.example`.
+`web/.env.local` is a personal overlay. It may set `REACT_APP_USE_LOCAL_FUNCTIONS=true` so `/v1` hits `127.0.0.1:5001` while Auth/Firestore stay on the Vite `--mode` alias. It must not set `FIREBASE_PROJECT_ALIAS`. Ignored for production builds. `web/.env.emulator` exists only for local test tooling; it does not define an environment. Committed samples: `web/.env.development.example`, `web/.env.test.example`, `web/.env.production.example`, `web/.env.local.example`, `web/.env.emulator`, `functions/.env.example`.
 
 *   **Parameters to Capture (per alias):**
     *   `FIREBASE_PROJECT_ALIAS` (`dev` \| `test` \| `prod`)
@@ -192,13 +191,13 @@ Mint the three keys below **in the GCP project that matches the alias**. Do not 
 
 The Gemini API powers AI-driven platform workflows, automated route suggestions, and dynamic inventory / pamphlet generation.
 
-### 3.1 Google AI Studio (`emulator` and `dev` only)
+### 3.1 Google AI Studio (local tooling and `dev` only)
 *   **Purpose**: Fast prototyping of system instructions and AI-driven UI helpers. Not a `test` or `prod` runtime key.
 *   **Provisioning Steps**:
     1. Access [Google AI Studio](https://aistudio.google.com/).
     2. Sign in with the Google account that owns `logikchain-dev`.
     3. Click **Get API Key** and select `logikchain-dev`.
-    4. Store the key in `functions/.env.dev` / emulator env only.
+    4. Store the key in `functions/.env.dev` or a local test-tool environment only.
 
 ### 3.2 Vertex API (`test` and `prod`)
 *   **Purpose**: Enterprise-grade AI execution with data residency in **that alias’s** project.
@@ -207,7 +206,7 @@ The Gemini API powers AI-driven platform workflows, automated route suggestions,
     2. Grant the Functions service account of **that** project the `Vertex AI User` role. Do not grant the `dev` account access to the `prod` Vertex project.
 
 *   **Parameters to Capture**:
-    *   `GEMINI_API_KEY` (`emulator` / `dev` only)
+    *   `GEMINI_API_KEY` (local tooling / `dev` only)
     *   `GCP_VERTEX_PROJECT_ID` (equals the alias’s Firebase project ID on `test` and `prod`)
 
 ---

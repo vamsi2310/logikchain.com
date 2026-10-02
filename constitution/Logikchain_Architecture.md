@@ -189,20 +189,19 @@ Deploy, aliases, and who may touch `prod` are `constitution/Logikchain_Firebase_
 
 ## 5. Environments
 
-Speech uses **aliases only**: `emulator`, `dev`, `test`, `prod`. Project IDs live in `.firebaserc`. There is no environment called `logikchainTest` — that string is a retired console name, mapped in `constitution/Logikchain_Firebase_Workflow.md` §11 if the GCP project still exists.
+Speech uses **aliases only**: `dev`, `test`, `prod`. Project IDs live in `.firebaserc`. There is no environment called `logikchainTest` — that string is a retired console name, mapped in `constitution/Logikchain_Firebase_Workflow.md` §10 if the GCP project still exists. Firebase emulators are local test tools within development, not an environment or lifecycle stage.
 
 One git SHA is promoted. Users, documents, and secrets are not. Each alias has its own playbook; they do not share commands, client builds, or third-party keys.
 
 | Alias | Project ID | Playbook | Client build |
 | ----- | ---------- | -------- | ------------ |
-| `emulator` | *(not GCP)* | Laptop + `seed/`. No `firebase deploy`. | Emulator hosts only |
 | `dev` | `logikchain-dev` | Developer sandbox. Local deploy allowed. | Vite `--mode development` → `web/.env.development`, Android `dev` flavor |
 | `test` | `logikchain-test` | QA. CI on `main`. | Vite `--mode test` → `web/.env.test`, `test.logikchain.com`, Android `test` flavor |
 | `prod` | `logikchain-prod` | Live money. CI on tag only. | Vite `--mode production` → `web/.env.production`, `logikchain.com`, Android `prod` flavor |
 
 The PWA backend switch is **build-time only**. Vite `--mode` selects the alias file. Screens import `env` from `web/src/config/env.ts` and never read `import.meta.env` themselves. There is no runtime environment picker in the UI. A production build must not be able to retarget `dev`, `test`, or the emulator.
 
-`web/.env.local` is a personal overlay (gitignored). It may set `REACT_APP_USE_LOCAL_FUNCTIONS=true` so `/v1` hits the Functions emulator while Auth and Firestore stay on the Vite `--mode` alias. It must not set `FIREBASE_PROJECT_ALIAS`. That overlay is ignored for production builds. Do not start Auth/Firestore emulators in that hybrid playbook — Functions would write local data while the PWA reads the remote alias.
+`web/.env.local` is a personal overlay (gitignored). It may set `REACT_APP_USE_LOCAL_FUNCTIONS=true` so `/v1` hits the Functions emulator while Auth and Firestore stay on the Vite `--mode` alias. It must not set `FIREBASE_PROJECT_ALIAS`. That overlay is ignored for production builds. Do not start Auth/Firestore emulators in that hybrid local setup — Functions would write local data while the PWA reads the remote alias.
 
 Firebase app nicknames are env-specific (`logikchain-web-dev`, `logikchain-android-test`, …). Reusing `logikchainSuperApp` on every project is how the console becomes one blur. Function **names** stay identical; the **build** selects the project. A production APK that can retarget `dev` is a defect.
 
@@ -289,7 +288,7 @@ Provisioning — Android package, SHA-256, App Check, restricted Maps keys — l
 - A second backend (Cloud Run services + Cloud SQL + custom auth, or "the Android app talks to a different API").
 - Firebase Functions **1st gen**, or a `gcloud run deploy` of a container that re-implements the API spec.
 - `minInstances > 0` without a dated amendment in §4 that names the export and the measured reason.
-- One Firebase project for “everyone”, a fourth project “for Android” / “for Cloud Run”, or treating `logikchainTest` as a live alias (retired; workflow §11).
+- One Firebase project for “everyone”, a fourth project “for Android” / “for Cloud Run”, or treating `logikchainTest` as a live alias (retired; workflow §10).
 - Crossing playbooks: `seed/` on `test`/`prod`, live Razorpay on `dev`/`test`, a `prod` client that can retarget `dev`.
 - `firebase deploy` without an explicit project alias, or a human deploying to `prod` from a laptop (`constitution/Logikchain_Firebase_Workflow.md`).
 - Hard-coded project IDs or webhook URLs in function source.
@@ -314,7 +313,8 @@ Provisioning — Android package, SHA-256, App Check, restricted Maps keys — l
 | Document | What it owns |
 | -------- | ------------ |
 | `constitution/Logikchain_API_Specifications.md` | HTTP contract §0B (`GET`/`POST`/`PATCH`/`PUT`/`DELETE`), Security block per operation, Firebase Functions runtime §0A |
-| `constitution/Logikchain_Firebase_Workflow.md` | Naming law, isolation, distinct playbooks for `emulator` / `dev` / `test` / `prod`, SHA-only promotion |
+| `constitution/Logikchain_Software_Development_Lifecycle.md` | End-to-end development, review, validation, release, and rollback process |
+| `constitution/Logikchain_Firebase_Workflow.md` | Naming law, isolation, distinct playbooks for `dev` / `test` / `prod`, SHA-only promotion |
 | `constitution/Logikchain_Data_Structures.md` | Document and request/response types, including `DeviceToken.platform` and `officialClient` |
 | `constitution/Logikchain_API_Swagger_Spec.md` | Machine-readable contract |
 | `constitution/Logikchain_API_Testing.md` | Bruno `/v1` collection law: groups, setup / execute / teardown, `emulator` only |

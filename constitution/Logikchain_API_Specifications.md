@@ -2,7 +2,7 @@
 
 This document serves as the authoritative source of truth for **Firebase Functions 2nd gen** (`onCall`, `onRequest`, `onSchedule`) backend execution logic, permissions, state mutations, transactional integrity, and error codes within the Logikchain platform. All sensitive mutations and business transactions must go through these server-side exports to enforce security boundaries, maintain transactional integrity, and ensure robust offline synchronization.
 
-The operations in this file are the only API. Each one has an HTTP method and `/v1` path (§0B), a **Security** block (auth, App Check, roles, status, resource, official client), and a Firebase Function `operationId` that is identical on `emulator`, `dev`, `test`, and `prod`. A PWA and a Kotlin Android app are two runtimes of the same contract. They are not Cloud Run services, 1st-gen Functions, or RPC-only `POST /api/{name}` paths. Hosting, official clients, compute settings, and what the hybrid split forbids live in `constitution/Logikchain_Architecture.md`. This file owns the wire: method, path, security, payloads, error codes, and the obligations every client must meet before a call is legal.
+The operations in this file are the only API. Each one has an HTTP method and `/v1` path (§0B), a **Security** block (auth, App Check, roles, status, resource, official client), and a Firebase Function `operationId` that is identical on `dev`, `test`, and `prod`. A PWA and a Kotlin Android app are two runtimes of the same contract. They are not Cloud Run services, 1st-gen Functions, or RPC-only `POST /api/{name}` paths. Hosting, official clients, compute settings, and what the hybrid split forbids live in `constitution/Logikchain_Architecture.md`. This file owns the wire: method, path, security, payloads, error codes, and the obligations every client must meet before a call is legal.
 
 ---
 
@@ -12,7 +12,7 @@ This section defines the HTTP API (GET / POST / PATCH / PUT / DELETE) implemente
 
 ### 0. Client contract (hybrid web + Android)
 
-The platform ships two client **runtimes** against **one Firebase project per alias** (`dev`, `test`, `prod`; plus a local `emulator` that is not a project): the Vite PWA (five role entries, one kernel — `constitution/Logikchain_Architecture.md` §2a) and the Kotlin + Jetpack Compose Android app. Inside one alias they share Auth UIDs, custom claims, Firestore documents, FCM `Notification` records, and every function below. They do not share those with another alias. They do not share an outbox implementation, and they are not equally official for every job. A merchant bundle at `/m/` is not a second API. `constitution/Logikchain_Architecture.md` is the split; `constitution/Logikchain_Firebase_Workflow.md` is the playbook per alias; the rules that belong on the wire are here.
+The platform ships two client **runtimes** against **one Firebase project per lifecycle alias** (`dev`, `test`, `prod`): the Vite PWA (five role entries, one kernel — `constitution/Logikchain_Architecture.md` §2a) and the Kotlin + Jetpack Compose Android app. Inside one alias they share Auth UIDs, custom claims, Firestore documents, FCM `Notification` records, and every function below. They do not share those with another alias. They do not share an outbox implementation, and they are not equally official for every job. A merchant bundle at `/m/` is not a second API. `constitution/Logikchain_Architecture.md` is the split; `constitution/Logikchain_Firebase_Workflow.md` is the playbook per alias; the rules that belong on the wire are here.
 
 **One contract.** Function names, request and response shapes, `idempotencyKey` semantics, `capturedAt` preservation, and error codes are identical on both clients. An Android-only payload or a PWA-only REST wrapper around the same mutation is a second API and is rejected. Screen IDs and `Notification.deepLink` values are the same strings on both runtimes.
 
@@ -55,7 +55,7 @@ Hosting on every remote alias rewrites `/v1/**` to the `api` `onRequest` export 
 
 **Handlers do not import handlers.** Shared mutation helpers (`createPaymentIntentInternal`, tax, custody, rails) live in `functions/src/lib/`. A cycle between `orders.ts` and `payments.ts` is a defect, not a convenience.
 
-**The same export lands on every alias.** `httpsCallable('placeOrder')` is `placeOrder` on `emulator`, `dev`, `test`, and `prod`. The Firebase options in the **client build** select the alias (`constitution/Logikchain_Firebase_Workflow.md` playbooks). Function source reads `process.env.GCLOUD_PROJECT` for Storage paths, webhook self-URLs, and KMS resource names. A string literal project ID (`logikchain-prod`, `logikchainTest`, or any other) inside a function is a defect: it is how a `test` deploy writes to a `prod` bucket.
+**The same export lands on every alias.** `httpsCallable('placeOrder')` is `placeOrder` on `dev`, `test`, and `prod`. The Firebase options in the **client build** select the alias (`constitution/Logikchain_Firebase_Workflow.md` playbooks). Function source reads `process.env.GCLOUD_PROJECT` for Storage paths, webhook self-URLs, and KMS resource names. A string literal project ID (`logikchain-prod`, `logikchainTest`, or any other) inside a function is a defect: it is how a `test` deploy writes to a `prod` bucket.
 
 **Isolation is still a Firebase Function.** `handleGatewayWebhook`, `recordPayoutSettlement`, `initiatePayoutTransfer`, `runReconciliation`, `postDueCreditRelief`, period-close / TDS jobs, and Vertex-backed helpers are their own exports so a long job cannot starve `placeOrder`. They are not an invitation to `gcloud run deploy`.
 
@@ -218,7 +218,7 @@ interface CreateSupplierResponse {
 ```
 - **Core Business Logic & Mutated Data Structures:**
   1. Read caller profile from `/UserProfiles/{callerId}`. Validate that the caller has the `support` role and status is `approved`.
-  2. Resolve the selected Country from `/Countries/{countryId}`. Reject if the Country is missing or `status !== "active"`. (`emulator` fixtures may use India / `country_in` from `seed/`. `test` and `prod` must use Support-created Country records only. `dev` may use throwaway Support-created records; it does not import `seed/`.)
+  2. Resolve the selected Country from `/Countries/{countryId}`. Reject if the Country is missing or `status !== "active"`. Local fixtures may use India / `country_in` from `seed/`. Every lifecycle environment uses Support-created Country records; `dev` may use throwaway records but does not import `seed/`.
   3. Validate `phone` against the Country `mobilePrefix` and `phoneNumberLength` (or `phoneValidationRegex` when set).
   4. Create the user record in Firebase Auth via the Admin SDK using the provided `email`, `phone`, and `name`.
   5. Create a new document in `/UserProfiles/{supplierId}` (using the generated Auth UID) setting `role: "supplier"`, `status: "approved"`, `email`, `name`, `phone`, `countryId`, `createdAt: string` (ISO 8601).

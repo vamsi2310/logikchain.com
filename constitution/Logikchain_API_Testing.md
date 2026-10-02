@@ -14,7 +14,7 @@ The collection lives at `tests/bruno/`. One collection. One tool: **Bruno**. Req
 
 **One wire.** Tests call Hosting-shaped HTTP (`METHOD {{baseUrl}}/v1/...` with Bearer). They do not call `httpsCallable` and they do not use retired `POST /api/{name}` paths. The handler is the same either way; a second protocol is a second API.
 
-**One environment at a time.** Speech uses aliases only: `emulator`, `dev`. The Bruno default is `emulator`. `test` and `prod` are not Bruno targets. A collection pointed at `test.logikchain.com` or `logikchain.com` is a defect.
+**One lifecycle target.** `dev` is the only lifecycle environment Bruno may target. The committed `emulator` profile is a local test-host configuration, not an environment or promotion stage. `test` and `prod` are not Bruno targets. A collection pointed at `test.logikchain.com` or `logikchain.com` is a defect.
 
 ---
 
@@ -25,7 +25,7 @@ The collection lives at `tests/bruno/`. One collection. One tool: **Bruno**. Req
 | Tool | Bruno (GUI or `@usebruno/cli`) |
 | Collection root | `tests/bruno/` |
 | Collection name | `Logikchain API` |
-| Environments | `tests/bruno/environments/emulator.bru` (committed), `dev.bru` (committed, no secrets) |
+| Profiles | `tests/bruno/environments/emulator.bru` (committed local test host), `dev.bru` (committed lifecycle target, no secrets) |
 | Secrets overlay | `tests/bruno/environments/*.local.bru` — gitignored. Tokens, webhook secrets, personal emails. |
 | Results | `tests/bruno/results/` — gitignored |
 | Catalog | `tests/bruno/catalog.mjs` — one row per `operationId`; regenerate requests from it |
@@ -187,7 +187,7 @@ Every `00-setup`, `10-execute`, and `90-teardown` carries a `docs` block with:
 
 Committed environment files contain **hosts and seed identifiers only**.
 
-| Variable | `emulator` | `dev` |
+| Variable | Local test host (`emulator` profile) | `dev` |
 | -------- | ---------- | ----- |
 | `alias` | `emulator` | `dev` |
 | `baseUrl` | `http://127.0.0.1:5001/{{projectId}}/asia-south1/api` | `https://asia-south1-{{projectId}}.cloudfunctions.net/api` |
@@ -200,7 +200,7 @@ Committed environment files contain **hosts and seed identifiers only**.
 
 Forbidden in committed env files: ID tokens, refresh tokens, Razorpay secrets, webhook secrets, App Check debug tokens, `prod` hosts, personal emails.
 
-`dev` Bruno runs are optional and manual. They use throwaway records, never `seed/` import. They never use live Razorpay. Prefer `emulator`.
+`dev` Bruno runs are optional and manual. They use throwaway records, never `seed/` import, and never use live Razorpay. The local `emulator` profile may be used for fast repeatable verification, but it is not a lifecycle gate; changed journeys must still be exercised on `dev`.
 
 ---
 
@@ -245,7 +245,7 @@ A happy-path execute that returns a business refusal (`NOT_SERVICEABLE`, `INSUFF
 
 ## 8. How to run
 
-From `tests/bruno/`, with the Auth + Functions + Firestore emulators already up (`functions` `npm run serve`, or the workflow emulator playbook):
+From `tests/bruno/`, with the local Auth + Functions + Firestore test hosts already up (`functions` `npm run serve`):
 
 ```text
 # entire collection
@@ -321,7 +321,8 @@ Do not add a Bruno request for an `operationId` that is not in the spec.
 | Document | What it owns |
 | -------- | ------------ |
 | `constitution/Logikchain_API_Specifications.md` | Wire: method, path, security, payloads, error codes |
-| `constitution/Logikchain_Firebase_Workflow.md` | Alias playbooks; emulator is the Bruno host |
+| `constitution/Logikchain_Software_Development_Lifecycle.md` | Development starts in `dev`; local tools are not lifecycle stages |
+| `constitution/Logikchain_Firebase_Workflow.md` | Lifecycle environment playbooks and deployment controls |
 | `constitution/Logikchain_Architecture.md` | `/v1` rewrite to `api`; no second gateway |
 | `constitution/Logikchain_Financial_Controls.md` | What a money success is allowed to mean |
 | `tests/bruno/` | The collection this file governs |
