@@ -1,0 +1,20 @@
+vars {
+  # Copy this file to dev.local.bru (gitignored) to configure your personal secrets for Dev testing.
+  #
+  # Option 1: Automatic Sign-In via Email + Password
+  # Provide test account credentials created in Firebase Auth Console (logikchaindevelopment):
+  seedSupportEmail: 
+  seedPassword: 
+  seedBuyerEmail: 
+  seedMerchantEmail: 
+  seedSupplierEmail: 
+  seedVehicleEmail: 
+
+  # Option 2: Direct Bearer Token
+  # If you have an active Firebase ID token (from Web PWA console, gcloud, or CLI):
+  # accessToken: 
+  # supportAccessToken: 
+
+  # App Check (Optional on Dev - only needed if ENFORCE_APP_CHECK is set to true):
+  # appCheckToken: 
+}

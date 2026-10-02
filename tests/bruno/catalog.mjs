@@ -106,7 +106,7 @@ export const operations = [
   { id: "upsertSubscriptionOffer", group: "11-config", method: "put", path: "/v1/config/offers/{offerId}", role: "support", pathBinds: { offerId: "offer_bruno_" }, teardown: "deactivate", teardownCollection: "offers", teardownRecordVar: "offerId", body: { id: "offer_bruno_{{runId}}", name: "Bruno Offer", status: "draft", valueType: "percent", value: 10 } },
   { id: "upsertOfferDiscountCode", group: "11-config", method: "put", path: "/v1/config/discount-codes/{codeId}", role: "support", pathBinds: { codeId: "code_bruno_" }, teardown: "deactivate", teardownCollection: "discount-codes", teardownRecordVar: "codeId", body: { id: "code_bruno_{{runId}}", offerId: "{{offerId}}", code: "BRUNO{{runId}}", status: "draft" } },
   { id: "deactivateConfigurationRecord", group: "11-config", method: "patch", path: "/v1/config/{collection}/{recordId}:deactivate", role: "support", body: { collection: "countries", recordId: "{{countryId}}", reason: "bruno deactivate {{runId}}" } },
-  { id: "listConfigurationCatalog", group: "11-config", method: "get", path: "/v1/config/catalog", role: "any", smoke: true, query: "types=countries" },
+  { id: "listConfigurationCatalog", group: "11-config", method: "get", path: "/v1/config/catalog", role: "any", smoke: true, query: "types[]=countries" },
 
   // 12 tax
   { id: "upsertTaxProfile", group: "12-tax", method: "put", path: "/v1/tax-profiles/{taxProfileId}", role: "support", money: true, successFields: ["success"], body: { taxProfileId: "tax_bruno_{{runId}}", supplierId: "{{supplierId}}", gstin: "37AAAAA0000A1Z5", registeredStateCode: "37", defaultGstRate: 18, status: "active", effectiveFrom: "2026-04-01T00:00:00.000Z" } },

@@ -336,7 +336,11 @@ export async function deactivateConfigurationRecord(ctx: CallContext) {
 }
 
 export async function listConfigurationCatalog(ctx: CallContext) {
-  const types = (ctx.data.types as string[] | undefined) ?? Object.keys(CONFIG_COLLECTIONS);
+  let rawTypes = ctx.data.types;
+  if (typeof rawTypes === "string") {
+    rawTypes = rawTypes.includes(",") ? rawTypes.split(",").map((t) => t.trim()) : [rawTypes.trim()];
+  }
+  const types = (rawTypes as string[] | undefined) ?? Object.keys(CONFIG_COLLECTIONS);
   if (!ctx.uid) {
     if (JSON.stringify(types) !== JSON.stringify(["countries"])) fail("PERMISSION_DENIED");
     const countries = await db.collection(Col.Countries).where("status", "==", "active").get();

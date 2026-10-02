@@ -27,6 +27,14 @@ script:pre-request {
   if (overlay && !bru.getVar("accessToken")) {
     bru.setVar("accessToken", overlay);
   }
+  const appCheck = bru.getVar("appCheckToken") || bru.getEnvVar("appCheckToken");
+  if (appCheck && typeof req.setHeader === "function") {
+    req.setHeader("X-Firebase-AppCheck", appCheck);
+  }
+  const appId = bru.getVar("appId") || bru.getEnvVar("appId");
+  if (appId && typeof req.setHeader === "function") {
+    req.setHeader("X-Firebase-AppId", appId);
+  }
 }
 
 docs {

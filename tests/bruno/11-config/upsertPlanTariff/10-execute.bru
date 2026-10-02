@@ -48,22 +48,34 @@ script:pre-request {
   const email = bru.getEnvVar("seedSupportEmail");
   const password = bru.getEnvVar("seedPassword");
   const tokenVar = "supportAccessToken";
-  if (tokenVar && authEmulator && email && password && !bru.getVar(tokenVar)) {
-    try {
-      const key = bru.getEnvVar("firebaseWebApiKey") || "fake-api-key";
-      const resp = await fetch(authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, returnSecureToken: true })
-      });
-      const data = await resp.json();
-      if (data && data.idToken) bru.setVar(tokenVar, data.idToken);
-    } catch (err) {
-      console.warn("setup auth: " + (err && err.message ? err.message : err));
+  if (tokenVar && !bru.getVar(tokenVar)) {
+    const existingToken = bru.getEnvVar(tokenVar) || bru.getEnvVar("accessToken");
+    if (existingToken) {
+      bru.setVar(tokenVar, existingToken);
+    } else if (email && password) {
+      try {
+        const key = bru.getEnvVar("firebaseWebApiKey") || "fake-api-key";
+        const authUrl = authEmulator
+          ? authEmulator + "/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key
+          : "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + key;
+        const resp = await fetch(authUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, returnSecureToken: true })
+        });
+        const data = await resp.json();
+        if (data && data.idToken) {
+          bru.setVar(tokenVar, data.idToken);
+        } else if (data && data.error) {
+          console.warn("setup auth failed: " + data.error.message);
+        }
+      } catch (err) {
+        console.warn("setup auth: " + (err && err.message ? err.message : err));
+      }
     }
   }
   if (tokenVar) {
-    bru.setVar("accessToken", bru.getVar(tokenVar) || bru.getEnvVar(tokenVar) || "");
+    bru.setVar("accessToken", bru.getVar(tokenVar) || bru.getEnvVar(tokenVar) || bru.getEnvVar("accessToken") || "");
   }
   const seedKeys = ["seedGigId","seedVillageId","seedRouteId","seedPamphletId","seedProductId","seedBuyerId","seedMerchantId","seedSupplierId","seedVehicleId","seedCountryId","seedPlanId","seedTariffId","seedSubscriptionId","seedStateId","seedDistrictId"];
   for (const key of seedKeys) {
