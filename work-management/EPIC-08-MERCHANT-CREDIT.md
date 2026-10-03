@@ -188,7 +188,7 @@ Scenario: Synchronous credit hold and commit
 ### 2. Derived Use Cases
 #### UC-08.03.A: In-Person Cash Repayment to Visiting Driver & Headroom Restoration
 - **Description**: Village merchant gives ₹10,000 cash to visiting driver to clear outstanding credit balance; driver confirms receipt and credit headroom is restored immediately.
-- **Primary Actor**: Village Merchant (`role: merchant`) and Vehicle Driver (`role: vehicle`).
+- **Primary Actor**: Village Merchant (`role: merchant`) and Vehicle Driver (`role: driver`).
 - **Nominal Flow**:
   1. Merchant opens `MER-07` and selects "Pay Visiting Driver".
   2. Driver verifies cash on `VEH-05` and enters collected amount.

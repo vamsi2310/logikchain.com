@@ -442,11 +442,11 @@ Based on topological dependency analysis, **one single, continuous, operational 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Admin as Platform Admin
+    actor Support as Platform Support
     actor Buyer as Rural Buyer
     actor Driver as Delivery Driver
     actor Merch as Kirana Merchant
-    actor Cashier as Depot Cashier
+    actor Supplier as Regional Supplier
     participant GW as API Gateway (:8080)
     participant CFG as Config Service (:4010)
     participant SOC as Social Connect (:4012)
@@ -462,8 +462,8 @@ sequenceDiagram
     participant FIN as Finance Service (:4009)
 
     %% Stage 1: Day Zero Bootstrap
-    Note over Admin,GW: STAGE 1: Day Zero Bootstrap & Master Geo-Hierarchy (EPIC-10, EPIC-12)
-    Admin->>GW: POST /api/v1/config/geo/sync (Seed States, Districts, Villages)
+    Note over Support,GW: STAGE 1: Day Zero Bootstrap & Master Geo-Hierarchy (EPIC-10, EPIC-12)
+    Support->>GW: POST /api/v1/config/geo/sync (Seed States, Districts, Villages)
     GW->>CFG: Validate App Check & Save Geo-Hierarchy
     CFG-->>GW: Master Spatial Data Active (Firestore Mirror /Villages)
 
@@ -474,19 +474,19 @@ sequenceDiagram
     SOC-->>Buyer: WhatsApp Template OTP with "Tap to Copy" Button
     Buyer->>GW: POST /api/v1/auth/verify-otp (Enter OTP)
     GW->>IDN: Provision Firebase Custom Claims { role: "buyer" }
-    Admin->>IDN: POST /api/v1/auth/roles/elevate (Elevate Driver & Merchant)
+    Support->>IDN: POST /api/v1/auth/roles/elevate (Elevate Driver & Merchant)
 
     %% Stage 3: Fleet Route Scheduling & Manifest
-    Note over Admin,PAM: STAGE 3: Fleet Route Scheduling & Dynamic Vehicle Manifest (EPIC-03, EPIC-04)
-    Admin->>GIG: POST /api/v1/gigs/compose (4 Villages via Google Maps Matrix)
+    Note over Supplier,PAM: STAGE 3: Fleet Route Scheduling & Dynamic Vehicle Manifest (EPIC-03, EPIC-04)
+    Supplier->>GIG: POST /api/v1/gigs/compose (4 Villages via Google Maps Matrix)
     GIG->>PAM: POST /api/v1/pamphlet/init (Run: V042_20261003_0600)
-    Admin->>PAM: POST /api/v1/pamphlet/seal (Loading complete, co-signed by Driver)
+    Supplier->>PAM: POST /api/v1/pamphlet/seal (Loading complete, co-signed by Driver)
     PAM-->>GIG: Status = 'sealed' (Vehicle Departure Gate Cleared)
 
     %% Stage 4: Merchant Trade Credit
-    Note over Admin,CRD: STAGE 4: Merchant Trade Credit Line Underwriting (EPIC-08)
-    Admin->>CRD: POST /api/v1/credit/underwrite (Merchant Limit: ₹50,000, 14-day terms)
-    CRD-->>Admin: Credit Headroom Active: ₹50,000 (Mirror /CreditProfiles)
+    Note over Supplier,CRD: STAGE 4: Merchant Trade Credit Line Underwriting (EPIC-08)
+    Supplier->>CRD: POST /api/v1/credit/underwrite (Merchant Limit: ₹50,000, 14-day terms)
+    CRD-->>Supplier: Credit Headroom Active: ₹50,000 (Mirror /CreditProfiles)
 
     %% Stage 5: Dual Commerce Ordering
     Note over Buyer,SOC: STAGE 5: Dual Commerce Ordering & Payment Ingress (EPIC-02, EPIC-05, EPIC-08, EPIC-13)
@@ -517,8 +517,8 @@ sequenceDiagram
     %% Stage 8: Shift Close & Cashier OTP
     Note over Driver,CSH: STAGE 8: End-of-Shift Finalization & Cash Handover (EPIC-03, EPIC-07)
     Driver->>GIG: POST /api/v1/gigs/finalize (62 km driven -> Status: 'completed')
-    Driver->>Cashier: Hands over ₹10,850 cash bundle at logistics depot
-    Cashier->>CSH: POST /api/v1/cash/handover/cashier-otp (Driver provides 6-digit OTP)
+    Driver->>Supplier: Hands over ₹10,850 cash bundle at supplier depot
+    Supplier->>CSH: POST /api/v1/cash/handover/cashier-otp (Driver provides 6-digit OTP)
     CSH-->>Driver: Driver Custody Balance = ₹0, Discrepancies = 0 (Gate Cleared)
 
     %% Stage 9: Payouts & Disbursements
@@ -543,16 +543,16 @@ sequenceDiagram
 
 | Stage | Name | Epics Covered | Features Exercised | Actors Involved | Microservices & Ports | Critical Gate Checked | Success State |
 | :---: | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **01** | **Day Zero Bootstrap & Geo-Hierarchy** | `EPIC-10`, `EPIC-12` | `FEAT-10.01`, `FEAT-10.02`, `FEAT-10.03`, `FEAT-12.01`, `FEAT-12.02`, `FEAT-12.03` | Platform Ops Admin | `config-service` (:4010), `gateway` (:8080), `sync-engine` (:4050) | **Zero-Trust Perimeter Gate**: All public traffic carries valid App Check | 48,000 Indian villages seeded, tax rules locked, CDC engine streaming to `/Villages` |
-| **02** | **Citizen Onboarding & Role Elevation** | `EPIC-13`, `EPIC-01` | `FEAT-13.01`, `FEAT-13.02`, `FEAT-01.01`, `FEAT-01.02`, `FEAT-01.03` | Rural Citizen, Supplier Admin | `social-connect-service` (:4012), `identity-service` (:4001) | Custom claims enforcement on Gateway | WhatsApp OTP verified, `role: buyer` assigned, progressive promotion to merchant and driver |
-| **03** | **Fleet Route Scheduling & Manifest** | `EPIC-03`, `EPIC-04` | `FEAT-03.01`, `FEAT-04.01`, `FEAT-04.02` | Fleet Dispatcher, Warehouse Crew, Driver | `gigs-service` (:4003), `pamphlet-service` (:4004) | **Vehicle Departure Gate**: Cannot navigate without `status: sealed` | Gig scheduled across 4 villages, truck loaded with 200 items, gate seal digitally confirmed |
-| **04** | **Merchant Trade Credit Underwriting** | `EPIC-08` | `FEAT-08.01` | Supplier Finance Admin, Local Merchant | `credit-service` (:4008), `sync-engine` (:4050) | Merchant identity verification & status active | ₹50,000 credit limit assigned, 14-day terms, mirrored to `/CreditProfiles/{uid}` |
-| **05** | **Dual Commerce Ordering & Payments** | `EPIC-02`, `EPIC-05`, `EPIC-08`, `EPIC-13` | `FEAT-02.01`, `FEAT-05.01`, `FEAT-05.02`, `FEAT-02.02`, `FEAT-08.02`, `FEAT-13.03` | Rural Buyer, Local Kirana Merchant | `orders-service` (:4002), `payments-service` (:4005), `credit-service` (:4008), `social-connect-service` (:4012) | **Credit Headroom Gate**: Order blocked if amount > available headroom | Buyer ₹850 UPI order confirmed; Merchant ₹15,000 credit hold reserved; WhatsApp notifications sent |
-| **06** | **Live Route Navigation & Handover** | `EPIC-03`, `EPIC-02`, `EPIC-07`, `EPIC-04` | `FEAT-03.02`, `FEAT-02.03`, `FEAT-07.01`, `FEAT-04.02` | Delivery Driver, Rural Buyer | `gigs-service` (:4003), `orders-service` (:4002), `cash-service` (:4007), `pamphlet-service` (:4004) | Play Integrity GPS verification & 4-digit buyer OTP | Order delivered, pamphlet stock decremented, ₹850 CoD cash collected into driver custody |
-| **07** | **In-Person Credit Repayment** | `EPIC-08`, `EPIC-07` | `FEAT-08.03`, `FEAT-07.01` | Delivery Driver, Local Kirana Merchant | `credit-service` (:4008), `cash-service` (:4007) | Driver maximum field cash limit check | Merchant repays ₹10,000 cash; credit headroom restored to ₹45,000; driver custody balance reaches ₹10,850 |
-| **08** | **Shift Close & Cashier Handover** | `EPIC-03`, `EPIC-07` | `FEAT-03.03`, `FEAT-07.02`, `FEAT-07.03` | Delivery Driver, Warehouse Cashier | `gigs-service` (:4003), `cash-service` (:4007) | 6-digit driver handover OTP & cash count audit | Gig completed (62 km); ₹10,850 physical cash deposited; driver custody clears to ₹0 (0 discrepancies) |
-| **09** | **Driver Payout & Banking Disbursement** | `EPIC-06`, `EPIC-07`, `EPIC-13` | `FEAT-06.01`, `FEAT-06.02`, `FEAT-06.03`, `FEAT-13.04` | Delivery Driver, Automated Cloud Tasks | `payouts-service` (:4006), `cash-service` (:4007), `social-connect-service` (:4012) | **Payout Custody Gate**: Hard block if unresolved discrepancies > 0 | Discrepancies == 0 verified; KMS decrypted bank transfer dispatched via RazorpayX; WhatsApp UTR receipt sent |
-| **10** | **Governance, Ledger Close & 3-Way Recon** | `EPIC-11`, `EPIC-09` | `FEAT-11.01`, `FEAT-11.02`, `FEAT-11.03`, `FEAT-09.01`, `FEAT-09.02`, `FEAT-09.03` | Finance Controller, Nightly Cloud Scheduler | `governance-service` (:4011), `finance-service` (:4009) | Double-entry integrity: $\sum \text{Debit} \equiv \sum \text{Credit}$ | TPAP/AML verified; balanced ledger entries posted; 01:00 AM 3-way recon matched with ₹0 variance; TDS recorded |
+| **01** | **Day Zero Bootstrap & Geo-Hierarchy** | `EPIC-10`, `EPIC-12` | `FEAT-10.01`, `FEAT-10.02`, `FEAT-10.03`, `FEAT-12.01`, `FEAT-12.02`, `FEAT-12.03` | **Support** | `config-service` (:4010), `gateway` (:8080), `sync-engine` (:4050) | **Zero-Trust Perimeter Gate**: All public traffic carries valid App Check | 48,000 Indian villages seeded, tax rules locked, CDC engine streaming to `/Villages` |
+| **02** | **Citizen Onboarding & Role Elevation** | `EPIC-13`, `EPIC-01` | `FEAT-13.01`, `FEAT-13.02`, `FEAT-01.01`, `FEAT-01.02`, `FEAT-01.03` | **Buyer** (self-registers), **Supplier** (provisions org), **Support** (elevates roles) | `social-connect-service` (:4012), `identity-service` (:4001) | Custom claims enforcement on Gateway | WhatsApp OTP verified, `role: buyer` assigned, progressive promotion to merchant and driver |
+| **03** | **Fleet Route Scheduling & Manifest** | `EPIC-03`, `EPIC-04` | `FEAT-03.01`, `FEAT-04.01`, `FEAT-04.02` | **Supplier** (schedules gig & seals manifest), **Driver** (co-signs loading) | `gigs-service` (:4003), `pamphlet-service` (:4004) | **Vehicle Departure Gate**: Cannot navigate without `status: sealed` | Gig scheduled across 4 villages, truck loaded with 200 items, gate seal digitally confirmed |
+| **04** | **Merchant Trade Credit Underwriting** | `EPIC-08` | `FEAT-08.01` | **Supplier** (underwrites limit), **Merchant** (applies for credit) | `credit-service` (:4008), `sync-engine` (:4050) | Merchant identity verification & status active | ₹50,000 credit limit assigned, 14-day terms, mirrored to `/CreditProfiles/{uid}` |
+| **05** | **Dual Commerce Ordering & Payments** | `EPIC-02`, `EPIC-05`, `EPIC-08`, `EPIC-13` | `FEAT-02.01`, `FEAT-05.01`, `FEAT-05.02`, `FEAT-02.02`, `FEAT-08.02`, `FEAT-13.03` | **Buyer** (prepaid order), **Merchant** (bulk credit order) | `orders-service` (:4002), `payments-service` (:4005), `credit-service` (:4008), `social-connect-service` (:4012) | **Credit Headroom Gate**: Order blocked if amount > available headroom | Buyer ₹850 UPI order confirmed; Merchant ₹15,000 credit hold reserved; WhatsApp notifications sent |
+| **06** | **Live Route Navigation & Handover** | `EPIC-03`, `EPIC-02`, `EPIC-07`, `EPIC-04` | `FEAT-03.02`, `FEAT-02.03`, `FEAT-07.01`, `FEAT-04.02` | **Driver** (navigates & delivers), **Buyer** (receives order, provides OTP) | `gigs-service` (:4003), `orders-service` (:4002), `cash-service` (:4007), `pamphlet-service` (:4004) | Play Integrity GPS verification & 4-digit buyer OTP | Order delivered, pamphlet stock decremented, ₹850 CoD cash collected into driver custody |
+| **07** | **In-Person Credit Repayment** | `EPIC-08`, `EPIC-07` | `FEAT-08.03`, `FEAT-07.01` | **Driver** (collects repayment), **Merchant** (pays credit cash) | `credit-service` (:4008), `cash-service` (:4007) | Driver maximum field cash limit check | Merchant repays ₹10,000 cash; credit headroom restored to ₹45,000; driver custody balance reaches ₹10,850 |
+| **08** | **Shift Close & Cash Handover** | `EPIC-03`, `EPIC-07` | `FEAT-03.03`, `FEAT-07.02`, `FEAT-07.03` | **Driver** (finalizes gig & hands over cash), **Supplier** (receives & verifies cash at depot) | `gigs-service` (:4003), `cash-service` (:4007) | 6-digit driver handover OTP & cash count audit | Gig completed (62 km); ₹10,850 physical cash deposited; driver custody clears to ₹0 (0 discrepancies) |
+| **09** | **Driver Payout & Banking Disbursement** | `EPIC-06`, `EPIC-07`, `EPIC-13` | `FEAT-06.01`, `FEAT-06.02`, `FEAT-06.03`, `FEAT-13.04` | **Driver** (requests payout), Automated Cloud Tasks | `payouts-service` (:4006), `cash-service` (:4007), `social-connect-service` (:4012) | **Payout Custody Gate**: Hard block if unresolved discrepancies > 0 | Discrepancies == 0 verified; KMS decrypted bank transfer dispatched via RazorpayX; WhatsApp UTR receipt sent |
+| **10** | **Governance, Ledger Close & 3-Way Recon** | `EPIC-11`, `EPIC-09` | `FEAT-11.01`, `FEAT-11.02`, `FEAT-11.03`, `FEAT-09.01`, `FEAT-09.02`, `FEAT-09.03` | **Support** (monitors compliance), Nightly Cloud Scheduler | `governance-service` (:4011), `finance-service` (:4009) | Double-entry integrity: $\sum \text{Debit} \equiv \sum \text{Credit}$ | TPAP/AML verified; balanced ledger entries posted; 01:00 AM 3-way recon matched with ₹0 variance; TDS recorded |
 
 ---
 

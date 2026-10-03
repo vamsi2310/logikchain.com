@@ -109,7 +109,7 @@ Scenario: Supplier composes gig with automated route metrics
 ### 2. Derived Use Cases
 #### UC-03.02.A: Native Driver Route Navigation & Background Telemetry
 - **Description**: Delivery driver begins route on Android; app streams GPS telemetry; buyers and suppliers monitor live transit.
-- **Primary Actor**: Vehicle Driver (`role: vehicle`).
+- **Primary Actor**: Vehicle Driver (`role: driver`).
 - **Secondary Systems**: Android Play Integrity, `gigs-service`, Cloud Firestore.
 - **Preconditions**: Driver is authenticated on the official Android app at the departure warehouse.
 - **Nominal Flow**:
@@ -191,7 +191,7 @@ Scenario: Driver starts gig with Play Integrity token
 ### 2. Derived Use Cases
 #### UC-03.03.A: Gig Closure & Route Metrics Audit
 - **Description**: Driver completes all village deliveries, returns to warehouse, and finalizes the day's gig.
-- **Primary Actor**: Vehicle Driver (`role: vehicle`).
+- **Primary Actor**: Vehicle Driver (`role: driver`).
 - **Secondary Systems**: `gigs-service`, `pamphlet-service`, `cash-service`.
 - **Nominal Flow**:
   1. Driver arrives back at warehouse and taps "Complete Gig" on `VEH-06`.

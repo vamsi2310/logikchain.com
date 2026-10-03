@@ -35,7 +35,7 @@
 - **Postconditions**: Village registered in platform master catalog; available for logistics routing and buyer address selection.
 
 ### 3. User Journey Stories
-- **US-10.01.01 [READY]**: *As a logistics planner, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate.*
+- **US-10.01.01 [READY]**: *As a platform support operator, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate.*
 - **US-10.01.02 [READY]**: *As a rural buyer, I want to select my village and nearest landmark easily, so that delivery vehicles can find my location without calling multiple times.*
 
 #### Acceptance Criteria (Gherkin)
@@ -132,8 +132,8 @@ Scenario: Admin creates new subscription plan tier
 
 ### 5. Multi-Client Implementation Stories
 - **PWA-10.02.01 [READY] (Web PWA Subscription Plan Viewer & Management)**: *Build subscription tier comparison table and entitlement editor on Support Web PWA (`web/x/` on `SPT-11`) and Supplier account portal (`web/s/`).*
-- **AND-10.02.01 [READY] (Android Native Subscription Status Card)**: *Build native Android subscription tier and quota utilization card for supplier admins.*
-- **IOS-10.02.01 [READY] (iOS Native Subscription Status Card)**: *Build native iOS subscription tier view for supplier admins.*
+- **AND-10.02.01 [READY] (Android Native Subscription Status Card)**: *Build native Android subscription tier and quota utilization card for suppliers.*
+- **IOS-10.02.01 [READY] (iOS Native Subscription Status Card)**: *Build native iOS subscription tier view for suppliers.*
 
 ### 6. PWA Cloud Testing Story
 - **TEST-10.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying plan creation, price calculation, and Firestore collection sync on PWA against `config-service` on `logikchain-test`.*

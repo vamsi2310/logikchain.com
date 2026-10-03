@@ -105,8 +105,8 @@ Scenario: Automatic pamphlet generation on gig compose
 
 ### 2. Derived Use Cases
 #### UC-04.02.A: Physical Warehouse Loading & Driver Sign-Off
-- **Description**: Warehouse crew loads cartons and bags into delivery truck; driver scans or verifies items before leaving.
-- **Primary Actor**: Warehouse Loader (`role: supplier`) and Vehicle Driver (`role: vehicle`).
+- **Description**: Supplier (warehouse loader) loads cartons and bags into delivery truck; driver scans or verifies items before leaving.
+- **Primary Actor**: Warehouse Loader (`role: supplier`) and Vehicle Driver (`role: driver`).
 - **Nominal Flow**:
   1. Warehouse loader scans loaded SKUs into `SUP-06`.
   2. System calls `POST /v1/pamphlets/{id}/load` with batch items and quantities.
@@ -186,7 +186,7 @@ Scenario: Warehouse loading stock batch into vehicle pamphlet
 ### 2. Derived Use Cases
 #### UC-04.03.A: In-Transit Breakage / Damaged Stock Recording
 - **Description**: Driver discovers damaged items during transit (e.g. broken oil tin) and logs an adjustment before drop-off.
-- **Primary Actor**: Vehicle Driver (`role: vehicle`).
+- **Primary Actor**: Vehicle Driver (`role: driver`).
 - **Nominal Flow**:
   1. Driver navigates to `VEH-04`, selects SKU, and logs reason code `damaged_in_transit`.
   2. Driver takes photo proof on mobile and enters affected quantity.

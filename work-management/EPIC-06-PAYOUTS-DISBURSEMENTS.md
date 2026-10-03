@@ -24,7 +24,7 @@
 ### 2. Derived Use Cases
 #### UC-06.01.A: Bank Beneficiary Registration with Cloud KMS Envelope Encryption
 - **Description**: A driver or supplier registers their bank account for weekly payouts; sensitive account details are KMS-encrypted before database storage.
-- **Primary Actor**: Driver (`role: vehicle`) or Supplier (`role: supplier`).
+- **Primary Actor**: Driver (`role: driver`) or Supplier (`role: supplier`).
 - **Secondary Systems**: `payouts-service`, Google Cloud KMS, RazorpayX Penny-drop API.
 - **Preconditions**: User is authenticated with approved identity profile.
 - **Nominal Flow**:
@@ -110,7 +110,7 @@ Scenario: Driver registers bank account with KMS encryption
 ### 2. Derived Use Cases
 #### UC-06.02.A: Driver Weekly Earnings Withdrawal & Multi-Level Review
 - **Description**: Driver requests payout of cleared earnings; system verifies cash custody balances and presents request for review if above threshold.
-- **Primary Actor**: Driver (`role: vehicle`) and Support Operator (`role: support`).
+- **Primary Actor**: Driver (`role: driver`) and Support Operator (`role: support`).
 - **Nominal Flow**:
   1. Driver navigates to `VEH-07`, views cleared balance (e.g. ₹6,500), and requests withdrawal.
   2. `payouts-service` queries `cash-service` (`:4007`) to verify driver has zero pending cash custody shortfalls.

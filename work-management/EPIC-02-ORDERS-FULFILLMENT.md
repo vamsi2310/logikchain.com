@@ -199,7 +199,7 @@ Scenario: Merchant places bulk order on credit
 ### 2. Derived Use Cases
 #### UC-02.03.A: Driver Field Delivery & CoD Cash Capture
 - **Description**: Delivery driver reaches village drop point, delivers packages to buyer, verifies 4-digit handover OTP, and collects cash for CoD orders.
-- **Primary Actor**: Vehicle Driver (`role: vehicle`).
+- **Primary Actor**: Vehicle Driver (`role: driver`).
 - **Secondary Systems**: `orders-service`, `cash-service`, Android Play Integrity.
 - **Preconditions**: Order is in status `dispatched` assigned to the active gig.
 - **Nominal Flow**:

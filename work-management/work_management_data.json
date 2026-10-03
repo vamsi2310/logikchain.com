@@ -2502,7 +2502,7 @@
             "type": "user_journey",
             "title": "US-10.01.01",
             "status": "READY",
-            "description": "As a logistics planner, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate."
+            "description": "As a platform support operator, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate."
           },
           {
             "id": "US-10.01.02",

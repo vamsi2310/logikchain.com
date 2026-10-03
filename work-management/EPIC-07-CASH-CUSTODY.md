@@ -24,7 +24,7 @@
 ### 2. Derived Use Cases
 #### UC-07.01.A: Rural Doorstep Cash-on-Delivery Collection & Custody Accumulation
 - **Description**: Delivery driver delivers packages to a rural home, collects cash, and the mobile app records cash custody into driver balance.
-- **Primary Actor**: Vehicle Driver (`role: vehicle`).
+- **Primary Actor**: Vehicle Driver (`role: driver`).
 - **Secondary Systems**: `orders-service`, `cash-service`, Android Room Database / WorkManager.
 - **Preconditions**: Order is in status `dispatched` with payment mode `cod`.
 - **Nominal Flow**:
@@ -113,7 +113,7 @@ Scenario: Driver collects cash offline and syncs
 ### 2. Derived Use Cases
 #### UC-07.02.A: End-of-Gig Physical Cash Turn-In & Custody Settlement
 - **Description**: Driver turns in accumulated cash at supplier cashier desk; cashier counts money and confirms via OTP.
-- **Primary Actor**: Vehicle Driver (`role: vehicle`) and Supplier Cashier (`role: supplier`).
+- **Primary Actor**: Vehicle Driver (`role: driver`) and Supplier Cashier (`role: supplier`).
 - **Nominal Flow**:
   1. Driver arrives at cashier desk with physical currency and initiates handover on `VEH-08`.
   2. Driver submits `declareCashHandover` specifying declared amount (e.g. ₹12,400).
