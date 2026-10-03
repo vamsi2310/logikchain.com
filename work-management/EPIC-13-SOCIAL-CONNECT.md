@@ -2,6 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-13`
+- **Epic Status**: `[IN_PROGRESS]`
 - **Functional Area**: Social Media Connect, Multi-Channel User Notifications & Interaction Orchestration
 - **Bound Microservice**: `microservices/services/social-connect-service`
 - **Container Port**: `4012`
@@ -15,6 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.01`
+- **Feature Status**: `[IN_PROGRESS]`
 - **Functional Scope**: User preference management (WhatsApp, In-App Push, SMS), notification categories (OTPs, Orders, Bills, Ownership Alerts), local database preference cache, and Cloud Firestore synchronization.
 - **Service Endpoints**: `GET /api/v1/preferences/{userId}`, `PUT /api/v1/preferences/{userId}`
 - **UI Screens**: [SHR-07 Profile Settings](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-07), [SHR-12 Notification Center](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-12)
@@ -35,8 +37,8 @@
 - **Postconditions**: User preferences safely stored; local cache updated; Firestore collection updated.
 
 ### 3. User Journey Stories
-- **US-13.01.01**: *As a rural merchant, I want to choose WhatsApp as my default notification channel, so that I receive order receipts and invoices in the messaging app I use every day.*
-- **US-13.01.02**: *As a buyer, I want granular control over notification categories, so that I receive critical order and security OTP messages without being disturbed by promotional content.*
+- **US-13.01.01 [READY]**: *As a rural merchant, I want to choose WhatsApp as my default notification channel, so that I receive order receipts and invoices in the messaging app I use every day.*
+- **US-13.01.02 [READY]**: *As a buyer, I want granular control over notification categories, so that I receive critical order and security OTP messages without being disturbed by promotional content.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -51,13 +53,49 @@ Scenario: Update user notification preferences
 ```
 
 ### 4. Integration Stories
-- **INT-13.01.01 (Local DB Preference Cache Check)**: *As the Social Connect Service, I need to query `social_connect_db.user_notification_preferences` before every notification dispatch to evaluate channel opt-ins and quiet-hour rules.*
-- **INT-13.01.02 (Firestore Periodic Sync Integration)**: *As the Social Connect Service, I need to mirror all user notification preferences to Cloud Firestore collection `/NotificationPreferences/{userId}` every 2000ms.*
+- **INT-13.01.01 [IN_PROGRESS] (Local DB Preference Cache Check)**: *As the Social Connect Service, I need to query `social_connect_db.user_notification_preferences` before every notification dispatch to evaluate channel opt-ins and quiet-hour rules.*
+- **INT-13.01.02 [READY] (Firestore Periodic Sync Integration)**: *As the Social Connect Service, I need to mirror all user notification preferences to Cloud Firestore collection `/NotificationPreferences/{userId}` every 2000ms.*
 
-### 5. Independent Support Stories
-- **OPS-13.01.01 (DevOps & Database Migrations)**: *Execute PostgreSQL migration for `social_connect_db.user_notification_preferences` with index on `user_id`.*
-- **DOC-13.01.01 (Preference Schema Documentation)**: *Publish OpenAPI 3.0 schema and data dictionary for notification preferences.*
-- **TEST-13.01.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/preferences/` validating preference updates and default values.*
+### 5. Multi-Client Implementation Stories
+- **PWA-13.01.01 [IN_PROGRESS] (Web PWA Notification Preferences Manager)**: *Build notification settings interface in `web/` (`SHR-12`) with WhatsApp opt-in toggle, channel selection, and category checkboxes.*
+- **AND-13.01.01 [IN_PROGRESS] (Android Native WhatsApp & Push Preferences)**: *Build native Android notification preferences screen in `android/` with FCM push token registration.*
+- **IOS-13.01.01 [READY] (iOS Native WhatsApp & Push Preferences)**: *Build native iOS notification preferences screen in `ios/` with APNS push token registration.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-13.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test updating notification preferences on PWA, verifying Firestore sync, and checking local DB query on `social-connect-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-13.01.01 [IN_PROGRESS] (DevOps & Database Migrations)**: *Execute PostgreSQL migration for `social_connect_db.user_notification_preferences` with index on `user_id`.*
+- **DOC-13.01.01 [READY] (Preference Schema Documentation)**: *Publish OpenAPI 3.0 schema and data dictionary for notification preferences.*
+- **TEST-13.01.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/preferences/` validating preference updates and default values.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest -f microservices/services/social-connect-service/Dockerfile.service microservices/services/social-connect-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest
+  gcloud run deploy social-connect-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/social-notification-preferences.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -65,6 +103,7 @@ Scenario: Update user notification preferences
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.02`
+- **Feature Status**: `[IN_PROGRESS]`
 - **Functional Scope**: WhatsApp Cloud API authentication message dispatch, one-tap copyable OTP buttons, delivery receipt tracking, and automatic SMS fallback.
 - **Service Endpoints**: `POST /api/v1/interaction/otp`, `POST /api/v1/social/webhook` (Meta Webhook)
 - **UI Screens**: [SHR-02 Login](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-02), [SHR-04 OTP](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-04)
@@ -87,8 +126,8 @@ Scenario: Update user notification preferences
 - **Postconditions**: OTP delivered to user's phone; dispatch log updated; audit trail recorded.
 
 ### 3. User Journey Stories
-- **US-13.02.01**: *As a rural user logging in, I want to receive my verification code on WhatsApp with a single-tap copy button, so that I can authenticate quickly without navigating away to an SMS inbox.*
-- **US-13.02.02**: *As an authenticating user without WhatsApp active, I want the system to automatically send an SMS OTP fallback, so that I am never locked out of my account.*
+- **US-13.02.01 [READY]**: *As a rural user logging in, I want to receive my verification code on WhatsApp with a single-tap copy button, so that I can authenticate quickly without navigating away to an SMS inbox.*
+- **US-13.02.02 [READY]**: *As an authenticating user without WhatsApp active, I want the system to automatically send an SMS OTP fallback, so that I am never locked out of my account.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -100,14 +139,50 @@ Scenario: WhatsApp OTP dispatch with one-tap copy
 ```
 
 ### 4. Integration Stories
-- **INT-13.02.01 (Meta WhatsApp Cloud API Integration)**: *As the Social Connect Service, I need to integrate with Meta WhatsApp Business Cloud API (`graph.facebook.com/v19.0/{phone_id}/messages`) to dispatch pre-approved HSM authentication templates.*
-- **INT-13.02.02 (Identity Service Orchestration Integration)**: *As the Social Connect Service, I need to provide internal endpoints for `identity-service` (:4001) to orchestrate signup and login OTPs.*
-- **INT-13.02.03 (Meta Webhook Ingress Integration)**: *As the Social Connect Service, I need to ingest and parse Meta WhatsApp delivery receipts (`sent`, `delivered`, `read`) to maintain real-time dispatch observability.*
+- **INT-13.02.01 [IN_PROGRESS] (Meta WhatsApp Cloud API Integration)**: *As the Social Connect Service, I need to integrate with Meta WhatsApp Business Cloud API (`graph.facebook.com/v19.0/{phone_id}/messages`) to dispatch pre-approved HSM authentication templates.*
+- **INT-13.02.02 [IN_PROGRESS] (Identity Service Orchestration Integration)**: *As the Social Connect Service, I need to provide internal endpoints for `identity-service` (:4001) to orchestrate signup and login OTPs.*
+- **INT-13.02.03 [IN_PROGRESS] (Meta Webhook Ingress Integration)**: *As the Social Connect Service, I need to ingest and parse Meta WhatsApp delivery receipts (`sent`, `delivered`, `read`) to maintain real-time dispatch observability.*
 
-### 5. Independent Support Stories
-- **OPS-13.02.01 (GCP Secret Manager WhatsApp Credentials)**: *Store `WHATSAPP_SYSTEM_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` in GCP Secret Manager and mount via Kubernetes secrets.*
-- **DOC-13.02.01 (WhatsApp Template Catalog Documentation)**: *Document all registered Meta WhatsApp Business templates, variables, and HSM language locales (English, Telugu, Hindi).*
-- **TEST-13.02.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/otpDispatch/` validating template substitution and fallback trigger.*
+### 5. Multi-Client Implementation Stories
+- **PWA-13.02.01 [IN_PROGRESS] (Web PWA WhatsApp OTP Dispatch & Verification Screen)**: *Build OTP entry modal on `web/` (`SHR-04`) with "Resend via WhatsApp" button and automatic clipboard paste support.*
+- **AND-13.02.01 [IN_PROGRESS] (Android Native WhatsApp Intent & OTP Auto-Read)**: *Implement Android SMS/WhatsApp verification receiver with automatic OTP detection on screen `SHR-04`.*
+- **IOS-13.02.01 [READY] (iOS Native WhatsApp & One-Time-Code AutoFill)**: *Implement iOS One-Time-Code keyboard autofill on screen `SHR-04`.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-13.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test requesting WhatsApp OTP on PWA login screen, verifying webhook receipt status, and confirming authentication against `social-connect-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-13.02.01 [IN_PROGRESS] (GCP Secret Manager WhatsApp Credentials)**: *Store `WHATSAPP_SYSTEM_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` in GCP Secret Manager and mount via Kubernetes secrets.*
+- **DOC-13.02.01 [READY] (WhatsApp Template Catalog Documentation)**: *Document all registered Meta WhatsApp Business templates, variables, and HSM language locales (English, Telugu, Hindi).*
+- **TEST-13.02.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/otpDispatch/` validating template substitution and fallback trigger.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest -f microservices/services/social-connect-service/Dockerfile.service microservices/services/social-connect-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest
+  gcloud run deploy social-connect-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/social-whatsapp-otp.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -115,6 +190,7 @@ Scenario: WhatsApp OTP dispatch with one-tap copy
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.03`
+- **Feature Status**: `[READY]`
 - **Functional Scope**: Real-time order placement, dispatch, out-for-delivery, and delivery completion notifications with live tracking links via WhatsApp and FCM Push.
 - **Service Endpoints**: `POST /api/v1/interaction/order-update`
 - **UI Screens**: [BUY-05 Order Tracking](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05), [MER-02 Orders](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-02)
@@ -133,7 +209,7 @@ Scenario: WhatsApp OTP dispatch with one-tap copy
 - **Postconditions**: User receives real-time WhatsApp order update with one-click tracking URL.
 
 ### 3. User Journey Stories
-- **US-13.03.01**: *As a rural buyer, I want order updates delivered directly to my WhatsApp, so that I know when the delivery vehicle is approaching my village without having to open the app.*
+- **US-13.03.01 [READY]**: *As a rural buyer, I want order updates delivered directly to my WhatsApp, so that I know when the delivery vehicle is approaching my village without having to open the app.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -145,13 +221,49 @@ Scenario: Order out-for-delivery notification dispatched
 ```
 
 ### 4. Integration Stories
-- **INT-13.03.01 (Orders Service Event Integration)**: *As the Social Connect Service, I need to receive order lifecycle webhooks from `orders-service` (:4002) to trigger contextual customer messaging.*
-- **INT-13.03.02 (FCM Push Notification Integration)**: *As the Social Connect Service, I need to dispatch Firebase Cloud Messaging (FCM) in-app push notifications for users who prefer in-app alerts over WhatsApp.*
+- **INT-13.03.01 [READY] (Orders Service Event Integration)**: *As the Social Connect Service, I need to receive order lifecycle webhooks from `orders-service` (:4002) to trigger contextual customer messaging.*
+- **INT-13.03.02 [READY] (FCM Push Notification Integration)**: *As the Social Connect Service, I need to dispatch Firebase Cloud Messaging (FCM) in-app push notifications for users who prefer in-app alerts over WhatsApp.*
 
-### 5. Independent Support Stories
-- **OPS-13.03.01 (High-Volume Notification Queue DevOps)**: *Deploy Redis-backed queue in `social-connect-service` to buffer high-frequency order notifications during peak morning delivery dispatch windows.*
-- **DOC-13.03.01 (Order Notification Flow Specs)**: *Document sequence diagrams for order lifecycle transitions and corresponding message payloads.*
-- **TEST-13.03.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/orderUpdate/` testing opt-out suppression.*
+### 5. Multi-Client Implementation Stories
+- **PWA-13.03.01 [READY] (Web PWA Live Order Notification Banner & Deep-Link)**: *Build order status notification bar in `web/` with deep-links to tracking screen `BUY-05`.*
+- **AND-13.03.01 [READY] (Android Native FCM Order Notification Handler)**: *Build native Android FCM notification receiver opening real-time vehicle map tracking.*
+- **IOS-13.03.01 [READY] (iOS Native APNS Order Notification Handler)**: *Build native iOS APNS notification receiver opening live order status.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-13.03.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test dispatching order update, verifying WhatsApp webhook simulation, and clicking live tracking link in PWA on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-13.03.01 [READY] (High-Volume Notification Queue DevOps)**: *Deploy Redis-backed queue in `social-connect-service` to buffer high-frequency order notifications during peak morning delivery dispatch windows.*
+- **DOC-13.03.01 [READY] (Order Notification Flow Specs)**: *Document sequence diagrams for order lifecycle transitions and corresponding message payloads.*
+- **TEST-13.03.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/orderUpdate/` testing opt-out suppression.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest -f microservices/services/social-connect-service/Dockerfile.service microservices/services/social-connect-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest
+  gcloud run deploy social-connect-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/social-order-updates.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -159,6 +271,7 @@ Scenario: Order out-for-delivery notification dispatched
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.04`
+- **Feature Status**: `[READY]`
 - **Functional Scope**: Automated delivery of PDF tax invoices, merchant bulk order bills, TDS deduction certificates, and business ownership notifications (daily payout confirmations, credit limit updates).
 - **Service Endpoints**: `POST /api/v1/interaction/bill`, `POST /api/v1/interaction/ownership-alert`
 - **UI Screens**: [MER-07 Financial Hub](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-07), [SUP-08 Fleet Admin](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-08)
@@ -177,8 +290,8 @@ Scenario: Order out-for-delivery notification dispatched
 - **Postconditions**: Business invoice delivered; verified by delivery receipt.
 
 ### 3. User Journey Stories
-- **US-13.04.01**: *As a village merchant, I want wholesale purchase invoices and payment receipts sent to my WhatsApp as downloadable PDFs, so that I have instant digital records for my accounting and GST filings.*
-- **US-13.04.02**: *As a delivery driver or fleet supplier, I want daily earnings and payout confirmation alerts on WhatsApp, so that I am always updated on my business cash flow.*
+- **US-13.04.01 [READY]**: *As a village merchant, I want wholesale purchase invoices and payment receipts sent to my WhatsApp as downloadable PDFs, so that I have instant digital records for my accounting and GST filings.*
+- **US-13.04.02 [READY]**: *As a delivery driver or fleet supplier, I want daily earnings and payout confirmation alerts on WhatsApp, so that I am always updated on my business cash flow.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -191,10 +304,46 @@ Scenario: Deliver PDF invoice via WhatsApp
 ```
 
 ### 4. Integration Stories
-- **INT-13.04.01 (Finance & Payouts Service Integration)**: *As the Social Connect Service, I need to accept billing and payout notification requests from `finance-service` (:4009) and `payouts-service` (:4006).*
-- **INT-13.04.02 (Firebase Cloud Storage Document Integration)**: *As the Social Connect Service, I need to validate that signed PDF document URLs hosted on Firebase Cloud Storage are accessible by Meta WhatsApp Cloud API servers for media attachment.*
+- **INT-13.04.01 [READY] (Finance & Payouts Service Integration)**: *As the Social Connect Service, I need to accept billing and payout notification requests from `finance-service` (:4009) and `payouts-service` (:4006).*
+- **INT-13.04.02 [READY] (Firebase Cloud Storage Document Integration)**: *As the Social Connect Service, I need to validate that signed PDF document URLs hosted on Firebase Cloud Storage are accessible by Meta WhatsApp Cloud API servers for media attachment.*
 
-### 5. Independent Support Stories
-- **OPS-13.04.01 (DevOps & Media Retention)**: *Configure Cloud Storage bucket lifecycle rules retaining WhatsApp-dispatched PDF bills for 7 years to meet statutory tax record requirements.*
-- **DOC-13.04.01 (Billing Notification Specifications)**: *Document WhatsApp document message payload requirements, file size limits (max 100MB), and PDF metadata formatting.*
-- **TEST-13.04.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/sendBill/` verifying document attachment formatting.*
+### 5. Multi-Client Implementation Stories
+- **PWA-13.04.01 [READY] (Web PWA Digital Bill & Invoice Archive)**: *Build digital bill repository and invoice download view in `web/` (`MER-07`, `SUP-08`) with "Share via WhatsApp" action.*
+- **AND-13.04.01 [READY] (Android Native Bill & Payout Alert View)**: *Build native Android PDF bill viewer and payout confirmation dialog in `android/`.*
+- **IOS-13.04.01 [READY] (iOS Native Bill & Payout Alert View)**: *Build native iOS PDF invoice viewer and payout confirmation alert in `ios/`.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-13.04.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test generating PDF bill, invoking WhatsApp dispatch, and opening PDF attachment in PWA on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-13.04.01 [READY] (DevOps & Media Retention)**: *Configure Cloud Storage bucket lifecycle rules retaining WhatsApp-dispatched PDF bills for 7 years to meet statutory tax record requirements.*
+- **DOC-13.04.01 [READY] (Billing Notification Specifications)**: *Document WhatsApp document message payload requirements, file size limits (max 100MB), and PDF metadata formatting.*
+- **TEST-13.04.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/13-social/sendBill/` verifying document attachment formatting.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest -f microservices/services/social-connect-service/Dockerfile.service microservices/services/social-connect-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest
+  gcloud run deploy social-connect-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/social-connect-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/social-digital-bills.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.

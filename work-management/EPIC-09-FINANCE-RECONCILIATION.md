@@ -2,6 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-09`
+- **Epic Status**: `[READY]`
 - **Functional Area**: Finance, General Ledger, Statutory Tax & Automated Reconciliation
 - **Bound Microservice**: `microservices/services/finance-service`
 - **Container Port**: `4009`
@@ -15,6 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-09.01`
+- **Feature Status**: `[READY]`
 - **Functional Scope**: Immutable multi-currency double-entry ledger, journal entry posting, chart of accounts, and balance conservation.
 - **Service Endpoints**: `POST /v1/finance/journal-entries`, `GET /v1/finance/accounts/{code}/balance`, `GET /v1/finance/reports` (`getFinanceReport`)
 - **UI Screens**: [SPT-07 Finance Dashboard](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-07), [SPT-08 Ledger Explorer](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-08)
@@ -35,8 +37,8 @@
 - **Postconditions**: Ledger entry immutably written; account balances recalculated; zero phantom money verified.
 
 ### 3. User Journey Stories
-- **US-09.01.01**: *As a platform financial controller, I want all transactions recorded using strict double-entry principles, so that financial audits pass without discrepancy.*
-- **US-09.01.02**: *As an auditor, I want an immutable journal entry ledger that cannot be updated or deleted, so that the financial history of the platform is tamper-proof.*
+- **US-09.01.01 [READY]**: *As a platform financial controller, I want all transactions recorded using strict double-entry principles, so that financial audits pass without discrepancy.*
+- **US-09.01.02 [READY]**: *As an auditor, I want an immutable journal entry ledger that cannot be updated or deleted, so that the financial history of the platform is tamper-proof.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -48,13 +50,49 @@ Scenario: Journal entry enforces double-entry balance
 ```
 
 ### 4. Integration Stories
-- **INT-09.01.01 (Multi-Service Ingestion Integration)**: *As the Finance Service, I need to ingest journal creation events from `payments-service`, `payouts-service`, `cash-service`, and `credit-service` via internal REST endpoints.*
-- **INT-09.01.02 (Firestore Periodic Sync Integration)**: *As the Finance Service, I need to mirror daily balance summaries to Firestore collection `/FinanceSummaries/{date}`.*
+- **INT-09.01.01 [READY] (Multi-Service Ingestion Integration)**: *As the Finance Service, I need to ingest journal creation events from `payments-service`, `payouts-service`, `cash-service`, and `credit-service` via internal REST endpoints.*
+- **INT-09.01.02 [READY] (Firestore Periodic Sync Integration)**: *As the Finance Service, I need to mirror daily balance summaries to Firestore collection `/FinanceSummaries/{date}`.*
 
-### 5. Independent Support Stories
-- **OPS-09.01.01 (DevOps & Immutability Rules)**: *Configure PostgreSQL permissions in `finance_db` revoking `UPDATE` and `DELETE` grants on `journal_lines` table.*
-- **DOC-09.01.01 (Standard Chart of Accounts Spec)**: *Publish comprehensive Logikchain Chart of Accounts (Assets, Liabilities, Equity, Revenue, Expense) in platform documentation.*
-- **TEST-09.01.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/09-finance/postJournalEntry/` validating debits-equal-credits invariant.*
+### 5. Multi-Client Implementation Stories
+- **PWA-09.01.01 [READY] (Web PWA General Ledger Explorer & Journal Audit)**: *Build financial ledger audit interface on Support Web PWA (`web/x/` on `SPT-07`, `SPT-08`) with interactive balance sheet, drill-down transaction view, and CSV export.*
+- **AND-09.01.01 [READY] (Android Native Financial Summary Dashboard)**: *Build native Android financial summary view in `android/` for warehouse managers displaying daily collection totals and cash balancing.*
+- **IOS-09.01.01 [READY] (iOS Native Financial Summary Dashboard)**: *Build native iOS financial summary screen in `ios/` showing daily branch accounting summaries.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-09.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying double-entry journal creation, balance sheet calculations, and immutability invariants on PWA against `finance-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-09.01.01 [READY] (DevOps & Immutability Rules)**: *Configure PostgreSQL permissions in `finance_db` revoking `UPDATE` and `DELETE` grants on `journal_lines` table.*
+- **DOC-09.01.01 [READY] (Standard Chart of Accounts Spec)**: *Publish comprehensive Logikchain Chart of Accounts (Assets, Liabilities, Equity, Revenue, Expense) in platform documentation.*
+- **TEST-09.01.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/09-finance/postJournalEntry/` validating debits-equal-credits invariant.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest -f microservices/services/finance-service/Dockerfile.service microservices/services/finance-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest
+  gcloud run deploy finance-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/finance-ledger-journal.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -62,6 +100,7 @@ Scenario: Journal entry enforces double-entry balance
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-09.02`
+- **Feature Status**: `[READY]`
 - **Functional Scope**: Nightly three-way automated reconciliation (Gateway settlement file vs Bank statement vs Internal ledger), variance identification, and Vertex AI discrepancy analysis.
 - **Service Endpoints**: `POST /v1/finance/reconciliation:run` (`runReconciliation`), `POST /v1/finance/scheduled-reconciliation` (`scheduledReconciliation`)
 - **UI Screens**: [SPT-07 Reconciliation Runs](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-07)
@@ -82,7 +121,7 @@ Scenario: Journal entry enforces double-entry balance
 - **Postconditions**: Daily reconciliation completed; variance report published; alerts dispatched if variance $> ₹500$.
 
 ### 3. User Journey Stories
-- **US-09.02.01**: *As a finance manager, I want the system to automatically reconcile bank and payment gateway statements every night, so that I start each morning with an accurate variance report.*
+- **US-09.02.01 [READY]**: *As a finance manager, I want the system to automatically reconcile bank and payment gateway statements every night, so that I start each morning with an accurate variance report.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -94,13 +133,49 @@ Scenario: Automated nightly reconciliation identifies zero variance
 ```
 
 ### 4. Integration Stories
-- **INT-09.02.01 (Google Cloud Scheduler Integration)**: *As the Finance Service, I need to receive cron triggers from Google Cloud Scheduler configured with OIDC authentication tokens.*
-- **INT-09.02.02 (Vertex AI Discrepancy Analysis Integration)**: *As the Finance Service, I need to call Google Cloud Vertex AI to identify recurring merchant or driver variance patterns across historical data.*
+- **INT-09.02.01 [READY] (Google Cloud Scheduler Integration)**: *As the Finance Service, I need to receive cron triggers from Google Cloud Scheduler configured with OIDC authentication tokens.*
+- **INT-09.02.02 [READY] (Vertex AI Discrepancy Analysis Integration)**: *As the Finance Service, I need to call Google Cloud Vertex AI to identify recurring merchant or driver variance patterns across historical data.*
 
-### 5. Independent Support Stories
-- **OPS-09.02.01 (Cloud Scheduler Terraform DevOps)**: *Define Terraform resource for Cloud Scheduler job `daily-finance-reconciliation` running at `0 1 * * *`.*
-- **DOC-09.02.01 (Reconciliation Operating Manual)**: *Document three-way matching criteria, variance tolerance thresholds, and manual intervention steps.*
-- **TEST-09.02.01 (Automated Test Suite)**: *Build Bruno test in `tests/bruno/09-finance/runReconciliation/` simulating synthetic mismatch scenarios.*
+### 5. Multi-Client Implementation Stories
+- **PWA-09.02.01 [READY] (Web PWA Reconciliation Dashboard & Variance Audit)**: *Build interactive reconciliation viewer on Support Web PWA (`web/x/` on `SPT-07`) with side-by-side transaction matching and Vertex AI variance breakdown.*
+- **AND-09.02.01 [READY] (Android Native Reconciliation Alert Receiver)**: *Build native Android push notification handler and status viewer for critical reconciliation discrepancies.*
+- **IOS-09.02.01 [READY] (iOS Native Reconciliation Alert Receiver)**: *Build native iOS push notification handler and status viewer for finance auditors.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-09.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test simulating three-way reconciliation run, variance alert rendering, and AI audit report generation in PWA against `finance-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-09.02.01 [READY] (Cloud Scheduler Terraform DevOps)**: *Define Terraform resource for Cloud Scheduler job `daily-finance-reconciliation` running at `0 1 * * *`.*
+- **DOC-09.02.01 [READY] (Reconciliation Operating Manual)**: *Document three-way matching criteria, variance tolerance thresholds, and manual intervention steps.*
+- **TEST-09.02.01 [READY] (Automated Test Suite)**: *Build Bruno test in `tests/bruno/09-finance/runReconciliation/` simulating synthetic mismatch scenarios.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest -f microservices/services/finance-service/Dockerfile.service microservices/services/finance-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest
+  gcloud run deploy finance-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/finance-reconciliation.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -108,6 +183,7 @@ Scenario: Automated nightly reconciliation identifies zero variance
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-09.03`
+- **Feature Status**: `[READY]`
 - **Functional Scope**: Statutory TDS withholding (Sections 194C / 194O), tax liability accumulation, quarterly Challan recording, and Form 16A generation.
 - **Service Endpoints**: `POST /v1/finance/tds/challans` (`recordTdsChallan`), `GET /v1/finance/tds/register` (`getTdsRegister`)
 - **UI Screens**: [SPT-09 Tax & TDS Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-09)
@@ -125,7 +201,7 @@ Scenario: Automated nightly reconciliation identifies zero variance
 - **Postconditions**: Tax liability cleared; statutory audit trail prepared for Form 26Q filing.
 
 ### 3. User Journey Stories
-- **US-09.03.01**: *As a finance officer, I want a complete TDS register detailing every tax deduction and its corresponding government tax deposit challan, so that quarterly tax filings are flawless.*
+- **US-09.03.01 [READY]**: *As a finance officer, I want a complete TDS register detailing every tax deduction and its corresponding government tax deposit challan, so that quarterly tax filings are flawless.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -137,10 +213,46 @@ Scenario: Record government tax challan
 ```
 
 ### 4. Integration Stories
-- **INT-09.03.01 (Config Service Tax Profile Integration)**: *As the Finance Service, I need to read statutory TDS thresholds and tax rates dynamically from `config-service` (`:4010`).*
-- **INT-09.03.02 (Firebase Cloud Storage Challan PDF Sync)**: *As the Finance Service, I need to store scanned government bank challan receipts in Firebase Cloud Storage `/tax/challans/{id}.pdf`.*
+- **INT-09.03.01 [READY] (Config Service Tax Profile Integration)**: *As the Finance Service, I need to read statutory TDS thresholds and tax rates dynamically from `config-service` (`:4010`).*
+- **INT-09.03.02 [READY] (Firebase Cloud Storage Challan PDF Sync)**: *As the Finance Service, I need to store scanned government bank challan receipts in Firebase Cloud Storage `/tax/challans/{id}.pdf`.*
 
-### 5. Independent Support Stories
-- **OPS-09.03.01 (DevOps & Reporting Views)**: *Create database view `vw_tds_quarterly_summary` in `finance_db` for instant export to government e-filing utilities.*
-- **DOC-09.03.01 (TDS Statutory Compliance Guide)**: *Document Indian Income Tax Act compliance rules (Section 194C / 194O) applicable to rural gig logistics.*
-- **TEST-09.03.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/09-finance/recordChallan/` validating BSR code formatting.*
+### 5. Multi-Client Implementation Stories
+- **PWA-09.03.01 [READY] (Web PWA Tax & TDS Console)**: *Build TDS ledger dashboard on `web/x/` (`SPT-09`) with government Challan upload, BSR verification, and automated 26Q report generation.*
+- **AND-09.03.01 [READY] (Android Native Driver TDS Certificate Viewer)**: *Build driver tax deduction statement and Form 16A download view in `android/`.*
+- **IOS-09.03.01 [READY] (iOS Native Driver TDS Certificate Viewer)**: *Build driver tax deduction statement and Form 16A viewer in `ios/`.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-09.03.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying TDS calculation, challan PDF upload to Firebase Storage, and TDS register queries on PWA against `finance-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-09.03.01 [READY] (DevOps & Reporting Views)**: *Create database view `vw_tds_quarterly_summary` in `finance_db` for instant export to government e-filing utilities.*
+- **DOC-09.03.01 [READY] (TDS Statutory Compliance Guide)**: *Document Indian Income Tax Act compliance rules (Section 194C / 194O) applicable to rural gig logistics.*
+- **TEST-09.03.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/09-finance/recordChallan/` validating BSR code formatting.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest -f microservices/services/finance-service/Dockerfile.service microservices/services/finance-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest
+  gcloud run deploy finance-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/finance-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/finance-tds-compliance.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.

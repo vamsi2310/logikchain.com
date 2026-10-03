@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="work_management_data.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Logikchain — Work Management Dependency Graph & Execution Matrix</title>
@@ -884,7 +885,449 @@
       background: #f59e0b;
       color: #090d16;
     }
-  </style>
+  
+    /* ─── STATUS PILLS & INTERACTIVE CONTROLS ───────────────── */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .status-in_progress {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+    .status-ready {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .status-done {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .status-planned {
+      background: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .status-blocked {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .status-select {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .status-select:hover, .status-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    /* Floating Sync / Fact of Truth Toolbar */
+    #sync-toolbar {
+      position: absolute;
+      top: 76px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 95;
+      font-size: 11px;
+    }
+    .sync-stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-muted);
+    }
+    .sync-stat strong {
+      color: #fff;
+    }
+    .sync-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .sync-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .sync-btn.primary {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .sync-badge-changed {
+      background: #ef4444;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    /* Diff / Export Modal */
+    #diff-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #diff-modal.active { display: flex; }
+    .diff-box {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+    }
+    .diff-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .diff-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: #090d16;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+    }
+    .diff-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Detail drawer sub-lists */
+    .story-group {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+    .story-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .story-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      transition: background 0.15s;
+    }
+    .story-item-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .story-id-tag {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 10.5px;
+      color: var(--accent);
+      min-width: 90px;
+    }
+    .deploy-cmd-box {
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #38bdf8;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      overflow-x: auto;
+    }
+
+
+    /* ─── STATUS PILLS & INTERACTIVE CONTROLS ───────────────── */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .status-in_progress {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+    .status-ready {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .status-done {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .status-planned {
+      background: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    .status-blocked {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .status-select {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .status-select:hover, .status-select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    /* Floating Sync / Fact of Truth Toolbar */
+    #sync-toolbar {
+      position: absolute;
+      top: 76px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 95;
+      font-size: 11px;
+    }
+    .sync-stat {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-muted);
+    }
+    .sync-stat strong {
+      color: #fff;
+    }
+    .sync-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .sync-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .sync-btn.primary {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .sync-badge-changed {
+      background: #ef4444;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    /* Diff / Export Modal */
+    #diff-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #diff-modal.active { display: flex; }
+    .diff-box {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+    }
+    .diff-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .diff-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: #090d16;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+    }
+    .diff-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Detail drawer sub-lists */
+    .story-group {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+    .story-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .story-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      transition: background 0.15s;
+    }
+    .story-item-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .story-id-tag {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 10.5px;
+      color: var(--accent);
+      min-width: 90px;
+    }
+    .deploy-cmd-box {
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #38bdf8;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      overflow-x: auto;
+    }
+
+</style>
 </head>
 <body>
 
@@ -917,6 +1360,44 @@
       <button class="btn-action" onclick="fitView()">⊙ Fit</button>
     </div>
   </header>
+
+  <!-- FLOATING SYNC & FACT OF TRUTH TOOLBAR -->
+  <div id="sync-toolbar">
+    <div class="sync-stat">
+      <span style="color:#22c55e;">●</span>
+      <span>Fact of Truth: <strong style="color:#38bdf8;">work-management/*.md</strong></span>
+    </div>
+    <div style="width:1px; height:14px; background:rgba(255,255,255,0.15);"></div>
+    <div class="sync-stat" id="syncStatsSummary">
+      <span>Stories: <strong id="statTotalStories">419</strong></span>
+      <span>Features: <strong id="statTotalFeats">41</strong></span>
+    </div>
+    <span class="sync-badge-changed" id="unsavedBadge">0 Edits</span>
+    <button class="sync-btn" onclick="saveWorkState()" title="Save changes to browser localStorage">💾 Save State</button>
+    <button class="sync-btn primary" onclick="showDiffModal()" title="View and copy markdown updates to paste into MD files">📋 Export MD Diff</button>
+    <button class="sync-btn" onclick="resetWorkState()" title="Revert all browser edits to the MD file truth">🔄 Reset</button>
+  </div>
+
+  <!-- DIFF / EXPORT MODAL -->
+  <div id="diff-modal">
+    <div class="diff-box">
+      <div class="diff-header">
+        <h3 style="font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px;">
+          <span>📋 Markdown Updates (Fact of Truth Sync)</span>
+        </h3>
+        <button onclick="closeDiffModal()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      <div class="diff-body" id="diffContent">
+        <!-- Rendered diff -->
+      </div>
+      <div class="diff-footer">
+        <button class="sync-btn" onclick="copyDiffToClipboard()">📋 Copy Diff to Clipboard</button>
+        <button class="sync-btn" onclick="downloadWorkJson()">💾 Download JSON State</button>
+        <button class="sync-btn primary" onclick="closeDiffModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- TIER BAR -->
   <div class="tier-bar" id="tierBar">
@@ -1083,7 +1564,18 @@
   <div class="view-overlay" id="overlay-matrix">
     <div style="max-width:1300px; margin: 0 auto; text-align:center; margin-bottom: 24px;">
       <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Comprehensive Feature Dependency Matrix</h2>
-      <p style="color:var(--text-muted); font-size:14px;">Detailed technical dependency and consumer mapping across all 35+ platform features.</p>
+      <p style="color:var(--text-muted); font-size:14px;">Detailed technical dependency and consumer mapping across all 41 platform features.</p>
+      <div style="margin-top:14px; display:flex; align-items:center; justify-content:center; gap:12px;">
+        <span style="font-size:12px; color:var(--text-muted);">Filter by Status:</span>
+        <select class="status-select" onchange="renderMatrixTable(this.value)" style="padding:4px 12px; font-size:12px;">
+          <option value="ALL">Show All Statuses</option>
+          <option value="IN_PROGRESS">IN_PROGRESS</option>
+          <option value="READY">READY</option>
+          <option value="DONE">DONE</option>
+          <option value="PLANNED">PLANNED</option>
+          <option value="BLOCKED">BLOCKED</option>
+        </select>
+      </div>
     </div>
 
     <div class="table-container">
@@ -1093,6 +1585,8 @@
             <th>Feature ID</th>
             <th>Feature Name</th>
             <th>Bound Microservice</th>
+            <th>Status</th>
+            <th>Multi-Client Scope</th>
             <th>Hard Pre-requisites</th>
             <th>Downstream Consumers</th>
           </tr>
@@ -1197,284 +1691,52 @@
   <!-- JAVASCRIPT LOGIC -->
   <script>
     // ─── DATA STORE ──────────────────────────────────────────────────────────
-    const EPICS_DATA = [
-      {
-        id: 'EPIC-10',
-        title: 'Platform Config & Geo-Hierarchy',
-        service: 'config-service',
-        port: 4010,
-        db: 'config_db',
-        tier: 0,
-        color: '#64748b',
-        colorRgb: '100, 116, 139',
-        icon: '⚙️',
-        x: 350, y: 80, w: 260, h: 220,
-        desc: 'Master spatial hierarchy (Country-State-District-Village), Google Maps Geocoding & Places APIs, SaaS subscription plans, and statutory GST/TDS tax profiles.',
-        firestore: '/Villages, /SubscriptionPlans',
-        features: [
-          { code: 'FEAT-10.01', name: 'Google Maps Geo-Hierarchy' },
-          { code: 'FEAT-10.02', name: 'Subscription Plans & Tariffs' },
-          { code: 'FEAT-10.03', name: 'Tax Profiles & TDS Rules' },
-        ],
-        prereqs: [],
-        dependents: ['EPIC-01', 'EPIC-03', 'EPIC-02', 'EPIC-09']
-      },
-      {
-        id: 'EPIC-12',
-        title: 'API Gateway & Sync Engine',
-        service: 'gateway & sync-engine',
-        port: '8080 / 4050',
-        db: 'sync_db',
-        tier: 0,
-        color: '#6366f1',
-        colorRgb: '99, 102, 241',
-        icon: '🛡️',
-        x: 850, y: 80, w: 260, h: 220,
-        desc: 'Central perimeter proxy, Firebase App Check attestation (reCAPTCHA, Play Integrity, DeviceCheck), and bidirectional PostgreSQL-Firestore CDC outbox replication.',
-        firestore: '/outbox_mobile/ (Inbound)',
-        features: [
-          { code: 'FEAT-12.01', name: 'API Gateway Routing' },
-          { code: 'FEAT-12.02', name: 'App Check Zero-Trust' },
-          { code: 'FEAT-12.03', name: 'PostgreSQL-Firestore CDC' },
-          { code: 'FEAT-12.04', name: 'Storage Media Sync' },
-        ],
-        prereqs: [],
-        dependents: ['EPIC-01', 'EPIC-13', 'EPIC-03', 'EPIC-05']
-      },
-      {
-        id: 'EPIC-01',
-        title: 'Identity & Role Lifecycle',
-        service: 'identity-service',
-        port: 4001,
-        db: 'identity_db',
-        tier: 1,
-        color: '#8b5cf6',
-        colorRgb: '139, 92, 246',
-        icon: '🪪',
-        x: 400, y: 360, w: 260, h: 230,
-        desc: 'Phone verification, custom claims lifecycle { role, status, officialClient }, progressive buyer elevation to merchant/driver, and platform suspensions.',
-        firestore: '/UserProfiles/{uid}',
-        features: [
-          { code: 'FEAT-01.01', name: 'Phone Auth & Claims Bootstrap' },
-          { code: 'FEAT-01.02', name: 'Supplier Org Provisioning' },
-          { code: 'FEAT-01.03', name: 'Progressive Role Handoff' },
-          { code: 'FEAT-01.04', name: 'Account Suspension Lifecycle' },
-        ],
-        prereqs: ['EPIC-10', 'EPIC-12'],
-        dependents: ['EPIC-13', 'EPIC-03', 'EPIC-08', 'EPIC-05', 'EPIC-02', 'EPIC-06', 'EPIC-11']
-      },
-      {
-        id: 'EPIC-13',
-        title: 'Social Connect & WhatsApp',
-        service: 'social-connect-service',
-        port: 4012,
-        db: 'social_connect_db',
-        tier: 1,
-        color: '#25d366',
-        colorRgb: '37, 211, 102',
-        icon: '💬',
-        x: 850, y: 360, w: 260, h: 230,
-        desc: 'User interaction orchestrator. Dispatches WhatsApp OTPs, order updates, PDF bills & ownership alerts. Checks local DB preferences before dispatch; syncs to Firestore.',
-        firestore: '/NotificationPreferences/{uid}',
-        features: [
-          { code: 'FEAT-13.01', name: 'Notification Preferences' },
-          { code: 'FEAT-13.02', name: 'WhatsApp OTP Orchestration' },
-          { code: 'FEAT-13.03', name: 'Order Lifecycle WhatsApp Alerts' },
-          { code: 'FEAT-13.04', name: 'Bills, Invoices & Ownership Alerts' },
-        ],
-        prereqs: ['EPIC-12', 'EPIC-01'],
-        dependents: ['EPIC-02']
-      },
-      {
-        id: 'EPIC-03',
-        title: 'Gig Logistics & Routing',
-        service: 'gigs-service',
-        port: 4003,
-        db: 'gigs_db',
-        tier: 2,
-        color: '#06b6d4',
-        colorRgb: '6, 182, 212',
-        icon: '🚚',
-        x: 300, y: 650, w: 260, h: 220,
-        desc: 'Driver fleet dispatch, vehicle-keyed Gigs ({vehicleId}_{startDatetime}), Google Maps Distance Matrix waypoint optimization, Play Integrity GPS telemetry.',
-        firestore: '/Gigs/{id}, /DriverLocations',
-        features: [
-          { code: 'FEAT-03.01', name: 'Gig Composition & Schedule' },
-          { code: 'FEAT-03.02', name: 'Live Telemetry & GPS Ping' },
-          { code: 'FEAT-03.03', name: 'Gig Finalization & Settlement' },
-        ],
-        prereqs: ['EPIC-10', 'EPIC-01', 'EPIC-12'],
-        dependents: ['EPIC-04', 'EPIC-02', 'EPIC-07']
-      },
-      {
-        id: 'EPIC-04',
-        title: 'Pamphlet Stock Manifest',
-        service: 'pamphlet-service',
-        port: 4004,
-        db: 'pamphlet_db',
-        tier: 2,
-        color: '#0f766e',
-        colorRgb: '15, 118, 110',
-        icon: '📋',
-        x: 800, y: 650, w: 260, h: 220,
-        desc: 'Dynamic stock manifest tied to vehicle run. Auto-created on composeGig. Warehouse stock loading, driver gate sign-off, and in-transit breakage adjustments.',
-        firestore: '/Pamphlets/{id}',
-        features: [
-          { code: 'FEAT-04.01', name: 'Dynamic Pamphlet Keying' },
-          { code: 'FEAT-04.02', name: 'Warehouse Loading & Gate Seal' },
-          { code: 'FEAT-04.03', name: 'In-Transit Damage Claims' },
-        ],
-        prereqs: ['EPIC-03'],
-        dependents: ['EPIC-02']
-      },
-      {
-        id: 'EPIC-08',
-        title: 'Merchant Credit & Limits',
-        service: 'credit-service',
-        port: 4008,
-        db: 'credit_db',
-        tier: 3,
-        color: '#a855f7',
-        colorRgb: '168, 85, 247',
-        icon: '📊',
-        x: 150, y: 940, w: 250, h: 220,
-        desc: 'Revolving B2B shopkeeper trade credit. Real-time headroom holds during checkout, driver in-person cash repayments, and hourly post-due credit relief.',
-        firestore: '/CreditProfiles/{uid}',
-        features: [
-          { code: 'FEAT-08.01', name: 'Credit Limit Underwriting' },
-          { code: 'FEAT-08.02', name: 'Synchronous Credit Holds' },
-          { code: 'FEAT-08.03', name: 'Repayment & Overdue Relief' },
-        ],
-        prereqs: ['EPIC-01'],
-        dependents: ['EPIC-02', 'EPIC-07', 'EPIC-09']
-      },
-      {
-        id: 'EPIC-05',
-        title: 'Payments & UPI Ingress',
-        service: 'payments-service',
-        port: 4005,
-        db: 'payments_db',
-        tier: 3,
-        color: '#ea580c',
-        colorRgb: '234, 88, 12',
-        icon: '💳',
-        x: 480, y: 940, w: 250, h: 220,
-        desc: 'Native UPI Intent, Dynamic QR generation, Razorpay gateway integration, HMAC raw webhook validation, automated refunds, and GST credit notes.',
-        firestore: '/PaymentIntents/{id}',
-        features: [
-          { code: 'FEAT-05.01', name: 'UPI Intent & Dynamic QR' },
-          { code: 'FEAT-05.02', name: 'HMAC Webhook Ingress' },
-          { code: 'FEAT-05.03', name: 'Automated Refunds & Credit' },
-        ],
-        prereqs: ['EPIC-01', 'EPIC-11', 'EPIC-12'],
-        dependents: ['EPIC-02', 'EPIC-06', 'EPIC-09']
-      },
-      {
-        id: 'EPIC-02',
-        title: 'Orders & Fulfillment',
-        service: 'orders-service',
-        port: 4002,
-        db: 'orders_db',
-        tier: 3,
-        color: '#db2777',
-        colorRgb: '219, 39, 119',
-        icon: '📦',
-        x: 820, y: 940, w: 260, h: 220,
-        desc: 'Buyer cart checkout, B2B merchant wholesale ordering with credit, delivery OTP verification, CoD collection triggers, and exception handling.',
-        firestore: '/Orders/{id}, /MerchantOrders',
-        features: [
-          { code: 'FEAT-02.01', name: 'Buyer Prepaid & CoD Checkout' },
-          { code: 'FEAT-02.02', name: 'Merchant Bulk B2B Ordering' },
-          { code: 'FEAT-02.03', name: 'Delivery Handover & OTP' },
-        ],
-        prereqs: ['EPIC-01', 'EPIC-03', 'EPIC-04', 'EPIC-05', 'EPIC-08', 'EPIC-10', 'EPIC-13'],
-        dependents: ['EPIC-07', 'EPIC-09']
-      },
-      {
-        id: 'EPIC-07',
-        title: 'Cash Management & Custody',
-        service: 'cash-service',
-        port: 4007,
-        db: 'cash_db',
-        tier: 4,
-        color: '#d97706',
-        colorRgb: '217, 119, 6',
-        icon: '🪙',
-        x: 350, y: 1240, w: 260, h: 220,
-        desc: 'Physical currency chain-of-custody, mobile offline collection queues, driver-to-cashier 6-digit OTP settlement, and discrepancy shortfall audits.',
-        firestore: '/CashCustody/{driverId}',
-        features: [
-          { code: 'FEAT-07.01', name: 'CoD Cash Custody Tracking' },
-          { code: 'FEAT-07.02', name: 'Driver-to-Cashier Handover OTP' },
-          { code: 'FEAT-07.03', name: 'Discrepancy Reporting & Audit' },
-        ],
-        prereqs: ['EPIC-02', 'EPIC-03', 'EPIC-08'],
-        dependents: ['EPIC-06', 'EPIC-09']
-      },
-      {
-        id: 'EPIC-06',
-        title: 'Payouts & Disbursements',
-        service: 'payouts-service',
-        port: 4006,
-        db: 'payouts_db',
-        tier: 4,
-        color: '#65a30d',
-        colorRgb: '101, 163, 13',
-        icon: '💸',
-        x: 800, y: 1240, w: 260, h: 220,
-        desc: 'Driver and supplier bank payouts. Beneficiary bank accounts KMS-encrypted at rest. Cloud Tasks queue drain for rate-limited RazorpayX disbursements.',
-        firestore: '/PayoutBeneficiaries, /Payouts',
-        features: [
-          { code: 'FEAT-06.01', name: 'KMS Encrypted Beneficiaries' },
-          { code: 'FEAT-06.02', name: 'Payout Requests & Custody Gate' },
-          { code: 'FEAT-06.03', name: 'Cloud Tasks Bank Transfers' },
-        ],
-        prereqs: ['EPIC-01', 'EPIC-05', 'EPIC-07'],
-        dependents: ['EPIC-09']
-      },
-      {
-        id: 'EPIC-11',
-        title: 'Platform Governance & AML',
-        service: 'governance-service',
-        port: 4011,
-        db: 'governance_db',
-        tier: 5,
-        color: '#e11d48',
-        colorRgb: '225, 29, 72',
-        icon: '🏛️',
-        x: 350, y: 1530, w: 260, h: 220,
-        desc: 'NPCI TPAP circular compliance, VPA registration, Redis sliding-window AML fraud velocity scoring, T+1 dispute SLA tracking, and audit log immutability.',
-        firestore: '/VerifiedVPAs, /AuditLogs',
-        features: [
-          { code: 'FEAT-11.01', name: 'UPI TPAP VPA Governance' },
-          { code: 'FEAT-11.02', name: 'Real-Time AML Velocity' },
-          { code: 'FEAT-11.03', name: 'Dispute SLA & NPCI Filing' },
-        ],
-        prereqs: ['EPIC-01', 'EPIC-05'],
-        dependents: ['EPIC-05']
-      },
-      {
-        id: 'EPIC-09',
-        title: 'Finance & General Ledger',
-        service: 'finance-service',
-        port: 4009,
-        db: 'finance_db',
-        tier: 5,
-        color: '#059669',
-        colorRgb: '5, 150, 105',
-        icon: '📈',
-        x: 800, y: 1530, w: 260, h: 220,
-        desc: 'Double-entry general ledger (debit = credit), nightly 01:00 AM three-way bank reconciliation, Section 194C/194O TDS register, and Vertex AI anomaly detection.',
-        firestore: '/FinanceSummaries/{date}',
-        features: [
-          { code: 'FEAT-09.01', name: 'Double-Entry General Ledger' },
-          { code: 'FEAT-09.02', name: 'Automated Daily Reconciliation' },
-          { code: 'FEAT-09.03', name: 'Statutory TDS Register' },
-        ],
-        prereqs: ['EPIC-02', 'EPIC-05', 'EPIC-06', 'EPIC-07', 'EPIC-08', 'EPIC-10'],
-        dependents: []
-      }
+        // ─── DATA STORE & FACT OF TRUTH SYNCHRONIZATION ─────────────────────────
+    // Check if WorkManagementStore is loaded from work_management_data.js
+    const store = window.WorkManagementStore;
+
+    // Merge baseline architectural layout with live status registry
+    const EPICS_LAYOUT = [
+      { id: 'EPIC-10', tier: 0, color: '#64748b', colorRgb: '100, 116, 139', icon: '⚙️', x: 350, y: 80, w: 260, h: 220, prereqs: [], dependents: ['EPIC-01', 'EPIC-03', 'EPIC-02', 'EPIC-09'] },
+      { id: 'EPIC-12', tier: 0, color: '#6366f1', colorRgb: '99, 102, 241', icon: '🛡️', x: 850, y: 80, w: 260, h: 220, prereqs: [], dependents: ['EPIC-01', 'EPIC-13', 'EPIC-03', 'EPIC-05'] },
+      { id: 'EPIC-01', tier: 1, color: '#8b5cf6', colorRgb: '139, 92, 246', icon: '🪪', x: 400, y: 360, w: 260, h: 230, prereqs: ['EPIC-10', 'EPIC-12'], dependents: ['EPIC-13', 'EPIC-03', 'EPIC-08', 'EPIC-05', 'EPIC-02', 'EPIC-06', 'EPIC-11'] },
+      { id: 'EPIC-13', tier: 1, color: '#25d366', colorRgb: '37, 211, 102', icon: '💬', x: 850, y: 360, w: 260, h: 230, prereqs: ['EPIC-12', 'EPIC-01'], dependents: ['EPIC-02'] },
+      { id: 'EPIC-03', tier: 2, color: '#06b6d4', colorRgb: '6, 182, 212', icon: '🚚', x: 300, y: 650, w: 260, h: 220, prereqs: ['EPIC-10', 'EPIC-01', 'EPIC-12'], dependents: ['EPIC-04', 'EPIC-02', 'EPIC-07'] },
+      { id: 'EPIC-04', tier: 2, color: '#0f766e', colorRgb: '15, 118, 110', icon: '📋', x: 800, y: 650, w: 260, h: 220, prereqs: ['EPIC-03'], dependents: ['EPIC-02'] },
+      { id: 'EPIC-08', tier: 3, color: '#a855f7', colorRgb: '168, 85, 247', icon: '📊', x: 150, y: 940, w: 250, h: 220, prereqs: ['EPIC-01'], dependents: ['EPIC-02', 'EPIC-07', 'EPIC-09'] },
+      { id: 'EPIC-05', tier: 3, color: '#ec4899', colorRgb: '236, 72, 153', icon: '💳', x: 550, y: 940, w: 260, h: 220, prereqs: ['EPIC-01', 'EPIC-11', 'EPIC-12'], dependents: ['FEAT-02.01', 'EPIC-09'] },
+      { id: 'EPIC-02', tier: 3, color: '#f43f5e', colorRgb: '244, 63, 94', icon: '📦', x: 950, y: 940, w: 270, h: 230, prereqs: ['EPIC-01', 'EPIC-03', 'EPIC-04', 'EPIC-05', 'EPIC-08', 'EPIC-10', 'EPIC-13'], dependents: ['EPIC-07', 'EPIC-09'] },
+      { id: 'EPIC-07', tier: 4, color: '#f59e0b', colorRgb: '245, 158, 11', icon: '💵', x: 350, y: 1240, w: 260, h: 220, prereqs: ['EPIC-02', 'EPIC-03', 'EPIC-08'], dependents: ['EPIC-06', 'EPIC-09'] },
+      { id: 'EPIC-06', tier: 4, color: '#84cc16', colorRgb: '132, 204, 22', icon: '🏦', x: 800, y: 1240, w: 260, h: 220, prereqs: ['EPIC-01', 'EPIC-07'], dependents: ['EPIC-09'] },
+      { id: 'EPIC-11', tier: 5, color: '#e11d48', colorRgb: '225, 29, 72', icon: '⚖️', x: 350, y: 1530, w: 260, h: 220, prereqs: ['EPIC-01', 'EPIC-05'], dependents: ['EPIC-05'] },
+      { id: 'EPIC-09', tier: 5, color: '#059669', colorRgb: '5, 150, 105', icon: '📈', x: 800, y: 1530, w: 260, h: 220, prereqs: ['EPIC-02', 'EPIC-05', 'EPIC-06', 'EPIC-07', 'EPIC-08', 'EPIC-10'], dependents: [] }
     ];
+
+    function buildLiveEpicsData() {
+      const liveEpics = store ? store.getEpics() : [];
+      return EPICS_LAYOUT.map(layout => {
+        const live = liveEpics.find(e => e.id === layout.id) || {};
+        return {
+          ...layout,
+          title: live.title || layout.id,
+          status: live.status || 'READY',
+          service: live.microservice ? live.microservice.split('/').pop() : layout.id.toLowerCase() + '-service',
+          port: live.port || '4000',
+          db: live.db || layout.id.toLowerCase() + '_db',
+          desc: live.functionalArea || (live.title + ' microservice domain'),
+          firestore: live.id === 'EPIC-01' ? '/UserProfiles/{uid}' : live.id === 'EPIC-02' ? '/Orders/{id}' : live.id === 'EPIC-10' ? '/Villages' : '/Mirror/' + layout.id,
+          features: (live.features || []).map(f => ({
+            code: f.id,
+            name: f.title,
+            status: f.status || 'READY',
+            scope: f.scope,
+            stories: f.stories || []
+          }))
+        };
+      });
+    }
+
+    let EPICS_DATA = buildLiveEpicsData();
 
     // Build flattened EDGES list from prereqs/dependents
     const EDGES_DATA = [];
@@ -1514,6 +1776,7 @@
         card.innerHTML = `
           <div class="card-top">
             <span class="epic-badge">${epic.id}</span>
+            <span class="status-pill status-${(epic.status || 'ready').toLowerCase()}">${epic.status || 'READY'}</span>
             <span class="tier-tag">Tier ${epic.tier}</span>
           </div>
           <div class="card-title">${epic.icon} ${epic.title}</div>
@@ -1628,12 +1891,26 @@
         }
       });
 
-      // Populate Detail Drawer
+      // Populate Detail Drawer with Interactive Status Dropdowns
       document.getElementById('dp-badge').textContent = epic.id;
       document.getElementById('dp-badge').style.borderColor = epic.color;
       document.getElementById('dp-badge').style.color = epic.color;
-      document.getElementById('dp-title').textContent = `${epic.icon} ${epic.title}`;
-      document.getElementById('dp-sub').textContent = `${epic.service} · :${epic.port} · ${epic.db}`;
+      
+      const titleContainer = document.getElementById('dp-title');
+      titleContainer.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:4px;">
+          <span>${epic.icon} ${epic.title}</span>
+          <select class="status-select" onchange="changeEpicStatus('${epic.id}', this.value)" title="Change Epic Status">
+            <option value="READY" ${epic.status === 'READY' ? 'selected' : ''}>READY</option>
+            <option value="IN_PROGRESS" ${epic.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+            <option value="DONE" ${epic.status === 'DONE' ? 'selected' : ''}>DONE</option>
+            <option value="PLANNED" ${epic.status === 'PLANNED' ? 'selected' : ''}>PLANNED</option>
+            <option value="BLOCKED" ${epic.status === 'BLOCKED' ? 'selected' : ''}>BLOCKED</option>
+          </select>
+        </div>
+      `;
+
+      document.getElementById('dp-sub').textContent = `${epic.service} · Port :${epic.port} · DB: ${epic.db}`;
       document.getElementById('dp-desc').textContent = epic.desc;
       document.getElementById('dp-service').textContent = epic.service;
       document.getElementById('dp-port').textContent = epic.port;
@@ -1652,14 +1929,87 @@
         ? epic.dependents.map(d => `<span class="dp-dep-tag dependent" onclick="selectEpic('${d}')">⬇️ ${d}</span>`).join('')
         : '<span style="color:var(--text-faint); font-size:12px;">None (Terminal Governance Layer)</span>';
 
-      // Features list
+      // Features list with Multi-Client Stories and Status Selectors
       const featsDiv = document.getElementById('dp-features');
-      featsDiv.innerHTML = epic.features.map(f => `
-        <div style="font-size:12px; padding:6px 10px; background:rgba(255,255,255,0.03); border-radius:6px; display:flex; align-items:center; gap:8px;">
-          <span style="font-family:var(--font-mono); font-size:11px; color:var(--accent); font-weight:700;">${f.code}</span>
-          <span style="color:var(--text-main); font-weight:600;">${f.name}</span>
-        </div>
-      `).join('');
+      featsDiv.innerHTML = epic.features.map(f => {
+        const stories = f.stories || [];
+        const clientStories = stories.filter(s => s.type === 'pwa' || s.type === 'android' || s.type === 'ios');
+        const pwaTestStories = stories.filter(s => s.type === 'pwa_test');
+        const userJourneys = stories.filter(s => s.type === 'user_journey');
+        const integrations = stories.filter(s => s.type === 'integration');
+        const supportStories = stories.filter(s => s.type === 'devops' || s.type === 'documentation' || s.type === 'automation_test');
+
+        return `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;">
+              <div>
+                <span style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent); font-weight:800;">${f.code}</span>
+                <span style="font-size:13px; font-weight:700; color:#fff; margin-left:6px;">${f.name}</span>
+              </div>
+              <select class="status-select" onchange="changeFeatureStatus('${f.code}', this.value)">
+                <option value="READY" ${f.status === 'READY' ? 'selected' : ''}>READY</option>
+                <option value="IN_PROGRESS" ${f.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+                <option value="DONE" ${f.status === 'DONE' ? 'selected' : ''}>DONE</option>
+                <option value="PLANNED" ${f.status === 'PLANNED' ? 'selected' : ''}>PLANNED</option>
+                <option value="BLOCKED" ${f.status === 'BLOCKED' ? 'selected' : ''}>BLOCKED</option>
+              </select>
+            </div>
+            ${f.scope ? `<p style="font-size:11.5px; color:var(--text-muted); margin-bottom:8px; line-height:1.4;">${f.scope}</p>` : ''}
+            
+            <!-- Multi-Client Implementation Stories -->
+            <div class="story-group">
+              <div class="story-group-title">
+                <span>📱 Multi-Client Implementation Stories</span>
+                <span style="color:#38bdf8;">PWA · Android · iOS</span>
+              </div>
+              ${clientStories.map(s => `
+                <div class="story-item-row">
+                  <span class="story-id-tag">${s.id}</span>
+                  <span style="flex:1; color:#cbd5e1; font-size:11px;">${s.title}</span>
+                  <select class="status-select" onchange="changeStoryStatus('${s.id}', this.value)" style="font-size:9.5px; padding:1px 5px;">
+                    <option value="READY" ${s.status === 'READY' ? 'selected' : ''}>READY</option>
+                    <option value="IN_PROGRESS" ${s.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+                    <option value="DONE" ${s.status === 'DONE' ? 'selected' : ''}>DONE</option>
+                  </select>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- PWA Cloud Test Story -->
+            ${pwaTestStories.length ? `
+            <div class="story-group" style="border-left: 3px solid #22c55e;">
+              <div class="story-group-title">
+                <span>🧪 Live PWA Cloud Testing (Test Project)</span>
+                <span style="color:#22c55e;">logikchain-test</span>
+              </div>
+              ${pwaTestStories.map(s => `
+                <div class="story-item-row">
+                  <span class="story-id-tag" style="color:#22c55e;">${s.id}</span>
+                  <span style="flex:1; color:#cbd5e1; font-size:11px;">${s.description}</span>
+                  <select class="status-select" onchange="changeStoryStatus('${s.id}', this.value)" style="font-size:9.5px; padding:1px 5px;">
+                    <option value="READY" ${s.status === 'READY' ? 'selected' : ''}>READY</option>
+                    <option value="IN_PROGRESS" ${s.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+                    <option value="DONE" ${s.status === 'DONE' ? 'selected' : ''}>DONE</option>
+                  </select>
+                </div>
+              `).join('')}
+            </div>` : ''}
+
+            <!-- Deploy & Test Commands -->
+            <div style="margin-top:8px;">
+              <div style="font-size:10.5px; font-weight:700; color:var(--text-faint); text-transform:uppercase;">Cloud Verification Commands</div>
+              <div class="deploy-cmd-box">
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">gcloud run deploy ${epic.service} --project=logikchain-test --region=asia-south1</span>
+                <button class="sync-btn" onclick="copyText('gcloud run deploy ${epic.service} --project=logikchain-test --region=asia-south1')" style="padding:2px 6px; font-size:10px;">📋</button>
+              </div>
+              <div class="deploy-cmd-box">
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">firebase deploy --project test --only hosting</span>
+                <button class="sync-btn" onclick="copyText('firebase deploy --project test --only hosting')" style="padding:2px 6px; font-size:10px;">📋</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
 
       document.getElementById('detail-panel').classList.add('open');
     }
@@ -1750,6 +2100,121 @@
         document.getElementById('overlay-matrix').classList.add('active');
         renderMatrixTable();
       }
+    }
+
+
+    // ─── WORK MANAGEMENT INTERACTIVE STATE MUTATIONS ─────────────────────────
+    function changeEpicStatus(epicId, newStatus) {
+      if (store) {
+        store.updateEpicStatus(epicId, newStatus);
+      }
+      refreshStateFromStore();
+    }
+
+    function changeFeatureStatus(featId, newStatus) {
+      if (store) {
+        store.updateFeatureStatus(featId, newStatus);
+      }
+      refreshStateFromStore();
+    }
+
+    function changeStoryStatus(storyId, newStatus) {
+      if (store) {
+        store.updateStoryStatus(storyId, newStatus);
+      }
+      refreshStateFromStore();
+    }
+
+    function refreshStateFromStore() {
+      EPICS_DATA = buildLiveEpicsData();
+      renderGraph();
+      if (selectedEpicId) {
+        selectEpic(selectedEpicId);
+      }
+      renderMatrixTable();
+      updateSyncToolbar();
+    }
+
+    function updateSyncToolbar() {
+      if (!store) return;
+      const stats = store.getStats();
+      const stEl = document.getElementById('statTotalStories');
+      if (stEl) stEl.textContent = stats.totalStories;
+      const ftEl = document.getElementById('statTotalFeats');
+      if (ftEl) ftEl.textContent = stats.totalFeatures;
+
+      const badge = document.getElementById('unsavedBadge');
+      if (badge) {
+        const diffs = store.exportMarkdownDiff();
+        if (diffs.length > 0) {
+          badge.style.display = 'inline-block';
+          badge.textContent = `${diffs.length} Edits`;
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+    }
+
+    function saveWorkState() {
+      if (store) {
+        store.saveState();
+        alert('Work management status saved to browser localStorage!');
+        updateSyncToolbar();
+      }
+    }
+
+    function resetWorkState() {
+      if (confirm('Revert all status changes back to the Markdown Fact of Truth?')) {
+        if (store) store.resetToBaseline();
+        refreshStateFromStore();
+      }
+    }
+
+    function showDiffModal() {
+      const modal = document.getElementById('diff-modal');
+      const diffContainer = document.getElementById('diffContent');
+      if (!store || !modal || !diffContainer) return;
+
+      const diffs = store.exportMarkdownDiff();
+      if (diffs.length === 0) {
+        diffContainer.textContent = 'Zero modifications detected. The UI is 100% in sync with the Markdown Fact of Truth files (work-management/*.md).';
+      } else {
+        let text = '# Work Management Status Updates to Apply to Markdown Files\n\n';
+        diffs.forEach(d => {
+          text += `[${d.file}] ${d.type.toUpperCase()}: ${d.id} -> Changed from [${d.oldStatus}] to [${d.newStatus}]\n`;
+        });
+        diffContainer.textContent = text;
+      }
+      modal.classList.add('active');
+    }
+
+    function closeDiffModal() {
+      const modal = document.getElementById('diff-modal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function copyDiffToClipboard() {
+      const diffContainer = document.getElementById('diffContent');
+      if (diffContainer) {
+        navigator.clipboard.writeText(diffContainer.textContent);
+        alert('Copied status updates to clipboard!');
+      }
+    }
+
+    function downloadWorkJson() {
+      if (!store) return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(store.getEpics(), null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "work_management_status.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function copyText(str) {
+      navigator.clipboard.writeText(str);
+      alert('Copied to clipboard: ' + str);
     }
 
     // ─── MATRIX TABLE GENERATOR ──────────────────────────────────────────────
@@ -2201,6 +2666,7 @@
     // ─── INIT ────────────────────────────────────────────────────────────────
     renderGraph();
     renderHappyPathStoryboard();
+    updateSyncToolbar();
   </script>
 </body>
 </html>

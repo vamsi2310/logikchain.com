@@ -2,6 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-05`
+- **Epic Status**: [READY]
 - **Functional Area**: Payments, UPI Collections & Payment Gateway Integration
 - **Bound Microservice**: `microservices/services/payments-service`
 - **Container Port**: `4005`
@@ -15,6 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-05.01`
+- **Feature Status**: [READY]
 - **Functional Scope**: Dynamic UPI deep-link generation, QR code rendering for UPI apps (GPay, PhonePe, Paytm, BHIM), and transaction session creation.
 - **Service Endpoints**: `POST /v1/payments/intent` (`createPaymentIntent`), `GET /v1/payments/{paymentId}`
 - **UI Screens**: [BUY-04 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-04), [MER-05 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-05)
@@ -35,8 +37,8 @@
 - **Postconditions**: Payment intent active; awaiting PSP webhook or status poll confirmation.
 
 ### 3. User Journey Stories
-- **US-05.01.01**: *As a rural buyer using a smartphone, I want the app to open my preferred UPI application directly (e.g. PhonePe or Google Pay), so that I can authorize payment with a single PIN entry.*
-- **US-05.01.02**: *As a merchant ordering from a desktop or tablet, I want a dynamic QR code displayed on screen, so that I can scan and pay instantly using my mobile phone.*
+- **US-05.01.01 [READY]**: *As a rural buyer using a smartphone, I want the app to open my preferred UPI application directly (e.g. PhonePe or Google Pay), so that I can authorize payment with a single PIN entry.*
+- **US-05.01.02 [READY]**: *As a merchant ordering from a desktop or tablet, I want a dynamic QR code displayed on screen, so that I can scan and pay instantly using my mobile phone.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -48,14 +50,50 @@ Scenario: Buyer initiates UPI Intent payment
 ```
 
 ### 4. Integration Stories
-- **INT-05.01.01 (Payment Gateway REST Integration)**: *As the Payments Service, I need to integrate with Razorpay Payment Gateway APIs to create payment orders and obtain verified transaction handles.*
-- **INT-05.01.02 (GCP Secret Manager Integration)**: *As the Payments Service, I need to fetch PSP API keys (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`) securely from GCP Secret Manager at runtime without embedding keys in code or images.*
-- **INT-05.01.03 (Firestore Sync Integration)**: *As the Payments Service, I need to synchronize payment intent statuses to Firestore collection `/PaymentIntents/{id}` every 2000ms.*
+- **INT-05.01.01 [READY] (Payment Gateway REST Integration)**: *As the Payments Service, I need to integrate with Razorpay Payment Gateway APIs to create payment orders and obtain verified transaction handles.*
+- **INT-05.01.02 [READY] (GCP Secret Manager Integration)**: *As the Payments Service, I need to fetch PSP API keys (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`) securely from GCP Secret Manager at runtime without embedding keys in code or images.*
+- **INT-05.01.03 [READY] (Firestore Sync Integration)**: *As the Payments Service, I need to synchronize payment intent statuses to Firestore collection `/PaymentIntents/{id}` every 2000ms.*
 
-### 5. Independent Support Stories
-- **OPS-05.01.01 (DevOps & Security Hardening)**: *Configure Kubernetes deployment (`03-payments.yaml`), GCP Workload Identity for Secret Manager access, and apply database migrations for `payments_db`.*
-- **DOC-05.01.01 (UPI Integration Guide)**: *Document NPCI UPI intent URL formatting standards, timeout handling (15-minute expiry), and payload structure.*
-- **TEST-05.01.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/05-payments/createIntent/` mocking PSP gateway responses with stubbed tokens.*
+### 5. Multi-Client Implementation Stories
+- **PWA-05.01.01 [READY] (Web PWA Client)**: *Implement Dynamic QR Code modal with auto-refresh timer, UPI Intent deep-linking button for mobile browsers, and payment status polling in `web/`.*
+- **AND-05.01.01 [READY] (Android Native Client)**: *Implement native Android UPI Intent chooser (launching GPay, PhonePe, Paytm, BHIM) with ActivityResultCallback handling in `android/`.*
+- **IOS-05.01.01 [READY] (iOS Native Client)**: *Implement dynamic UPI URI handler (`UIApplication.shared.open`) and fallback QR display modal in `ios/`.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-05.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test asserting that selecting UPI payment on checkout renders valid dynamic QR code and initiates payment session with `payments-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-05.01.01 [READY] (DevOps & Security Hardening)**: *Configure Kubernetes deployment (`03-payments.yaml`), GCP Workload Identity for Secret Manager access, and apply database migrations for `payments_db`.*
+- **DOC-05.01.01 [READY] (UPI Integration Guide)**: *Document NPCI UPI intent URL formatting standards, timeout handling (15-minute expiry), and payload structure.*
+- **TEST-05.01.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/05-payments/createIntent/` mocking PSP gateway responses with stubbed tokens.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest -f microservices/services/payments-service/Dockerfile.service microservices/services/payments-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest
+  gcloud run deploy payments-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/upi-intent-qr.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] `payments-service` running in `logikchain-test` and successfully creates payment intents with test gateway keys.
+  - [ ] Web PWA displays dynamic QR code and handles UPI Intent payload.
+  - [ ] Android & iOS apps launch native UPI app intents.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -63,6 +101,7 @@ Scenario: Buyer initiates UPI Intent payment
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-05.02`
+- **Feature Status**: [READY]
 - **Functional Scope**: Gateway raw webhook ingress, HMAC-SHA256 signature verification, idempotent transaction capture, and order completion dispatch.
 - **Service Endpoints**: `POST /v1/payments/webhook` (`handlePSPWebhook`)
 - **UI Screens**: Background Platform Ingress (No UI)
@@ -87,7 +126,7 @@ Scenario: Buyer initiates UPI Intent payment
 - **Postconditions**: Payment captured; orders and ledger updated; audit event logged.
 
 ### 3. User Journey Stories
-- **US-05.02.01**: *As a platform operator, I want all incoming payment webhooks cryptographically verified before processing, so that fraudulent status updates and replay attacks are impossible.*
+- **US-05.02.01 [READY]**: *As a platform operator, I want all incoming payment webhooks cryptographically verified before processing, so that fraudulent status updates and replay attacks are impossible.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -100,14 +139,50 @@ Scenario: Valid webhook transitions payment and order state
 ```
 
 ### 4. Integration Stories
-- **INT-05.02.01 (Orders Service Payment Notification Integration)**: *As the Payments Service, I need to call `orders-service` (`:4002`) upon payment capture to transition order status from `pending_payment` to `placed`.*
-- **INT-05.02.02 (Finance Service Ledger Integration)**: *As the Payments Service, I need to emit an event to `finance-service` (`:4009`) to record debit in Gateway Clearing and credit in Customer Advance accounts.*
-- **INT-05.02.03 (Governance AML Alert Integration)**: *As the Payments Service, I need to send transaction telemetry to `governance-service` (`:4011`) for velocity monitoring and AML compliance.*
+- **INT-05.02.01 [READY] (Orders Service Payment Notification Integration)**: *As the Payments Service, I need to call `orders-service` (`:4002`) upon payment capture to transition order status from `pending_payment` to `placed`.*
+- **INT-05.02.02 [READY] (Finance Service Ledger Integration)**: *As the Payments Service, I need to emit an event to `finance-service` (`:4009`) to record debit in Gateway Clearing and credit in Customer Advance accounts.*
+- **INT-05.02.03 [READY] (Governance AML Alert Integration)**: *As the Payments Service, I need to send transaction telemetry to `governance-service` (`:4011`) for velocity monitoring and AML compliance.*
 
-### 5. Independent Support Stories
-- **OPS-05.02.01 (DevOps & Raw Body Middleware)**: *Configure Express raw body buffer parser in `payments-service` to prevent whitespace alteration during HMAC calculation.*
-- **DOC-05.02.01 (Webhook Security Protocol)**: *Document webhook signature verification algorithm, retry policy (up to 24h), and replay prevention mechanism.*
-- **TEST-05.02.01 (Bruno & Security Test Suite)**: *Build automated test in `tests/bruno/05-payments/webhook/` testing genuine signature vs forged signature rejection.*
+### 5. Multi-Client Implementation Stories
+- **PWA-05.02.01 [READY] (Web PWA Client)**: *Implement Payment Success screen with celebratory micro-animation, order confirmation link, and real-time Firestore listener updating checkout status in `web/`.*
+- **AND-05.02.01 [READY] (Android Native Client)**: *Implement native payment callback receiver updating order status banner upon webhook capture verification in `android/`.*
+- **IOS-05.02.01 [READY] (iOS Native Client)**: *Implement SwiftUI payment confirmation view with haptic feedback upon webhook completion trigger in `ios/`.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-05.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test simulating Razorpay HMAC webhook dispatch to `payments-service` and verifying that the open buyer PWA checkout transitions to "Payment Successful" in real-time on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-05.02.01 [READY] (DevOps & Raw Body Middleware)**: *Configure Express raw body buffer parser in `payments-service` to prevent whitespace alteration during HMAC calculation.*
+- **DOC-05.02.01 [READY] (Webhook Security Protocol)**: *Document webhook signature verification algorithm, retry policy (up to 24h), and replay prevention mechanism.*
+- **TEST-05.02.01 [READY] (Bruno & Security Test Suite)**: *Build automated test in `tests/bruno/05-payments/webhook/` testing genuine signature vs forged signature rejection.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest -f microservices/services/payments-service/Dockerfile.service microservices/services/payments-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest
+  gcloud run deploy payments-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/payment-webhook-ingress.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Webhook receiver live on Cloud Run test instance behind API Gateway.
+  - [ ] HMAC-SHA256 signature verification passes on test webhook events.
+  - [ ] Buyer PWA updates order status upon webhook arrival.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -115,6 +190,7 @@ Scenario: Valid webhook transitions payment and order state
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-05.03`
+- **Feature Status**: [READY]
 - **Functional Scope**: Order cancellation refunds, partial item refund processing, PSP gateway reverse transfers, and GST credit note generation.
 - **Service Endpoints**: `POST /v1/payments/{paymentId}/refund` (`refundOrder`), `POST /v1/payments/{paymentId}/credit-note` (`issueCreditNote`)
 - **UI Screens**: [SPT-04 Support Orders Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-04)
@@ -132,7 +208,7 @@ Scenario: Valid webhook transitions payment and order state
 - **Postconditions**: Funds reversed to buyer bank account; credit note generated; ledger balanced.
 
 ### 3. User Journey Stories
-- **US-05.03.01**: *As a rural buyer whose order was cancelled, I want my money refunded automatically to my original UPI account within standard banking timelines, so that I maintain complete trust in the platform.*
+- **US-05.03.01 [READY]**: *As a rural buyer whose order was cancelled, I want my money refunded automatically to my original UPI account within standard banking timelines, so that I maintain complete trust in the platform.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -145,10 +221,46 @@ Scenario: Successful automated refund
 ```
 
 ### 4. Integration Stories
-- **INT-05.03.01 (PSP Refund API Integration)**: *As the Payments Service, I need to execute refund calls to Razorpay APIs and handle synchronous/asynchronous refund callbacks.*
-- **INT-05.03.02 (Finance Service Credit Note Integration)**: *As the Payments Service, I need to call `finance-service` (`:4009`) to generate statutory credit notes for all refunded transactions.*
+- **INT-05.03.01 [READY] (PSP Refund API Integration)**: *As the Payments Service, I need to execute refund calls to Razorpay APIs and handle synchronous/asynchronous refund callbacks.*
+- **INT-05.03.02 [READY] (Finance Service Credit Note Integration)**: *As the Payments Service, I need to call `finance-service` (`:4009`) to generate statutory credit notes for all refunded transactions.*
 
-### 5. Independent Support Stories
-- **OPS-05.03.01 (DevOps & Refund Queue)**: *Implement retry policies with exponential backoff for transient PSP refund gateway failures.*
-- **DOC-05.03.01 (Refund & Credit Note Policy Docs)**: *Document NPCI T+1 refund mandates, GST credit note compliance rules, and customer communication templates.*
-- **TEST-05.03.01 (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/05-payments/refundOrder/` asserting refund bounds and double-refund blocks.*
+### 5. Multi-Client Implementation Stories
+- **PWA-05.03.01 [READY] (Web PWA Client)**: *Implement Support Orders Console refund management interface (`SPT-04`) with refund authorization prompt and credit note PDF download in `web/`.*
+- **AND-05.03.01 [READY] (Android Native Client)**: *Implement Buyer Order Details refund status banner and notification card with bank UTR reference.*
+- **IOS-05.03.01 [READY] (iOS Native Client)**: *Implement Buyer Order Details refund tracking timeline.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-05.03.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating refund execution from Support PWA console, verifying status update on buyer PWA, and confirming credit note generation on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-05.03.01 [READY] (DevOps & Refund Queue)**: *Implement retry policies with exponential backoff for transient PSP refund gateway failures.*
+- **DOC-05.03.01 [READY] (Refund & Credit Note Policy Docs)**: *Document NPCI T+1 refund mandates, GST credit note compliance rules, and customer communication templates.*
+- **TEST-05.03.01 [READY] (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/05-payments/refundOrder/` asserting refund bounds and double-refund blocks.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest -f microservices/services/payments-service/Dockerfile.service microservices/services/payments-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest
+  gcloud run deploy payments-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/payments-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/support-refund-management.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Refund endpoints operational on Cloud Run test instance.
+  - [ ] PWA Support console triggers automated refund to test UPI accounts.
+  - [ ] Buyer PWA updates order status to "Refund Processed" with UTR.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.

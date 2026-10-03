@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="work_management_data.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Logikchain — Architecture Map</title>
@@ -396,7 +397,78 @@
     }
     .conn-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
-  </style>
+  
+    /* ─── WORK ITEM STATUS CONTROLS IN ARCHITECTURE MAP ─── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .status-in_progress { background: #e0f2fe; color: #0284c7; border: 1px solid #7dd3fc; }
+    .status-ready { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
+    .status-done { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+    .status-planned { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+    .status-blocked { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+
+    .node .node-status-pill {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5;
+    }
+
+    .status-dropdown {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      outline: none;
+    }
+    .status-dropdown:hover, .status-dropdown:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+    }
+
+    /* Top sync status badge in architecture map */
+    .arch-sync-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 10px;
+      background: #f1f5f9;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .arch-sync-btn {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.15);
+      color: #0f172a;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .arch-sync-btn:hover {
+      border-color: #0284c7;
+      color: #0284c7;
+    }
+
+</style>
 </head>
 <body>
 
@@ -409,6 +481,13 @@
     </div>
   </div>
   <div class="sep"></div>
+  <div class="arch-sync-bar">
+    <span style="color:#16a34a; font-size:12px;">●</span>
+    <span>Fact of Truth: <strong style="color:#0284c7;">work-management/*.md</strong></span>
+    <button class="arch-sync-btn" onclick="saveArchState()" title="Save changes to browser localStorage">💾 Save</button>
+    <button class="arch-sync-btn" onclick="exportArchDiff()" title="Export Markdown updates">📋 Export Diff</button>
+    <button class="arch-sync-btn" onclick="resetArchState()" title="Reset to Markdown truth">🔄 Reset</button>
+  </div>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#0284c7"></div>PWA / Web</div>
     <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div>Android</div>
@@ -871,7 +950,31 @@ NODES.forEach(n => {
     return `<span class="method ${cls[m]||'m-call'}">${map[m]||m.toUpperCase()}</span>`;
   };
 
+  const NODE_TO_EPIC = {
+    'identity': 'EPIC-01',
+    'orders': 'EPIC-02',
+    'gigs': 'EPIC-03',
+    'pamphlet': 'EPIC-04',
+    'payments': 'EPIC-05',
+    'payouts': 'EPIC-06',
+    'cash': 'EPIC-07',
+    'credit': 'EPIC-08',
+    'finance': 'EPIC-09',
+    'config': 'EPIC-10',
+    'governance': 'EPIC-11',
+    'api-gateway': 'EPIC-12',
+    'social-connect': 'EPIC-13'
+  };
+
+  const store = window.WorkManagementStore;
+  const linkedEpicId = NODE_TO_EPIC[n.id];
+  const linkedEpic = linkedEpicId && store ? store.getEpic(linkedEpicId) : null;
+  const currentStatus = linkedEpic ? linkedEpic.status : (n.layer === 'client' ? 'IN_PROGRESS' : 'READY');
+
   el.innerHTML = `
+    <div class="node-status-pill">
+      <span class="status-badge status-${currentStatus.toLowerCase()}">${currentStatus}</span>
+    </div>
     <div class="node-header">
       <div class="node-icon" style="background:${n.color}22;color:${n.color}">${n.icon}</div>
       <div>
@@ -1227,7 +1330,27 @@ function fitView() {
 // ─── DETAIL PANEL ─────────────────────────────────────────────────────────
 
 function openDetail(n) {
-  document.getElementById('detail-title').textContent = n.title;
+  const store = window.WorkManagementStore;
+  const NODE_TO_EPIC = {
+    'identity': 'EPIC-01',
+    'orders': 'EPIC-02',
+    'gigs': 'EPIC-03',
+    'pamphlet': 'EPIC-04',
+    'payments': 'EPIC-05',
+    'payouts': 'EPIC-06',
+    'cash': 'EPIC-07',
+    'credit': 'EPIC-08',
+    'finance': 'EPIC-09',
+    'config': 'EPIC-10',
+    'governance': 'EPIC-11',
+    'api-gateway': 'EPIC-12',
+    'social-connect': 'EPIC-13'
+  };
+
+  const epicId = NODE_TO_EPIC[n.id];
+  const epic = epicId && store ? store.getEpic(epicId) : null;
+
+  document.getElementById('detail-title').textContent = n.title + (epic ? ` (${epic.id})` : '');
   const body = document.getElementById('detail-body');
   const mLabel = { call:'CALL', webhook:'WH', task:'TASK', sched:'SCHED', entry:'ENTRY', auth:'AUTH', db:'DB', push:'PUSH', storage:'FS', gcp:'GCP' };
   const mCls   = { call:'m-call', webhook:'m-post', task:'m-post', sched:'m-sched', entry:'m-get', auth:'m-get', db:'m-get', push:'m-get', storage:'m-get', gcp:'m-get' };
@@ -1253,7 +1376,62 @@ function openDetail(n) {
     'social-connect':'Social & Interaction'
   };
 
+  let workItemSection = '';
+  if (epic) {
+    workItemSection = `
+      <div class="detail-section" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+          <h4 style="margin:0; font-size:12px; color:#0f172a;">Epic Status (${epic.id})</h4>
+          <select class="status-dropdown" onchange="updateArchEpicStatus('${epic.id}', this.value)">
+            <option value="READY" ${epic.status === 'READY' ? 'selected' : ''}>READY</option>
+            <option value="IN_PROGRESS" ${epic.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+            <option value="DONE" ${epic.status === 'DONE' ? 'selected' : ''}>DONE</option>
+            <option value="PLANNED" ${epic.status === 'PLANNED' ? 'selected' : ''}>PLANNED</option>
+            <option value="BLOCKED" ${epic.status === 'BLOCKED' ? 'selected' : ''}>BLOCKED</option>
+          </select>
+        </div>
+        <div style="font-size:11px; color:#64748b; margin-bottom:10px;">
+          Fact of truth: <code>work-management/${epic.mdFile}</code>
+        </div>
+        
+        <h5 style="font-size:11px; text-transform:uppercase; color:#475569; margin-bottom:6px;">Constituent Features (${epic.features.length})</h5>
+        ${epic.features.map(f => {
+          const clientStories = (f.stories || []).filter(s => s.type === 'pwa' || s.type === 'android' || s.type === 'ios');
+          const pwaTest = (f.stories || []).find(s => s.type === 'pwa_test');
+
+          return `
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:8px; margin-bottom:8px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:#0284c7; font-size:11px;">${f.id}</span>
+                <select class="status-dropdown" style="font-size:10px; padding:2px 6px;" onchange="updateArchFeatureStatus('${f.id}', this.value)">
+                  <option value="READY" ${f.status === 'READY' ? 'selected' : ''}>READY</option>
+                  <option value="IN_PROGRESS" ${f.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+                  <option value="DONE" ${f.status === 'DONE' ? 'selected' : ''}>DONE</option>
+                </select>
+              </div>
+              <div style="font-size:11px; font-weight:600; color:#0f172a; margin-top:2px;">${f.title}</div>
+              
+              <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
+                ${clientStories.map(s => `<span class="status-badge status-${s.status.toLowerCase()}" style="font-size:9px;">${s.id.split('-')[0]}: ${s.status}</span>`).join('')}
+                ${pwaTest ? `<span class="status-badge status-${pwaTest.status.toLowerCase()}" style="font-size:9px; border-color:#86efac;">TEST-PWA: ${pwaTest.status}</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+
+        <!-- Cloud Deploy Command -->
+        <div style="margin-top:10px; padding-top:8px; border-top:1px dashed #cbd5e1;">
+          <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase;">Cloud Run Deploy Command</div>
+          <div style="background:#0f172a; color:#38bdf8; font-family:'JetBrains Mono',monospace; font-size:10px; padding:6px 8px; border-radius:5px; margin-top:4px; word-break:break-all;">
+            gcloud run deploy ${epic.microservice.split('/').pop()} --project=logikchain-test --region=asia-south1
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   body.innerHTML = `
+    ${workItemSection}
     <div class="detail-section">
       <h4>Description</h4>
       <p style="font-size:12px;line-height:1.6;color:var(--muted)">${n.desc}</p>
@@ -1272,6 +1450,85 @@ function openDetail(n) {
     </div>
   `;
   detail.classList.add('open');
+}
+
+function updateArchEpicStatus(epicId, newStatus) {
+  if (window.WorkManagementStore) {
+    window.WorkManagementStore.updateEpicStatus(epicId, newStatus);
+    updateArchNodeBadges();
+  }
+}
+
+function updateArchFeatureStatus(featId, newStatus) {
+  if (window.WorkManagementStore) {
+    window.WorkManagementStore.updateFeatureStatus(featId, newStatus);
+    updateArchNodeBadges();
+  }
+}
+
+function updateArchNodeBadges() {
+  const store = window.WorkManagementStore;
+  if (!store) return;
+  const NODE_TO_EPIC = {
+    'identity': 'EPIC-01',
+    'orders': 'EPIC-02',
+    'gigs': 'EPIC-03',
+    'pamphlet': 'EPIC-04',
+    'payments': 'EPIC-05',
+    'payouts': 'EPIC-06',
+    'cash': 'EPIC-07',
+    'credit': 'EPIC-08',
+    'finance': 'EPIC-09',
+    'config': 'EPIC-10',
+    'governance': 'EPIC-11',
+    'api-gateway': 'EPIC-12',
+    'social-connect': 'EPIC-13'
+  };
+
+  Object.entries(NODE_TO_EPIC).forEach(([nodeId, epicId]) => {
+    const epic = store.getEpic(epicId);
+    if (!epic) return;
+    const nodeEl = document.getElementById('node-' + nodeId);
+    if (nodeEl) {
+      const badge = nodeEl.querySelector('.node-status-pill .status-badge');
+      if (badge) {
+        badge.className = `status-badge status-${epic.status.toLowerCase()}`;
+        badge.textContent = epic.status;
+      }
+    }
+  });
+}
+
+function saveArchState() {
+  if (window.WorkManagementStore) {
+    window.WorkManagementStore.saveState();
+    alert('Architecture work status saved to browser storage!');
+  }
+}
+
+function resetArchState() {
+  if (confirm('Reset architecture statuses to Markdown Fact of Truth?')) {
+    if (window.WorkManagementStore) {
+      window.WorkManagementStore.resetToBaseline();
+      updateArchNodeBadges();
+      alert('Reset to Markdown baseline truth.');
+    }
+  }
+}
+
+function exportArchDiff() {
+  if (!window.WorkManagementStore) return;
+  const diffs = window.WorkManagementStore.exportMarkdownDiff();
+  if (diffs.length === 0) {
+    alert('Zero modifications. Architecture map is in 100% sync with Markdown Fact of Truth files.');
+  } else {
+    let msg = 'Work Management Status Updates to Apply to MD Files:\n\n';
+    diffs.forEach(d => {
+      msg += `[${d.file}] ${d.id}: ${d.oldStatus} -> ${d.newStatus}\n`;
+    });
+    navigator.clipboard.writeText(msg);
+    alert('Copied ' + diffs.length + ' status updates to clipboard!\n\n' + msg);
+  }
 }
 
 function highlightConnectedEdges(nodeId) {

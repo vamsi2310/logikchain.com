@@ -2,6 +2,7 @@
 
 ## 1. Functional Area Alignment & Platform Metadata
 - **Epic ID**: `EPIC-12`
+- **Epic Status**: `[IN_PROGRESS]`
 - **Functional Area**: API Gateway Perimeter, Multi-Client Ingress & Bidirectional Data Sync Engine
 - **Bound Platform Modules**: `microservices/services/gateway` & `microservices/devops/docker/Dockerfile.sync-engine`
 - **Container Ports**: `gateway` on `:8080` / `sync-engine` on `:4050`
@@ -15,6 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.01`
+- **Feature Status**: `[IN_PROGRESS]`
 - **Functional Scope**: Perimeter reverse proxy, internal VPC microservice routing, client context header injection, and rate limiting.
 - **Service Endpoints**: `ALL /v1/*` (Proxy Router), `GET /health` (Gateway Health)
 - **UI Screens**: Platform Perimeter (All Client Applications: PWA, Android, iOS)
@@ -39,8 +41,8 @@
 - **Postconditions**: Request authenticated and forwarded; clients isolated from internal microservices.
 
 ### 3. User Journey Stories
-- **US-12.01.01**: *As a mobile/web developer, I want a single unified API endpoint (`api.logikchain.com`), so that client applications do not need complex multi-host network configurations.*
-- **US-12.01.02**: *As an infrastructure security engineer, I want internal microservices completely isolated within a private VPC, so that unauthorized internet traffic cannot reach internal databases directly.*
+- **US-12.01.01 [READY]**: *As a mobile/web developer, I want a single unified API endpoint (`api.logikchain.com`), so that client applications do not need complex multi-host network configurations.*
+- **US-12.01.02 [READY]**: *As an infrastructure security engineer, I want internal microservices completely isolated within a private VPC, so that unauthorized internet traffic cannot reach internal databases directly.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -52,13 +54,48 @@ Scenario: Gateway injects validated identity headers to downstream service
 ```
 
 ### 4. Integration Stories
-- **INT-12.01.01 (Internal VPC Service Dispatch Integration)**: *As the API Gateway, I need to maintain dynamic DNS service discovery to route incoming path prefixes (`/v1/orders/*`, `/v1/gigs/*`, etc.) to their respective microservices across the Kubernetes cluster.*
-- **INT-12.01.02 (Redis Rate Limiting Integration)**: *As the API Gateway, I need to integrate with a Redis cluster to enforce a strict 300 requests/minute sliding-window rate limit per client IP and user UID.*
+- **INT-12.01.01 [IN_PROGRESS] (Internal VPC Service Dispatch Integration)**: *As the API Gateway, I need to maintain dynamic DNS service discovery to route incoming path prefixes (`/v1/orders/*`, `/v1/gigs/*`, etc.) to their respective microservices across the Kubernetes cluster.*
+- **INT-12.01.02 [READY] (Redis Rate Limiting Integration)**: *As the API Gateway, I need to integrate with a Redis cluster to enforce a strict 300 requests/minute sliding-window rate limit per client IP and user UID.*
 
-### 5. Independent Support Stories
-- **OPS-12.01.01 (DevOps & Gateway Docker/K8s)**: *Deploy API Gateway using multi-stage Docker build (`microservices/services/gateway/Dockerfile`), configure Kubernetes Ingress controller with TLS certificates, and set HPA autoscaling based on CPU/traffic.*
-- **DOC-12.01.01 (Gateway Architecture & Route Table)**: *Publish master API Gateway routing table, header injection specification, and error handling taxonomy in platform documentation.*
-- **TEST-12.01.01 (Gateway Benchmark & Load Test)**: *Build automated load test using k6/Autocannon asserting sub-10ms gateway routing overhead under 5,000 concurrent connections.*
+### 5. Multi-Client Implementation Stories
+- **PWA-12.01.01 [IN_PROGRESS] (Web PWA Gateway HTTP Client & Header Interceptor)**: *Implement centralized HTTP client in `web/` with automatic Bearer token injection, retry on network drops, and global 401 handling.*
+- **AND-12.01.01 [IN_PROGRESS] (Android Native OkHttp Gateway Client)**: *Implement Retrofit/OkHttp network stack in `android/` with automatic token refresh, device attestation headers, and offline error interception.*
+- **IOS-12.01.01 [READY] (iOS Native URLSession Gateway Client)**: *Implement URLSession network client in `ios/` with token refresh interceptor and structured error handling.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-12.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test asserting API Gateway routing, identity header forwarding, and rate limiting on live PWA against `gateway` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-12.01.01 [IN_PROGRESS] (DevOps & Gateway Docker/K8s)**: *Deploy API Gateway using multi-stage Docker build (`microservices/services/gateway/Dockerfile`), configure Kubernetes Ingress controller with TLS certificates, and set HPA autoscaling based on CPU/traffic.*
+- **DOC-12.01.01 [READY] (Gateway Architecture & Route Table)**: *Publish master API Gateway routing table, header injection specification, and error handling taxonomy in platform documentation.*
+- **TEST-12.01.01 [READY] (Gateway Benchmark & Load Test)**: *Build automated load test using k6/Autocannon asserting sub-10ms gateway routing overhead under 5,000 concurrent connections.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gateway:latest -f microservices/devops/docker/Dockerfile.gateway microservices/services/gateway
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gateway:latest
+  gcloud run deploy gateway \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gateway:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --allow-unauthenticated
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/gateway-ingress-routing.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Gateway container running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -66,6 +103,7 @@ Scenario: Gateway injects validated identity headers to downstream service
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.02`
+- **Feature Status**: `[IN_PROGRESS]`
 - **Functional Scope**: Multi-platform hardware-backed device attestation verification: reCAPTCHA Enterprise (PWA), Play Integrity (Android), and DeviceCheck/App Attest (iOS).
 - **Service Endpoints**: Ingress Middleware on API Gateway
 - **UI Screens**: All Client Application Ingress
@@ -87,7 +125,7 @@ Scenario: Gateway injects validated identity headers to downstream service
 - **Postconditions**: Script kiddies, bots, and emulated API scrapers blocked at network perimeter.
 
 ### 3. User Journey Stories
-- **US-12.02.01**: *As a platform architect, I want all non-browser bots and script injections blocked by Firebase App Check, so that malicious actors cannot scrape pricing or flood backend microservices.*
+- **US-12.02.01 [READY]**: *As a platform architect, I want all non-browser bots and script injections blocked by Firebase App Check, so that malicious actors cannot scrape pricing or flood backend microservices.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -100,13 +138,48 @@ Scenario: Bot without App Check token rejected at perimeter
 ```
 
 ### 4. Integration Stories
-- **INT-12.02.01 (Firebase App Check SDK Integration)**: *As the API Gateway, I need to integrate with the Firebase Admin App Check SDK to validate cryptographic attestation tokens for Web, Android, and iOS runtimes.*
-- **INT-12.02.02 (Governance Security Alert Integration)**: *As the API Gateway, I need to stream App Check failure spikes to `governance-service` (`:4011`) for DDoS and bot mitigation.*
+- **INT-12.02.01 [IN_PROGRESS] (Firebase App Check SDK Integration)**: *As the API Gateway, I need to integrate with the Firebase Admin App Check SDK to validate cryptographic attestation tokens for Web, Android, and iOS runtimes.*
+- **INT-12.02.02 [READY] (Governance Security Alert Integration)**: *As the API Gateway, I need to stream App Check failure spikes to `governance-service` (`:4011`) for DDoS and bot mitigation.*
 
-### 5. Independent Support Stories
-- **OPS-12.02.01 (App Check Local Emulator Bypass)**: *Configure debug token bypass mechanisms in development environments (`NODE_ENV=development`) to facilitate local Bruno API and Playwright automated testing.*
-- **DOC-12.02.01 (App Check Configuration Manual)**: *Document registration of Play Integrity SHA-256 fingerprints, iOS Team IDs, and reCAPTCHA Enterprise site keys.*
-- **TEST-12.02.01 (Automated Test Suite)**: *Build test in `tests/bruno/00-gateway/appCheck/` testing valid vs invalid vs missing App Check tokens.*
+### 5. Multi-Client Implementation Stories
+- **PWA-12.02.01 [IN_PROGRESS] (Web PWA reCAPTCHA Enterprise Attestation)**: *Initialize Firebase App Check in `web/` using reCAPTCHA Enterprise provider with automatic token refresh on network requests.*
+- **AND-12.02.01 [IN_PROGRESS] (Android Native Play Integrity Attestation)**: *Configure Firebase App Check Play Integrity provider in `android/` with hardware-backed tamper detection.*
+- **IOS-12.02.01 [READY] (iOS Native DeviceCheck Attestation)**: *Configure Firebase App Check App Attest / DeviceCheck provider in `ios/`.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-12.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating that PWA requests with valid reCAPTCHA App Check tokens succeed while requests with missing/invalid tokens are rejected with 401 on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-12.02.01 [IN_PROGRESS] (App Check Local Emulator Bypass)**: *Configure debug token bypass mechanisms in development environments (`NODE_ENV=development`) to facilitate local Bruno API and Playwright automated testing.*
+- **DOC-12.02.01 [READY] (App Check Configuration Manual)**: *Document registration of Play Integrity SHA-256 fingerprints, iOS Team IDs, and reCAPTCHA Enterprise site keys.*
+- **TEST-12.02.01 [READY] (Automated Test Suite)**: *Build test in `tests/bruno/00-gateway/appCheck/` testing valid vs invalid vs missing App Check tokens.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gateway:latest -f microservices/devops/docker/Dockerfile.gateway microservices/services/gateway
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gateway:latest
+  gcloud run deploy gateway \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gateway:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --allow-unauthenticated
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/gateway-appcheck.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Gateway container running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -114,6 +187,7 @@ Scenario: Bot without App Check token rejected at perimeter
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.03`
+- **Feature Status**: `[READY]`
 - **Functional Scope**: PostgreSQL transactional outbox polling, Change Data Capture (CDC), batch commits to Cloud Firestore collections, and real-time offline mutation ingestion.
 - **Service Endpoints**: `GET /sync/status` (Health/Metrics), `POST /sync/trigger` (Manual Flush)
 - **UI Screens**: Infrastructure Background Worker
@@ -136,7 +210,7 @@ Scenario: Bot without App Check token rejected at perimeter
 - **Postconditions**: PostgreSQL state mirrored in Cloud Firestore; mobile and web clients receive real-time document snapshots.
 
 ### 3. User Journey Stories
-- **US-12.03.01**: *As a rural user with intermittent internet, I want my app to read data from Firestore's local cache instantly, while the backend sync engine ensures the data is always up-to-date with the PostgreSQL master database.*
+- **US-12.03.01 [READY]**: *As a rural user with intermittent internet, I want my app to read data from Firestore's local cache instantly, while the backend sync engine ensures the data is always up-to-date with the PostgreSQL master database.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -148,14 +222,50 @@ Scenario: Outbox event commits to Cloud Firestore within 2 seconds
 ```
 
 ### 4. Integration Stories
-- **INT-12.03.01 (PostgreSQL Outbox Stream Integration)**: *As the Sync Engine, I need to connect to all microservice PostgreSQL outbox tables to poll and process pending replication events.*
-- **INT-12.03.02 (Cloud Firestore Batch Write Integration)**: *As the Sync Engine, I need to utilize Firestore Admin SDK batch operations to minimize API operations and maintain write atomicity.*
-- **INT-12.03.03 (Firestore Inbound Snapshot Listener Integration)**: *As the Sync Engine, I need to listen to incoming offline mutations committed by mobile clients in Firestore `/outbox_mobile/` and ingest them into PostgreSQL with idempotency checks.*
+- **INT-12.03.01 [READY] (PostgreSQL Outbox Stream Integration)**: *As the Sync Engine, I need to connect to all microservice PostgreSQL outbox tables to poll and process pending replication events.*
+- **INT-12.03.02 [READY] (Cloud Firestore Batch Write Integration)**: *As the Sync Engine, I need to utilize Firestore Admin SDK batch operations to minimize API operations and maintain write atomicity.*
+- **INT-12.03.03 [READY] (Firestore Inbound Snapshot Listener Integration)**: *As the Sync Engine, I need to listen to incoming offline mutations committed by mobile clients in Firestore `/outbox_mobile/` and ingest them into PostgreSQL with idempotency checks.*
 
-### 5. Independent Support Stories
-- **OPS-12.03.01 (Sync Engine Docker & Daemon Deployment)**: *Build production image using `microservices/devops/docker/Dockerfile.sync-engine` and deploy as a Kubernetes DaemonSet / StatefulSet with dedicated database pool.*
-- **DOC-12.03.01 (Data Replication Architecture Spec)**: *Publish CDC replication architecture documentation detailing at-least-once delivery guarantees and conflict resolution strategies.*
-- **TEST-12.03.01 (Automated Lag & Failure Tests)**: *Build automated test in `tests/integration/sync/` verifying replication lag remains under 2000ms under 500 events/second load.*
+### 5. Multi-Client Implementation Stories
+- **PWA-12.03.01 [READY] (Web PWA Firestore Realtime Listener Client)**: *Implement Firestore snapshot listeners in `web/` subscribing to synchronized collections with automatic reconciliation on reconnect.*
+- **AND-12.03.01 [READY] (Android Native Offline Outbox & Firestore Sync)**: *Implement Android offline Firestore outbox queue in `android/` writing to `/outbox_mobile/` during cellular outages.*
+- **IOS-12.03.01 [READY] (iOS Native Offline Outbox & Firestore Sync)**: *Implement iOS offline Firestore outbox queue in `ios/` with automatic batch flush.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-12.03.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test creating an order in PostgreSQL, waiting 2000ms, and verifying real-time Firestore listener update on PWA against `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-12.03.01 [READY] (Sync Engine Docker & Daemon Deployment)**: *Build production image using `microservices/devops/docker/Dockerfile.sync-engine` and deploy as a Kubernetes DaemonSet / StatefulSet with dedicated database pool.*
+- **DOC-12.03.01 [READY] (Data Replication Architecture Spec)**: *Publish CDC replication architecture documentation detailing at-least-once delivery guarantees and conflict resolution strategies.*
+- **TEST-12.03.01 [READY] (Automated Lag & Failure Tests)**: *Build automated test in `tests/integration/sync/` verifying replication lag remains under 2000ms under 500 events/second load.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/sync-engine:latest -f microservices/devops/docker/Dockerfile.sync-engine microservices/services/gateway
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/sync-engine:latest
+  gcloud run deploy sync-engine \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/sync-engine:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/sync-engine-cdc.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Sync engine container running in `logikchain-test` replicating outbox rows to Firestore within 2000ms.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` receiving live Firestore updates.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -163,6 +273,7 @@ Scenario: Outbox event commits to Cloud Firestore within 2 seconds
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.04`
+- **Feature Status**: `[READY]`
 - **Functional Scope**: Delivery photo uploads, KYC document sync, TDS challan PDFs, and Cloud Storage signed URL generation.
 - **Service Endpoints**: `POST /v1/storage/upload-ticket`, `GET /sync/storage/status`
 - **UI Screens**: Infrastructure Background Pipeline
@@ -181,7 +292,7 @@ Scenario: Outbox event commits to Cloud Firestore within 2 seconds
 - **Postconditions**: File stored securely in Google Cloud Storage; public access restricted; reference linked to domain record.
 
 ### 3. User Journey Stories
-- **US-12.04.01**: *As a delivery driver taking delivery proof photos, I want uploads to complete quickly and reliably even over 3G rural networks, so that I can proceed to the next delivery without waiting.*
+- **US-12.04.01 [READY]**: *As a delivery driver taking delivery proof photos, I want uploads to complete quickly and reliably even over 3G rural networks, so that I can proceed to the next delivery without waiting.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -193,10 +304,46 @@ Scenario: Generate signed upload URL for delivery photo
 ```
 
 ### 4. Integration Stories
-- **INT-12.04.01 (Firebase Cloud Storage SDK Integration)**: *As the Sync Engine, I need to interface with `@google-cloud/storage` / Firebase Admin Storage to generate signed URLs and manage lifecycle retention policies.*
-- **INT-12.04.02 (Microservice Media Metadata Integration)**: *As the Sync Engine, I need to notify calling microservices (`orders-service`, `finance-service`, `pamphlet-service`) once uploaded media is verified.*
+- **INT-12.04.01 [READY] (Firebase Cloud Storage SDK Integration)**: *As the Sync Engine, I need to interface with `@google-cloud/storage` / Firebase Admin Storage to generate signed URLs and manage lifecycle retention policies.*
+- **INT-12.04.02 [READY] (Microservice Media Metadata Integration)**: *As the Sync Engine, I need to notify calling microservices (`orders-service`, `finance-service`, `pamphlet-service`) once uploaded media is verified.*
 
-### 5. Independent Support Stories
-- **OPS-12.04.01 (Cloud Storage IAM & Bucket DevOps)**: *Configure Terraform scripts for GCS bucket `logikchain-media` with regional dual-region redundancy and CORS policies.*
-- **DOC-12.04.01 (Media Storage Guidelines)**: *Document maximum upload limits (5MB for photos, 10MB for PDFs), allowed MIME types (`image/jpeg`, `application/pdf`), and access control.*
-- **TEST-12.04.01 (Automated Test Suite)**: *Build Bruno automated test `tests/bruno/00-gateway/uploadTicket/` verifying URL signature validity.*
+### 5. Multi-Client Implementation Stories
+- **PWA-12.04.01 [READY] (Web PWA Direct Binary Uploader)**: *Implement direct-to-GCS chunked binary uploader in `web/` with progress bar, compression, and signed URL retrieval.*
+- **AND-12.04.01 [READY] (Android Native Camera Photo Direct Uploader)**: *Implement Android camera photo capture, client-side JPEG compression, and direct GCS background upload in `android/`.*
+- **IOS-12.04.01 [READY] (iOS Native Camera Photo Direct Uploader)**: *Implement iOS camera photo capture, HEIC/JPEG compression, and direct GCS background upload in `ios/`.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-12.04.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test requesting upload ticket, uploading test binary to Firebase Cloud Storage, and asserting media URL resolution on PWA against `gateway` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-12.04.01 [READY] (Cloud Storage IAM & Bucket DevOps)**: *Configure Terraform scripts for GCS bucket `logikchain-media` with regional dual-region redundancy and CORS policies.*
+- **DOC-12.04.01 [READY] (Media Storage Guidelines)**: *Document maximum upload limits (5MB for photos, 10MB for PDFs), allowed MIME types (`image/jpeg`, `application/pdf`), and access control.*
+- **TEST-12.04.01 [READY] (Automated Test Suite)**: *Build Bruno automated test `tests/bruno/00-gateway/uploadTicket/` verifying URL signature validity.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/sync-engine:latest -f microservices/devops/docker/Dockerfile.sync-engine microservices/services/gateway
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/sync-engine:latest
+  gcloud run deploy sync-engine \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/sync-engine:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/storage-upload-ticket.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Gateway & Sync Engine running in `logikchain-test` with valid Cloud Storage IAM signing credentials.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` executing direct GCS uploads.
+  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.

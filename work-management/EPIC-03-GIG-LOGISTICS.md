@@ -2,6 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-03`
+- **Epic Status**: [READY]
 - **Functional Area**: Gig Logistics, Fleet Dispatch & Real-Time Routing
 - **Bound Microservice**: `microservices/services/gigs-service`
 - **Container Port**: `4003`
@@ -15,6 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.01`
+- **Feature Status**: [READY]
 - **Functional Scope**: Route assembly, multi-stop village sequencing, vehicle assignment, and composite Gig initialization.
 - **Service Endpoints**: `POST /v1/gigs` (`composeGig`), `GET /v1/gigs/{gigId}`
 - **UI Screens**: [SUP-02 Gig Scheduler](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-02), [SUP-03 Route Planner](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-03)
@@ -35,8 +37,8 @@
 - **Postconditions**: Gig created with status `scheduled`; driver notified on Android app; matching pamphlet initialized.
 
 ### 3. User Journey Stories
-- **US-03.01.01**: *As a supplier logistics manager, I want to automatically optimize waypoints across multiple villages, so that our delivery vehicles minimize fuel consumption and transit delays.*
-- **US-03.01.02**: *As a delivery driver, I want to receive my daily scheduled route with village stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch.*
+- **US-03.01.01 [READY]**: *As a supplier logistics manager, I want to automatically optimize waypoints across multiple villages, so that our delivery vehicles minimize fuel consumption and transit delays.*
+- **US-03.01.02 [READY]**: *As a delivery driver, I want to receive my daily scheduled route with village stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -49,14 +51,49 @@ Scenario: Supplier composes gig with automated route metrics
 ```
 
 ### 4. Integration Stories
-- **INT-03.01.01 (Google Maps Distance Matrix Integration)**: *As the Gigs Service, I need to integrate with Google Maps Distance Matrix and Routes API to compute road distances, optimal waypoint ordering, and travel durations.*
-- **INT-03.01.02 (Pamphlet Service Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest for the vehicle run.*
-- **INT-03.01.03 (Firestore Periodic Sync Integration)**: *As the Gigs Service, I need to synchronize all gig state changes to Cloud Firestore collection `/Gigs/{gigId}` every 2000ms.*
+- **INT-03.01.01 [READY] (Google Maps Distance Matrix Integration)**: *As the Gigs Service, I need to integrate with Google Maps Distance Matrix and Routes API to compute road distances, optimal waypoint ordering, and travel durations.*
+- **INT-03.01.02 [READY] (Pamphlet Service Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest for the vehicle run.*
+- **INT-03.01.03 [READY] (Firestore Periodic Sync Integration)**: *As the Gigs Service, I need to synchronize all gig state changes to Cloud Firestore collection `/Gigs/{gigId}` every 2000ms.*
 
-### 5. Independent Support Stories
-- **OPS-03.01.01 (DevOps & Database Migrations)**: *Deploy `gigs-service` container on Kubernetes (`03-gigs.yaml`), configure database migrations for `gigs_db`, and establish secret bindings for Google Maps API keys.*
-- **DOC-03.01.01 (Route Computation & Gig Specs)**: *Document the deterministic `{vehicleId}_{startDatetime}` gig ID generation rule and Google Maps API quota policies in `microservices/` docs.*
-- **TEST-03.01.01 (Bruno API Automation)**: *Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying composite key generation and waypoint persistence.*
+### 5. Multi-Client Implementation Stories
+- **PWA-03.01.01 [READY] (Web PWA Client)**: *Implement Supplier Gig Scheduler (`SUP-02`) and Route Planner (`SUP-03`) with interactive village waypoint selection, Google Maps route visualizer, and departure schedule configuration in `web/`.*
+- **AND-03.01.01 [READY] (Android Native Client)**: *Implement Driver Scheduled Route view with offline waypoint caching and push notification listener for newly assigned gigs in `android/`.*
+- **IOS-03.01.01 [READY] (iOS Native Client)**: *Implement Supplier Route Monitoring view in iOS management app with route sequence cards and transit time estimates.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-03.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating gig composition on `SUP-03`, Google Maps distance calculation, and automatic pamphlet instantiation against `gigs-service` and `pamphlet-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-03.01.01 [READY] (DevOps & Database Migrations)**: *Deploy `gigs-service` container on Kubernetes (`03-gigs.yaml`), configure database migrations for `gigs_db`, and establish secret bindings for Google Maps API keys.*
+- **DOC-03.01.01 [READY] (Route Computation & Gig Specs)**: *Document the deterministic `{vehicleId}_{startDatetime}` gig ID generation rule and Google Maps API quota policies in `microservices/` docs.*
+- **TEST-03.01.01 [READY] (Bruno API Automation)**: *Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying composite key generation and waypoint persistence.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest -f microservices/services/gigs-service/Dockerfile.service microservices/services/gigs-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest
+  gcloud run deploy gigs-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/supplier-gig-composition.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] `gigs-service` deployed to Cloud Run in `logikchain-test` with valid Google Maps API credentials.
+  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` and successfully renders route planner.
+  - [ ] Automated PWA E2E tests compose a gig and verify dynamic `{vehicleId}_{startDatetime}` keying on test project.
 
 ---
 
@@ -64,6 +101,7 @@ Scenario: Supplier composes gig with automated route metrics
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.02`
+- **Feature Status**: [READY]
 - **Functional Scope**: Gig start attestation, background GPS ping ingestion, real-time driver tracking, and Play Integrity verification.
 - **Service Endpoints**: `POST /v1/gigs/{gigId}:start`, `POST /v1/gigs/{gigId}/location`
 - **UI Screens**: [VEH-02 Active Gig](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-02), [BUY-05 Live Tracking](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05)
@@ -83,7 +121,7 @@ Scenario: Supplier composes gig with automated route metrics
 - **Postconditions**: Gig marked `in_progress`; buyers and suppliers observe live vehicle pin on map.
 
 ### 3. User Journey Stories
-- **US-03.02.01**: *As a driver on the road, I want my Android app to continuously stream GPS coordinates in the background, so that villagers are notified ahead of my arrival without my manual intervention.*
+- **US-03.02.01 [READY]**: *As a driver on the road, I want my Android app to continuously stream GPS coordinates in the background, so that villagers are notified ahead of my arrival without my manual intervention.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -95,13 +133,49 @@ Scenario: Driver starts gig with Play Integrity token
 ```
 
 ### 4. Integration Stories
-- **INT-03.02.01 (Play Integrity App Check Integration)**: *As the Gigs Service, I need to reject `startGig` and `updateGigLocation` requests that do not provide a valid Android Google Play Integrity token to prevent fake GPS injection.*
-- **INT-03.02.02 (Firestore Telemetry Sync Integration)**: *As the Gigs Service, I need to stream driver GPS coordinates to Firestore collection `/DriverLocations/{vehicleId}` for ultra-low latency client map rendering.*
+- **INT-03.02.01 [READY] (Play Integrity App Check Integration)**: *As the Gigs Service, I need to reject `startGig` and `updateGigLocation` requests that do not provide a valid Android Google Play Integrity token to prevent fake GPS injection.*
+- **INT-03.02.02 [READY] (Firestore Telemetry Sync Integration)**: *As the Gigs Service, I need to stream driver GPS coordinates to Firestore collection `/DriverLocations/{vehicleId}` for ultra-low latency client map rendering.*
 
-### 5. Independent Support Stories
-- **OPS-03.02.01 (High-Throughput Ingestion Tuning)**: *Configure connection pooling and write-batching in `gigs-service` to efficiently handle 10,000 concurrent driver GPS pings per minute.*
-- **DOC-03.02.01 (Telemetry Pipeline Documentation)**: *Publish sequence diagrams showing GPS ping ingestion, validation, and real-time distribution.*
-- **TEST-03.02.01 (Bruno & Performance Tests)**: *Execute automated Bruno test `tests/bruno/03-gigs/locationPing/` and load test endpoint with synthetic vehicle telemetry.*
+### 5. Multi-Client Implementation Stories
+- **PWA-03.02.01 [READY] (Web PWA Client)**: *Implement Buyer Live Tracking map (`BUY-05`) with smooth vehicle pin animation reacting to Firestore `/DriverLocations` stream.*
+- **AND-03.02.01 [READY] (Android Native Client)**: *Implement Driver Active Gig navigation screen (`VEH-02`) with Foreground Service background GPS pinging, Play Integrity attestation, and offline waypoint caching.*
+- **IOS-03.02.01 [READY] (iOS Native Client)**: *Implement Buyer Live Tracking map using MapKit with real-time Firestore vehicle coordinate binding.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-03.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying that when synthetic telemetry is pushed to `gigs-service`, the buyer PWA tracking view updates the delivery vehicle position smoothly on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-03.02.01 [READY] (High-Throughput Ingestion Tuning)**: *Configure connection pooling and write-batching in `gigs-service` to efficiently handle 10,000 concurrent driver GPS pings per minute.*
+- **DOC-03.02.01 [READY] (Telemetry Pipeline Documentation)**: *Publish sequence diagrams showing GPS ping ingestion, validation, and real-time distribution.*
+- **TEST-03.02.01 [READY] (Bruno & Performance Tests)**: *Execute automated Bruno test `tests/bruno/03-gigs/locationPing/` and load test endpoint with synthetic vehicle telemetry.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest -f microservices/services/gigs-service/Dockerfile.service microservices/services/gigs-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest
+  gcloud run deploy gigs-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/driver-live-tracking.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Telemetry ingestion endpoint live on Cloud Run test instance.
+  - [ ] Buyer PWA renders live moving pin based on test driver coordinates.
+  - [ ] Android client streams GPS pings with Play Integrity token.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -109,6 +183,7 @@ Scenario: Driver starts gig with Play Integrity token
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.03`
+- **Feature Status**: [READY]
 - **Functional Scope**: End-of-day gig audit, completion sign-off, route mileage reconciliation, and driver handoff readiness.
 - **Service Endpoints**: `POST /v1/gigs/{gigId}:complete`, `POST /v1/gigs/{gigId}:suspend`
 - **UI Screens**: [VEH-06 Gig Summary](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-06), [SUP-05 Route Monitoring](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-05)
@@ -126,7 +201,7 @@ Scenario: Driver starts gig with Play Integrity token
 - **Postconditions**: Gig status set to `completed`; driver unlocked to settle physical cash at cashier desk.
 
 ### 3. User Journey Stories
-- **US-03.03.01**: *As a driver finishing my shift, I want a complete operational summary of my day's deliveries, returns, and mileage, so that I can verify my performance before heading to cash settlement.*
+- **US-03.03.01 [READY]**: *As a driver finishing my shift, I want a complete operational summary of my day's deliveries, returns, and mileage, so that I can verify my performance before heading to cash settlement.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -138,10 +213,46 @@ Scenario: Driver completes gig after all deliveries finished
 ```
 
 ### 4. Integration Stories
-- **INT-03.03.01 (Pamphlet Service Close Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) on gig completion to trigger stock unload auditing.*
-- **INT-03.03.02 (Cash Service Verification Integration)**: *As the Gigs Service, I need to query `cash-service` (`:4007`) to verify if any cash collected during the gig remains outstanding.*
+- **INT-03.03.01 [READY] (Pamphlet Service Close Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) on gig completion to trigger stock unload auditing.*
+- **INT-03.03.02 [READY] (Cash Service Verification Integration)**: *As the Gigs Service, I need to query `cash-service` (`:4007`) to verify if any cash collected during the gig remains outstanding.*
 
-### 5. Independent Support Stories
-- **OPS-03.03.01 (DevOps & Reporting Queries)**: *Create optimized SQL aggregation views in `gigs_db` for driver daily and monthly performance metrics.*
-- **DOC-03.03.01 (End-of-Gig Settlement Runbook)**: *Document standard operating procedures for handling stranded vehicles or premature gig suspensions.*
-- **TEST-03.03.01 (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/03-gigs/completeGig/` validating that gigs with open orders cannot be finalized.*
+### 5. Multi-Client Implementation Stories
+- **PWA-03.03.01 [READY] (Web PWA Client)**: *Implement Supplier Route Monitoring summary dashboard (`SUP-05`) with gig completion status, total mileage, and return auditing.*
+- **AND-03.03.01 [READY] (Android Native Client)**: *Implement Driver End-of-Day Summary screen (`VEH-06`) showing delivered count, cash collected total, and "Proceed to Cashier" prompt.*
+- **IOS-03.03.01 [READY] (iOS Native Client)**: *Implement Supplier route audit cards with actual vs estimated mileage comparison.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-03.03.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating gig completion audit on Supplier PWA console and verifying status updates against `gigs-service` on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-03.03.01 [READY] (DevOps & Reporting Queries)**: *Create optimized SQL aggregation views in `gigs_db` for driver daily and monthly performance metrics.*
+- **DOC-03.03.01 [READY] (End-of-Gig Settlement Runbook)**: *Document standard operating procedures for handling stranded vehicles or premature gig suspensions.*
+- **TEST-03.03.01 [READY] (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/03-gigs/completeGig/` validating that gigs with open orders cannot be finalized.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest -f microservices/services/gigs-service/Dockerfile.service microservices/services/gigs-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest
+  gcloud run deploy gigs-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/gigs-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/gig-finalization.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [ ] Gig completion endpoint deployed and accessible on Cloud Run test instance.
+  - [ ] PWA Supplier dashboard displays updated completion metrics in real-time.
+  - [ ] Android client finalizes route and routes driver to cashier OTP screen.
+  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.

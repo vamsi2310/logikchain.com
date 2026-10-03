@@ -42,6 +42,29 @@ To build, test, and deploy Logikchain reliably, work items are structured into 6
 
 ---
 
+## 1.1 Status & Execution Health Matrix (Fact of Truth Summary)
+
+The table below reflects the canonical status of all 13 platform Epics and their multi-client delivery scope, maintained across the Markdown specifications (`work-management/EPIC-*.md`):
+
+| Epic ID | Title | Functional Service | Port | Epic Status | Features | Total Stories | Multi-Client Scope | Cloud Test Project |
+| :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
+| **`EPIC-10`** | Master Platform Configuration | `config-service` | `:4010` | **`[IN_PROGRESS]`** | 3 | 30 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-12`** | API Gateway & CDC Sync Engine | `gateway` / `sync-engine` | `:8080 / :4050` | **`[IN_PROGRESS]`** | 4 | 42 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-13`** | Social Connect & Orchestrator | `social-connect-service` | `:4012` | **`[IN_PROGRESS]`** | 4 | 44 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-01`** | Identity, Roles & Auth | `identity-service` | `:4001` | **`[IN_PROGRESS]`** | 4 | 44 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-03`** | Gig Logistics & Fleet Dispatch | `gigs-service` | `:4003` | **`[READY]`** | 3 | 32 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-04`** | Dynamic Pamphlet Manifest | `pamphlet-service` | `:4004` | **`[READY]`** | 3 | 30 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-08`** | Merchant Trade Credit & Limits| `credit-service` | `:4008` | **`[READY]`** | 3 | 31 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-05`** | Payments & UPI Ingress | `payments-service` | `:4005` | **`[READY]`** | 3 | 33 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-02`** | Orders & Delivery Handover | `orders-service` | `:4002` | **`[READY]`** | 3 | 35 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-07`** | Cash Custody & Rural CoD | `cash-service` | `:4007` | **`[READY]`** | 3 | 33 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-06`** | Payouts & Cloud Tasks Bank | `payouts-service` | `:4006` | **`[READY]`** | 3 | 34 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-11`** | Platform Governance & AML | `governance-service` | `:4011` | **`[READY]`** | 3 | 30 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-09`** | General Ledger & Tax Accounting| `finance-service` | `:4009` | **`[READY]`** | 3 | 31 | Web PWA, Android, iOS | `logikchain-test` |
+| **TOTALS** | **13 Platform Epics** | **13 Microservices** | — | — | **41** | **419** | **100% 3-Tier Client Scope** | **Cloud Run & Firebase Hosting** |
+
+---
+
 ## 2. Epic-Level Dependency Graph
 
 The directed graph below illustrates the inter-epic dependencies. An arrow $A \rightarrow B$ indicates that **$A$ depends on $B$** (i.e., $B$ must be built, mocked, or running before $A$ can function end-to-end):
@@ -305,50 +328,52 @@ graph TD
 
 ## 4. Comprehensive Feature Dependency Matrix
 
-| Feature ID | Feature Name | Hard Pre-requisites (Must Be Done First) | Soft / Async Dependencies | Primary Downstream Consumers |
-| :--- | :--- | :--- | :--- | :--- |
-| **`FEAT-10.01`** | Geo-Hierarchy & Geocoding | Google Maps API restricted keys | — | `FEAT-01.02`, `FEAT-03.01`, `FEAT-02.01` |
-| **`FEAT-10.02`** | Subscription Plans & Tariffs | DB migrations (`config_db`) | — | `FEAT-01.02` |
-| **`FEAT-10.03`** | Tax Profiles & TDS Rules | DB migrations (`config_db`) | — | `FEAT-02.01`, `FEAT-09.03` |
-| **`FEAT-12.01`** | API Gateway Multi-Client Routing | Kubernetes Cluster Ingress, DNS | — | All Client Frontends (PWA, Android, iOS) |
-| **`FEAT-12.02`** | App Check Zero-Trust Perimeter | Play Integrity, DeviceCheck keys | `FEAT-12.01` | `FEAT-03.02`, `FEAT-02.03` |
-| **`FEAT-12.03`** | CDC Sync Engine (PG $\rightarrow$ Firestore)| PostgreSQL Outbox tables, Firestore Admin SDK | — | Mobile & Web Offline Viewers |
-| **`FEAT-12.04`** | Cloud Storage Media Sync | Firebase Cloud Storage bucket, GCP IAM | — | `FEAT-04.03`, `FEAT-09.03`, `FEAT-13.04` |
-| **`FEAT-13.01`** | Notification Preferences | `FEAT-12.03` (Firestore Sync) | — | `FEAT-13.02`, `FEAT-13.03`, `FEAT-13.04` |
-| **`FEAT-13.02`** | WhatsApp OTP Orchestration | Meta WhatsApp Cloud API credentials | `FEAT-13.01` | `FEAT-01.01` (Auth Bootstrap) |
-| **`FEAT-13.03`** | Order Lifecycle WhatsApp Alerts | `FEAT-13.01` (Preferences) | `FEAT-02.01`, `FEAT-02.03` | Buyers, Merchants |
-| **`FEAT-13.04`** | Digital Bills & Business Alerts | `FEAT-12.04` (Storage PDF), `FEAT-13.01` | `FEAT-09.01`, `FEAT-06.02` | Merchants, Fleet Suppliers |
-| **`FEAT-01.01`** | Phone Auth & Claims Bootstrap | `FEAT-12.01`, `FEAT-13.02` | `FEAT-12.03` | All User Roles |
-| **`FEAT-01.02`** | Supplier Org Provisioning | `FEAT-01.01`, `FEAT-10.01` | `FEAT-10.02` | `FEAT-03.01`, `FEAT-08.01` |
-| **`FEAT-01.03`** | Role Conversion & Handoff | `FEAT-01.01` | `FEAT-01.02` | Android Driver Loop, Merchant Portal |
-| **`FEAT-01.04`** | Suspension & Account Lockdown | `FEAT-01.01` | `FEAT-11.02` | `FEAT-07.03` |
-| **`FEAT-03.01`** | Gig Composition & Schedule | `FEAT-10.01`, `FEAT-01.02`, `FEAT-01.03` | Google Maps Matrix | `FEAT-04.01`, `FEAT-02.01`, `FEAT-03.02` |
-| **`FEAT-03.02`** | Live Telemetry & GPS Tracking | `FEAT-03.01`, `FEAT-04.02`, `FEAT-12.02` | — | `FEAT-02.03`, `FEAT-03.03` |
-| **`FEAT-03.03`** | Gig Finalization & Settlement | `FEAT-03.02`, `FEAT-04.03` | — | `FEAT-07.02` |
-| **`FEAT-04.01`** | Dynamic Gig Pamphlet Keying | `FEAT-03.01` | — | `FEAT-04.02`, `FEAT-02.01`, `FEAT-02.02` |
-| **`FEAT-04.02`** | Warehouse Loading & Sealing | `FEAT-04.01` | — | `FEAT-03.02` (Enables departure) |
-| **`FEAT-04.03`** | In-Transit Stock Adjustments | `FEAT-04.02`, `FEAT-12.04` | — | `FEAT-03.03`, `FEAT-02.03` |
-| **`FEAT-05.01`** | UPI Intent & Dynamic QR | Razorpay Merchant Account, Secret Manager | `FEAT-11.01`, `FEAT-11.02`| `FEAT-02.01` |
-| **`FEAT-05.02`** | HMAC Webhook Processing | `FEAT-05.01`, Raw Body Middleware | — | `FEAT-02.01`, `FEAT-09.01`, `FEAT-09.02` |
-| **`FEAT-05.03`** | Automated Refunds & Credit Notes | `FEAT-05.02`, `FEAT-10.03` | — | `FEAT-09.01` |
-| **`FEAT-08.01`** | Credit Underwriting & Limits | `FEAT-01.03` (Approved Merchant) | — | `FEAT-08.02` |
-| **`FEAT-08.02`** | Synchronous Credit Holds | `FEAT-08.01` | — | `FEAT-02.02` |
-| **`FEAT-08.03`** | Credit Repayment & Relief | `FEAT-08.01`, Cloud Scheduler | `FEAT-07.01` | `FEAT-07.02`, `FEAT-09.01` |
-| **`FEAT-02.01`** | Buyer Checkout (Prepaid/CoD) | `FEAT-01.01`, `FEAT-03.01`, `FEAT-04.01` | `FEAT-05.01`, `FEAT-13.03`| `FEAT-02.03` |
-| **`FEAT-02.02`** | Merchant B2B Bulk Checkout | `FEAT-08.02`, `FEAT-04.01` | `FEAT-13.03` | `FEAT-02.03` |
-| **`FEAT-02.03`** | Order Handover & Custody POD | `FEAT-02.01` / `FEAT-02.02`, `FEAT-03.02` | `FEAT-12.02` | `FEAT-07.01`, `FEAT-04.02` |
-| **`FEAT-07.01`** | CoD Cash Custody Accumulation| `FEAT-02.03` | Mobile WorkManager | `FEAT-07.02` |
-| **`FEAT-07.02`** | Cash Handover 6-Digit OTP | `FEAT-07.01` | — | `FEAT-07.03`, `FEAT-09.01`, `FEAT-06.02` |
-| **`FEAT-07.03`** | Discrepancy Reporting | `FEAT-07.02` | — | `FEAT-06.02` (Blocks payouts if > 0) |
-| **`FEAT-06.01`** | Beneficiary KMS Encryption | Google Cloud KMS, Penny-Drop API | `FEAT-01.01` | `FEAT-06.02` |
-| **`FEAT-06.02`** | Payout Request & Review | `FEAT-06.01`, `FEAT-07.03` (Must be 0) | `FEAT-09.03` | `FEAT-06.03` |
-| **`FEAT-06.03`** | Cloud Tasks Bank Transfer | Google Cloud Tasks, RazorpayX API | `FEAT-06.02` | `FEAT-09.01`, `FEAT-09.02`, `FEAT-13.04` |
-| **`FEAT-09.01`** | Double-Entry General Ledger | DB migrations (`finance_db`) | — | `FEAT-09.02`, `FEAT-13.04` |
-| **`FEAT-09.02`** | Nightly Bank Reconciliation | `FEAT-09.01`, `FEAT-05.02`, `FEAT-06.03` | Cloud Scheduler, Vertex AI | Financial Audit Reports |
-| **`FEAT-09.03`** | Statutory TDS Register | `FEAT-10.03`, `FEAT-12.04` | — | `FEAT-06.02` (Withholding deduction) |
-| **`FEAT-11.01`** | UPI TPAP VPA Governance | NPCI Directory, PSP APIs | — | `FEAT-05.01` |
-| **`FEAT-11.02`** | Real-Time AML Fraud Scoring | Redis Sliding-Window | — | `FEAT-05.01`, `FEAT-01.04` |
-| **`FEAT-11.03`** | 24h Dispute SLA & NPCI Filing| DB migrations (`governance_db`) | `FEAT-05.03` | Regulatory Reporting |
+| Feature ID | Feature Name | Status | Multi-Client Deliverables | Hard Pre-requisites | Primary Downstream Consumers |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| **`FEAT-10.01`** | Geo-Hierarchy & Geocoding | `[IN_PROGRESS]` | PWA-10.01.01, AND-10.01.01, IOS-10.01.01, TEST-10.01.PWA | Google Maps API restricted keys | `FEAT-01.02`, `FEAT-03.01`, `FEAT-02.01` |
+| **`FEAT-10.02`** | Subscription Plans & Tariffs | `[READY]` | PWA-10.02.01, AND-10.02.01, IOS-10.02.01, TEST-10.02.PWA | DB migrations (`config_db`) | `FEAT-01.02` |
+| **`FEAT-10.03`** | Tax Profiles & TDS Rules | `[READY]` | PWA-10.03.01, AND-10.03.01, IOS-10.03.01, TEST-10.03.PWA | DB migrations (`config_db`) | `FEAT-02.01`, `FEAT-09.03` |
+| **`FEAT-12.01`** | API Gateway Multi-Client Routing | `[IN_PROGRESS]` | PWA-12.01.01, AND-12.01.01, IOS-12.01.01, TEST-12.01.PWA | Kubernetes Cluster Ingress, DNS | All Client Frontends (PWA, Android, iOS) |
+| **`FEAT-12.02`** | App Check Zero-Trust Perimeter | `[IN_PROGRESS]` | PWA-12.02.01, AND-12.02.01, IOS-12.02.01, TEST-12.02.PWA | Play Integrity, DeviceCheck keys | `FEAT-03.02`, `FEAT-02.03` |
+| **`FEAT-12.03`** | CDC Sync Engine (PG $\rightarrow$ Firestore)| `[READY]` | PWA-12.03.01, AND-12.03.01, IOS-12.03.01, TEST-12.03.PWA | PostgreSQL Outbox tables, Firestore Admin SDK | Mobile & Web Offline Viewers |
+| **`FEAT-12.04`** | Cloud Storage Media Sync | `[READY]` | PWA-12.04.01, AND-12.04.01, IOS-12.04.01, TEST-12.04.PWA | Firebase Cloud Storage bucket, GCP IAM | `FEAT-04.03`, `FEAT-09.03`, `FEAT-13.04` |
+| **`FEAT-13.01`** | Notification Preferences | `[IN_PROGRESS]` | PWA-13.01.01, AND-13.01.01, IOS-13.01.01, TEST-13.01.PWA | `FEAT-12.03` (Firestore Sync) | `FEAT-13.02`, `FEAT-13.03`, `FEAT-13.04` |
+| **`FEAT-13.02`** | WhatsApp OTP Orchestration | `[IN_PROGRESS]` | PWA-13.02.01, AND-13.02.01, IOS-13.02.01, TEST-13.02.PWA | Meta WhatsApp Cloud API credentials | `FEAT-01.01` (Auth Bootstrap) |
+| **`FEAT-13.03`** | Order Lifecycle WhatsApp Alerts | `[READY]` | PWA-13.03.01, AND-13.03.01, IOS-13.03.01, TEST-13.03.PWA | `FEAT-13.01` (Preferences) | Buyers, Merchants |
+| **`FEAT-13.04`** | Digital Bills & Business Alerts | `[READY]` | PWA-13.04.01, AND-13.04.01, IOS-13.04.01, TEST-13.04.PWA | `FEAT-12.04` (Storage PDF), `FEAT-13.01` | Merchants, Fleet Suppliers |
+| **`FEAT-01.01`** | Phone Auth & Claims Bootstrap | `[IN_PROGRESS]` | PWA-01.01.01, AND-01.01.01, IOS-01.01.01, TEST-01.01.PWA | `FEAT-12.01`, `FEAT-13.02` | All User Roles |
+| **`FEAT-01.02`** | Supplier Org Provisioning | `[READY]` | PWA-01.02.01, AND-01.02.01, IOS-01.02.01, TEST-01.02.PWA | `FEAT-01.01`, `FEAT-10.01` | `FEAT-03.01`, `FEAT-08.01` |
+| **`FEAT-01.03`** | Role Conversion & Handoff | `[READY]` | PWA-01.03.01, AND-01.03.01, IOS-01.03.01, TEST-01.03.PWA | `FEAT-01.01` | Android Driver Loop, Merchant Portal |
+| **`FEAT-01.04`** | Suspension & Account Lockdown | `[READY]` | PWA-01.04.01, AND-01.04.01, IOS-01.04.01, TEST-01.04.PWA | `FEAT-01.01` | `FEAT-07.03` |
+| **`FEAT-03.01`** | Gig Composition & Schedule | `[READY]` | PWA-03.01.01, AND-03.01.01, IOS-03.01.01, TEST-03.01.PWA | `FEAT-10.01`, `FEAT-01.02`, `FEAT-01.03` | `FEAT-04.01`, `FEAT-02.01`, `FEAT-03.02` |
+| **`FEAT-03.02`** | Live Telemetry & GPS Tracking | `[READY]` | PWA-03.02.01, AND-03.02.01, IOS-03.02.01, TEST-03.02.PWA | `FEAT-03.01`, `FEAT-04.02`, `FEAT-12.02` | `FEAT-02.03`, `FEAT-03.03` |
+| **`FEAT-03.03`** | Gig Finalization & Settlement | `[READY]` | PWA-03.03.01, AND-03.03.01, IOS-03.03.01, TEST-03.03.PWA | `FEAT-03.02`, `FEAT-04.03` | `FEAT-07.02` |
+| **`FEAT-04.01`** | Dynamic Gig Pamphlet Keying | `[READY]` | PWA-04.01.01, AND-04.01.01, IOS-04.01.01, TEST-04.01.PWA | `FEAT-03.01` | `FEAT-04.02`, `FEAT-02.01`, `FEAT-02.02` |
+| **`FEAT-04.02`** | Warehouse Loading & Sealing | `[READY]` | PWA-04.02.01, AND-04.02.01, IOS-04.02.01, TEST-04.02.PWA | `FEAT-04.01` | `FEAT-03.02` (Enables departure) |
+| **`FEAT-04.03`** | In-Transit Stock Adjustments | `[READY]` | PWA-04.02.01, AND-04.02.01, IOS-04.02.01, TEST-04.02.PWA | `FEAT-04.02`, `FEAT-12.04` | `FEAT-03.03`, `FEAT-02.03` |
+| **`FEAT-05.01`** | UPI Intent & Dynamic QR | `[READY]` | PWA-05.01.01, AND-05.01.01, IOS-05.01.01, TEST-05.01.PWA | Razorpay Merchant Account, Secret Manager | `FEAT-02.01` |
+| **`FEAT-05.02`** | HMAC Webhook Processing | `[READY]` | PWA-05.02.01, AND-05.02.01, IOS-05.02.01, TEST-05.02.PWA | `FEAT-05.01`, Raw Body Middleware | `FEAT-02.01`, `FEAT-09.01`, `FEAT-09.02` |
+| **`FEAT-05.03`** | Automated Refunds & Credit Notes | `[READY]` | PWA-05.03.01, AND-05.03.01, IOS-05.03.01, TEST-05.03.PWA | `FEAT-05.02`, `FEAT-10.03` | `FEAT-09.01` |
+| **`FEAT-08.01`** | Credit Underwriting & Limits | `[READY]` | PWA-08.01.01, AND-08.01.01, IOS-08.01.01, TEST-08.01.PWA | `FEAT-01.03` (Approved Merchant) | `FEAT-08.02` |
+| **`FEAT-08.02`** | Synchronous Credit Holds | `[READY]` | PWA-08.02.01, AND-08.02.01, IOS-08.02.01, TEST-08.02.PWA | `FEAT-08.01` | `FEAT-02.02` |
+| **`FEAT-08.03`** | Credit Repayment & Relief | `[READY]` | PWA-08.03.01, AND-08.03.01, IOS-08.03.01, TEST-08.03.PWA | `FEAT-08.01`, Cloud Scheduler | `FEAT-07.02`, `FEAT-09.01` |
+| **`FEAT-02.01`** | Buyer Checkout (Prepaid/CoD) | `[READY]` | PWA-02.01.01, AND-02.01.01, IOS-02.01.01, TEST-02.01.PWA | `FEAT-01.01`, `FEAT-03.01`, `FEAT-04.01` | `FEAT-02.03` |
+| **`FEAT-02.02`** | Merchant B2B Bulk Checkout | `[READY]` | PWA-02.02.01, AND-02.02.01, IOS-02.02.01, TEST-02.02.PWA | `FEAT-08.02`, `FEAT-04.01` | `FEAT-02.03` |
+| **`FEAT-02.03`** | Order Handover & Custody POD | `[READY]` | PWA-02.03.01, AND-02.03.01, IOS-02.03.01, TEST-02.03.PWA | `FEAT-02.01` / `FEAT-02.02`, `FEAT-03.02` | `FEAT-07.01`, `FEAT-04.02` |
+| **`FEAT-07.01`** | CoD Cash Custody Accumulation| `[READY]` | PWA-07.01.01, AND-07.01.01, IOS-07.01.01, TEST-07.01.PWA | `FEAT-02.03` | `FEAT-07.02` |
+| **`FEAT-07.02`** | Cash Handover 6-Digit OTP | `[READY]` | PWA-07.02.01, AND-07.02.01, IOS-07.02.01, TEST-07.02.PWA | `FEAT-07.01` | `FEAT-07.03`, `FEAT-09.01`, `FEAT-06.02` |
+| **`FEAT-07.03`** | Discrepancy Reporting | `[READY]` | PWA-07.03.01, AND-07.03.01, IOS-07.03.01, TEST-07.03.PWA | `FEAT-07.02` | `FEAT-06.02` (Blocks payouts if > 0) |
+| **`FEAT-06.01`** | Beneficiary KMS Encryption | `[READY]` | PWA-06.01.01, AND-06.01.01, IOS-06.01.01, TEST-06.01.PWA | Google Cloud KMS, Penny-Drop API | `FEAT-06.02` |
+| **`FEAT-06.02`** | Payout Request & Review | `[READY]` | PWA-06.02.01, AND-06.02.01, IOS-06.02.01, TEST-06.02.PWA | `FEAT-06.01`, `FEAT-07.03` (Must be 0) | `FEAT-06.03` |
+| **`FEAT-06.03`** | Cloud Tasks Bank Transfer | `[READY]` | PWA-06.03.01, AND-06.03.01, IOS-06.03.01, TEST-06.03.PWA | Google Cloud Tasks, RazorpayX API | `FEAT-09.01`, `FEAT-09.02`, `FEAT-13.04` |
+| **`FEAT-09.01`** | Double-Entry General Ledger | `[READY]` | PWA-09.01.01, AND-09.01.01, IOS-09.01.01, TEST-09.01.PWA | DB migrations (`finance_db`) | `FEAT-09.02`, `FEAT-13.04` |
+| **`FEAT-09.02`** | Nightly Bank Reconciliation | `[READY]` | PWA-09.02.01, AND-09.02.01, IOS-09.02.01, TEST-09.02.PWA | `FEAT-09.01`, `FEAT-05.02`, `FEAT-06.03` | Financial Audit Reports |
+| **`FEAT-09.03`** | Statutory TDS Register | `[READY]` | PWA-09.03.01, AND-09.03.01, IOS-09.03.01, TEST-09.03.PWA | `FEAT-10.03`, `FEAT-12.04` | `FEAT-06.02` (Withholding deduction) |
+| **`FEAT-11.01`** | UPI TPAP VPA Governance | `[READY]` | PWA-11.01.01, AND-11.01.01, IOS-11.01.01, TEST-11.01.PWA | NPCI Directory, PSP APIs | `FEAT-05.01` |
+| **`FEAT-11.02`** | Real-Time AML Fraud Scoring | `[READY]` | PWA-11.02.01, AND-11.02.01, IOS-11.02.01, TEST-11.02.PWA | Redis Sliding-Window | `FEAT-05.01`, `FEAT-01.04` |
+| **`FEAT-11.03`** | 24h Dispute SLA & NPCI Filing| `[READY]` | PWA-11.03.01, AND-11.03.01, IOS-11.03.01, TEST-11.03.PWA | DB migrations (`governance_db`) | Regulatory Reporting |
+
+---
 
 ---
 

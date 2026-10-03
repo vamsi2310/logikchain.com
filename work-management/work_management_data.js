@@ -1,0 +1,4019 @@
+/**
+ * Logikchain Work Management - Central Source of Truth Data Registry
+ * Generated from Markdown specifications in /work-management/*.md
+ * Synchronized with Epic, Feature, and Story statuses.
+ */
+(function(window) {
+  const BASELINE_DATA = [
+  {
+    "id": "EPIC-01",
+    "title": "Identity, Authentication & Role Lifecycle",
+    "status": "IN_PROGRESS",
+    "functionalArea": "",
+    "microservice": "microservices/services/identity-service",
+    "port": "4001",
+    "db": "identity_db",
+    "mdFile": "EPIC-01-IDENTITY-ACCESS.md",
+    "features": [
+      {
+        "id": "FEAT-01.01",
+        "title": "Phone OTP Authentication & Custom Claims Bootstrap",
+        "status": "IN_PROGRESS",
+        "scope": "Phone number SMS OTP authentication, user registration bootstrap, and custom claims token decoration.",
+        "endpoints": "POST /v1/auth/bootstrap",
+        "stories": [
+          {
+            "id": "US-01.01.01",
+            "type": "user_journey",
+            "title": "US-01.01.01",
+            "status": "IN_PROGRESS",
+            "description": "As an unauthenticated citizen, I want to authenticate using my 10-digit phone number and an SMS OTP, so that I can securely log into Logikchain without needing an email or password."
+          },
+          {
+            "id": "US-01.01.02",
+            "type": "user_journey",
+            "title": "US-01.01.02",
+            "status": "IN_PROGRESS",
+            "description": "As an authenticated user opening the app, I want the client to inspect my verified custom claims, so that I am automatically directed to my designated workspace (Buyer, Merchant, Driver, Supplier, or Support)."
+          },
+          {
+            "id": "INT-01.01.01",
+            "type": "integration",
+            "title": "Firebase Auth Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the Identity Service, I need to integrate with the Firebase Admin Auth SDK to set and refresh custom user claims (`role`, `status`, `officialClient`) upon user registration and claim modification."
+          },
+          {
+            "id": "INT-01.01.02",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the Identity Service, I need to synchronize `identity_db.user_profiles` to Cloud Firestore collection `/UserProfiles/{uid}` via the periodic sync engine every 2000ms."
+          },
+          {
+            "id": "INT-01.01.03",
+            "type": "integration",
+            "title": "API Gateway Context Header Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the Identity Service, I need to ingest pre-validated user identity headers (`x-user-uid`, `x-user-role`, `x-client-platform`) injected by the API Gateway after App Check and JWT verification."
+          },
+          {
+            "id": "PWA-01.01.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "IN_PROGRESS",
+            "description": "Implement phone input (`SHR-02`), reCAPTCHA Enterprise verification, 60s countdown timer, and 6-digit OTP input (`SHR-04`) with token bootstrap calling API Gateway."
+          },
+          {
+            "id": "AND-01.01.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "IN_PROGRESS",
+            "description": "Implement Jetpack Compose phone auth screen with Play Integrity token generation, SMS Retriever API auto-fill, and biometric keystore session caching in `android/`."
+          },
+          {
+            "id": "IOS-01.01.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "IN_PROGRESS",
+            "description": "Implement SwiftUI phone auth screen with Apple DeviceCheck token attestation, SMS auto-complete textContentType, and Keychain secure token storage in `ios/`."
+          },
+          {
+            "id": "TEST-01.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "IN_PROGRESS",
+            "description": "Automated Playwright test validating full phone OTP login, custom claims bootstrap, and buyer dashboard redirection against backend microservices deployed on Google Cloud test project (`logikchain-test`)."
+          },
+          {
+            "id": "OPS-01.01.01",
+            "type": "devops",
+            "title": "DevOps & Deployment",
+            "status": "IN_PROGRESS",
+            "description": "Implement multi-stage Docker build (`Dockerfile.service`), non-root Alpine runtime, Kubernetes deployment (`03-identity.yaml`), database migration for `identity_db`, and readiness probe `GET /health`."
+          },
+          {
+            "id": "DOC-01.01.01",
+            "type": "documentation",
+            "title": "Contract & Runbook Documentation",
+            "status": "IN_PROGRESS",
+            "description": "Publish OpenAPI 3.0 specification for authentication bootstrap endpoints, token lifecycle sequence diagrams, and claim synchronization failure runbooks."
+          },
+          {
+            "id": "TEST-01.01.01",
+            "type": "automation_test",
+            "title": "Automation Test Suite",
+            "status": "IN_PROGRESS",
+            "description": "Implement automated Bruno API collection `tests/bruno/01-identity/bootstrap/`, Vitest unit test suite with $\\ge 90\\%$ branch coverage, and multi-attempt rate-limiting validation."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-01.02",
+        "title": "Regional Supplier Organization Provisioning",
+        "status": "READY",
+        "scope": "Vetted B2B supplier organization creation, geographical jurisdiction binding, and administrator credentials generation.",
+        "endpoints": "POST /v1/suppliers",
+        "stories": [
+          {
+            "id": "US-01.02.01",
+            "type": "user_journey",
+            "title": "US-01.02.01",
+            "status": "READY",
+            "description": "As a Support Administrator, I want to register a new verified supplier organization with regional configuration parameters, so that they can manage distribution routes, inventory, and field fleets."
+          },
+          {
+            "id": "INT-01.02.01",
+            "type": "integration",
+            "title": "Config Service Integration",
+            "status": "READY",
+            "description": "As the Identity Service, I need to query `config-service` (`:4010`) to validate country, state, and district IDs during supplier provisioning."
+          },
+          {
+            "id": "INT-01.02.02",
+            "type": "integration",
+            "title": "Firestore Sync Integration",
+            "status": "READY",
+            "description": "As the Identity Service, I need to mirror newly provisioned suppliers to Firestore `/Suppliers/{id}` via outbox sync."
+          },
+          {
+            "id": "PWA-01.02.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Supplier Management console view (`SPT-02`) with supplier registration form, GSTIN auto-formatting, regional jurisdiction dropdowns, and submission validation."
+          },
+          {
+            "id": "AND-01.02.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement read-only regional supplier profile sheet and emergency support contact cards in Android support module."
+          },
+          {
+            "id": "IOS-01.02.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement SwiftUI supplier profile card and regional distribution contact sheet in iOS support module."
+          },
+          {
+            "id": "TEST-01.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating supplier organization registration from Support PWA console against `identity-service` and `config-service` deployed on `logikchain-test`."
+          },
+          {
+            "id": "OPS-01.02.01",
+            "type": "devops",
+            "title": "DevOps & Database Schema",
+            "status": "READY",
+            "description": "Execute SQL migration adding `suppliers` table with foreign key constraints, unique GSTIN indices, and automated outbox trigger."
+          },
+          {
+            "id": "DOC-01.02.01",
+            "type": "documentation",
+            "title": "OpenAPI Documentation",
+            "status": "IN_PROGRESS",
+            "description": "Document `POST /v1/suppliers` request/response schemas, error taxonomy (`DUPLICATE_GSTIN`), and access policies."
+          },
+          {
+            "id": "TEST-01.02.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno automated test `tests/bruno/01-identity/createSupplier/` with automated cleanup teardown."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-01.03",
+        "title": "Progressive Role Conversion & Multi-Client Handoff",
+        "status": "READY",
+        "scope": "Elevating active buyer accounts to merchant or driver roles and coordinating runtime handoff between PWA, Android, and iOS.",
+        "endpoints": "POST /v1/buyers/{buyerId}/role",
+        "stories": [
+          {
+            "id": "US-01.03.01",
+            "type": "user_journey",
+            "title": "US-01.03.01",
+            "status": "READY",
+            "description": "As a supplier, I want to convert an existing buyer into an authorized merchant or driver, so that our field logistics network expands with trusted local individuals."
+          },
+          {
+            "id": "US-01.03.02",
+            "type": "user_journey",
+            "title": "US-01.03.02",
+            "status": "READY",
+            "description": "As a converted driver using the Web PWA, I want to be presented with an immediate deep link to the Android Play Store, so that I can perform field custody handovers on the official native runtime."
+          },
+          {
+            "id": "INT-01.03.01",
+            "type": "integration",
+            "title": "Firebase Auth Custom Claims Integration",
+            "status": "READY",
+            "description": "As the Identity Service, I need to invalidate existing JWT claims and assign new role tokens using `admin.auth().setCustomUserClaims()`."
+          },
+          {
+            "id": "INT-01.03.02",
+            "type": "integration",
+            "title": "Firestore Outbox Sync Integration",
+            "status": "READY",
+            "description": "As the Identity Service, I need to sync updated role definitions to `/UserProfiles/{id}` for real-time mobile listener triggers."
+          },
+          {
+            "id": "PWA-01.03.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Supplier Member Directory (`SUP-08`) with role promotion modal, and implement Role Splash screen (`SHR-06`) redirecting elevated drivers to Android Play Store."
+          },
+          {
+            "id": "AND-01.03.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement deep-link receiver (`logikchain://app/role-handoff`) handling auto-login and opening the Driver Gig Navigation dashboard."
+          },
+          {
+            "id": "IOS-01.03.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Universal Link handling (`https://app.logikchain.com/role-handoff`) directing promoted merchants to the Merchant Wholesale Catalog."
+          },
+          {
+            "id": "TEST-01.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating role elevation on `SUP-08` and verifying that the promoted driver account receives `SHR-06` runtime handoff prompt on `logikchain-test`."
+          },
+          {
+            "id": "OPS-01.03.01",
+            "type": "devops",
+            "title": "DevOps Scripting",
+            "status": "READY",
+            "description": "Verify zero-downtime database updates during role alterations and validate PostgreSQL indexing on `user_profiles(role, supplier_id)`."
+          },
+          {
+            "id": "DOC-01.03.01",
+            "type": "documentation",
+            "title": "Role Transition Architecture Docs",
+            "status": "IN_PROGRESS",
+            "description": "Document state transition matrix and client capabilities per role in `constitution/`."
+          },
+          {
+            "id": "TEST-01.03.01",
+            "type": "automation_test",
+            "title": "Bruno & Unit Tests",
+            "status": "READY",
+            "description": "Execute role change automation in `tests/bruno/01-identity/convertBuyerToRole/` verifying unauthorized role escalation blocks."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-01.04",
+        "title": "User Suspension & Account Governance Lifecycle",
+        "status": "READY",
+        "scope": "Temporary or permanent account suspension, fraud lockdown, and reinstatement workflows.",
+        "endpoints": "POST /v1/users/{userId}/suspension",
+        "stories": [
+          {
+            "id": "US-01.04.01",
+            "type": "user_journey",
+            "title": "US-01.04.01",
+            "status": "READY",
+            "description": "As a Support operator, I want to suspend a compromised or non-compliant user account across the entire platform, so that further transactions are blocked immediately."
+          },
+          {
+            "id": "US-01.04.02",
+            "type": "user_journey",
+            "title": "US-01.04.02",
+            "status": "READY",
+            "description": "As an operator, I want to restore an account once discrepancies are settled, so that legitimate business activities can resume promptly."
+          },
+          {
+            "id": "INT-01.04.01",
+            "type": "integration",
+            "title": "Governance Service Integration",
+            "status": "READY",
+            "description": "As the Identity Service, I need to send suspension telemetry events to `governance-service` (`:4011`) for audit compliance and AML risk scoring."
+          },
+          {
+            "id": "INT-01.04.02",
+            "type": "integration",
+            "title": "Firebase Token Revocation Integration",
+            "status": "READY",
+            "description": "As the Identity Service, I need to invoke `admin.auth().revokeRefreshTokens(uid)` to force immediate logout across all active client devices."
+          },
+          {
+            "id": "PWA-01.04.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Account Blocked modal (`SHR-05`) with dispute resolution support contact action, and Support User Detail suspension controls (`SPT-03`)."
+          },
+          {
+            "id": "AND-01.04.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement fullscreen non-dismissible lockout activity (`SHR-05`) clearing local cached tokens when suspension push notification arrives."
+          },
+          {
+            "id": "IOS-01.04.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement SwiftUI lockout view (`SHR-05`) with emergency support call button when token revocation status is detected."
+          },
+          {
+            "id": "TEST-01.04.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying that a suspended user is barred from placing orders and instantly redirected to `SHR-05` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-01.04.01",
+            "type": "devops",
+            "title": "DevOps & Audit Logging",
+            "status": "READY",
+            "description": "Configure DB triggers logging suspension state changes into an immutable audit table in `identity_db`."
+          },
+          {
+            "id": "DOC-01.04.01",
+            "type": "documentation",
+            "title": "Compliance Documentation",
+            "status": "IN_PROGRESS",
+            "description": "Publish operational standard operating procedures (SOP) for suspension escalation and restoration criteria."
+          },
+          {
+            "id": "TEST-01.04.01",
+            "type": "automation_test",
+            "title": "Automated Test Suite",
+            "status": "READY",
+            "description": "Implement Bruno test `tests/bruno/01-identity/suspendUser/` verifying supplier permission boundary checks."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-02",
+    "title": "Orders & Commerce Fulfillment",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/orders-service",
+    "port": "4002",
+    "db": "orders_db",
+    "mdFile": "EPIC-02-ORDERS-FULFILLMENT.md",
+    "features": [
+      {
+        "id": "FEAT-02.01",
+        "title": "Buyer E-Commerce & Group Purchase Ordering",
+        "status": "READY",
+        "scope": "Rural consumer cart checkout, village group-buying aggregation, pricing tiers, and prepaid/CoD order creation.",
+        "endpoints": "POST /v1/orders",
+        "stories": [
+          {
+            "id": "US-02.01.01",
+            "type": "user_journey",
+            "title": "US-02.01.01",
+            "status": "READY",
+            "description": "As a rural buyer, I want to place an order choosing either UPI or Cash on Delivery, so that I can purchase essential supplies regardless of my immediate digital bank balance."
+          },
+          {
+            "id": "US-02.01.02",
+            "type": "user_journey",
+            "title": "US-02.01.02",
+            "status": "READY",
+            "description": "As a rural buyer, I want real-time status tracking of my order, so that I know exactly when the delivery vehicle will arrive in my village."
+          },
+          {
+            "id": "INT-02.01.01",
+            "type": "integration",
+            "title": "Payments Service Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to synchronously call `payments-service` (`:4005`) to create a Payment Intent when a buyer selects digital prepaid checkout."
+          },
+          {
+            "id": "INT-02.01.02",
+            "type": "integration",
+            "title": "Gigs Service Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to query `gigs-service` (`:4003`) to associate the order with the active scheduled delivery vehicle gig servicing the buyer's village."
+          },
+          {
+            "id": "INT-02.01.03",
+            "type": "integration",
+            "title": "Pamphlet Service Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to reserve and link items to the gig's dynamic inventory manifest."
+          },
+          {
+            "id": "INT-02.01.04",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to mirror all order state changes to Cloud Firestore collection `/Orders/{orderId}` every 2000ms."
+          },
+          {
+            "id": "PWA-02.01.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Catalog browsing (`BUY-03`), multi-item Cart & Checkout (`BUY-04`), UPI Intent / CoD payment selection, and Order Tracking (`BUY-05`) with service worker offline caching in `web/`."
+          },
+          {
+            "id": "AND-02.01.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Jetpack Compose buyer catalog with offline Room cache, UPI Intent app chooser integration, and background Firestore snapshot listeners in `android/`."
+          },
+          {
+            "id": "IOS-02.01.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement SwiftUI catalog, Apple Pay / UPI fallback checkout, and CoreData offline item caching in `ios/`."
+          },
+          {
+            "id": "TEST-02.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating end-to-end buyer checkout (Prepaid UPI Intent and CoD), idempotency token handling, and tracking screen update against `orders-service` and `payments-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-02.01.01",
+            "type": "devops",
+            "title": "DevOps & Containerization",
+            "status": "READY",
+            "description": "Maintain multi-stage Docker build, configure Kubernetes deployment (`03-orders.yaml`) with horizontal pod autoscaler (HPA), and apply PostgreSQL migration scripts for `orders_db`."
+          },
+          {
+            "id": "DOC-02.01.01",
+            "type": "documentation",
+            "title": "API Contract Documentation",
+            "status": "READY",
+            "description": "Publish OpenAPI 3.0 specification for buyer ordering APIs and document state transition invariants."
+          },
+          {
+            "id": "TEST-02.01.01",
+            "type": "automation_test",
+            "title": "Automation Test Suite",
+            "status": "READY",
+            "description": "Build automated Bruno API test collection `tests/bruno/02-orders/placeOrder/` validating cart calculation and idempotency protections."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-02.02",
+        "title": "Merchant B2B Bulk Ordering & Credit Checkout",
+        "status": "READY",
+        "scope": "Village merchant wholesale bulk restocking, case-tier quantity discounts, and revolving credit line authorization.",
+        "endpoints": "POST /v1/merchant-orders",
+        "stories": [
+          {
+            "id": "US-02.02.01",
+            "type": "user_journey",
+            "title": "US-02.02.01",
+            "status": "READY",
+            "description": "As a village shopkeeper, I want to purchase wholesale bulk inventory on my supplier credit line, so that I can maintain store inventory without exhausting immediate working capital."
+          },
+          {
+            "id": "INT-02.02.01",
+            "type": "integration",
+            "title": "Credit Service Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to integrate with `credit-service` (`:4008`) via synchronous internal REST to verify and place holds on merchant credit balances."
+          },
+          {
+            "id": "INT-02.02.02",
+            "type": "integration",
+            "title": "Firestore Sync Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to mirror merchant orders to Firestore collection `/MerchantOrders/{id}` for real-time mobile app updates."
+          },
+          {
+            "id": "PWA-02.02.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Merchant Wholesale Bulk Catalog (`MER-04`), Case-Tier discounts, and B2B Checkout (`MER-05`) with credit headroom indicator and draft save."
+          },
+          {
+            "id": "AND-02.02.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement merchant mobile checkout with offline order staging and sync via Android WorkManager."
+          },
+          {
+            "id": "IOS-02.02.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement SwiftUI merchant ordering view with credit balance gauge and offline queueing."
+          },
+          {
+            "id": "TEST-02.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating wholesale merchant bulk checkout on credit, synchronous hold reservation, and credit headroom decrement against `orders-service` and `credit-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-02.02.01",
+            "type": "devops",
+            "title": "Database Indices & DevOps",
+            "status": "READY",
+            "description": "Optimize `orders_db.merchant_orders` with B-tree indices on `(merchant_id, supplier_id, created_at)` and configure dead-letter queues for failed events."
+          },
+          {
+            "id": "DOC-02.02.01",
+            "type": "documentation",
+            "title": "B2B Checkout Documentation",
+            "status": "READY",
+            "description": "Publish technical documentation of the two-phase credit commit protocol between orders-service and credit-service."
+          },
+          {
+            "id": "TEST-02.02.01",
+            "type": "automation_test",
+            "title": "Automated Test Suite",
+            "status": "READY",
+            "description": "Implement Bruno test collection `tests/bruno/02-orders/placeMerchantOrder/` asserting atomic credit reservation and rollback."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-02.03",
+        "title": "Order Custody Transitions & Delivery Handover",
+        "status": "READY",
+        "scope": "Field delivery confirmation, buyer OTP / signature verification, cash collection linkage, and custody handover.",
+        "endpoints": "POST /v1/orders/{orderId}/delivered",
+        "stories": [
+          {
+            "id": "US-02.03.01",
+            "type": "user_journey",
+            "title": "US-02.03.01",
+            "status": "READY",
+            "description": "As a delivery driver, I want to verify delivery using a customer OTP and record cash collection on my Android app, so that proof-of-delivery is legally and operationally undeniable."
+          },
+          {
+            "id": "US-02.03.02",
+            "type": "user_journey",
+            "title": "US-02.03.02",
+            "status": "READY",
+            "description": "As a rural buyer, I want to give the OTP to the driver only after inspecting my goods, so that I am assured of receiving the correct items."
+          },
+          {
+            "id": "INT-02.03.01",
+            "type": "integration",
+            "title": "Cash Service Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to call `cash-service` (`:4007`) upon delivery of CoD orders to register physical cash custody."
+          },
+          {
+            "id": "INT-02.03.02",
+            "type": "integration",
+            "title": "Pamphlet Service Stock Deduction Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to decrement stock from the dynamic vehicle manifest upon completed delivery."
+          },
+          {
+            "id": "INT-02.03.03",
+            "type": "integration",
+            "title": "Play Integrity Validation Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to verify Google Play Integrity tokens on delivery completion requests to safeguard against GPS spoofing."
+          },
+          {
+            "id": "PWA-02.03.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Buyer Order Details (`BUY-06`) showing the secure 4-digit handover OTP and live delivery status badge."
+          },
+          {
+            "id": "AND-02.03.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Driver Delivery Handover (`VEH-05`) with OTP verification pad, cash received denomination counter, and background Play Integrity attestation."
+          },
+          {
+            "id": "IOS-02.03.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Buyer Order Details with dynamic OTP display card and offline cache."
+          },
+          {
+            "id": "TEST-02.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test asserting buyer PWA displays valid OTP, and verifies that upon delivery completion by driver API, buyer PWA status transitions to \"Delivered\" in real-time on `logikchain-test`."
+          },
+          {
+            "id": "OPS-02.03.01",
+            "type": "devops",
+            "title": "DevOps & Mobile Outbox Processing",
+            "status": "READY",
+            "description": "Ensure `orders-service` handles replayed offline requests with duplicate suppression using `idempotencyKey` and `capturedAt` headers."
+          },
+          {
+            "id": "DOC-02.03.01",
+            "type": "documentation",
+            "title": "Custody State Machine Runbook",
+            "status": "READY",
+            "description": "Document order state machine transitions (`placed` $\\rightarrow$ `assigned` $\\rightarrow$ `dispatched` $\\rightarrow$ `delivered`) and discrepancy escalation flows."
+          },
+          {
+            "id": "TEST-02.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno automated test `tests/bruno/02-orders/markOrderDelivered/` validating incorrect OTP rejections."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-03",
+    "title": "Gig Logistics, Fleet Dispatch & Routing",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/gigs-service",
+    "port": "4003",
+    "db": "gigs_db",
+    "mdFile": "EPIC-03-GIG-LOGISTICS.md",
+    "features": [
+      {
+        "id": "FEAT-03.01",
+        "title": "Gig Composition & Fleet Dispatch Scheduling",
+        "status": "READY",
+        "scope": "Route assembly, multi-stop village sequencing, vehicle assignment, and composite Gig initialization.",
+        "endpoints": "POST /v1/gigs",
+        "stories": [
+          {
+            "id": "US-03.01.01",
+            "type": "user_journey",
+            "title": "US-03.01.01",
+            "status": "READY",
+            "description": "As a supplier logistics manager, I want to automatically optimize waypoints across multiple villages, so that our delivery vehicles minimize fuel consumption and transit delays."
+          },
+          {
+            "id": "US-03.01.02",
+            "type": "user_journey",
+            "title": "US-03.01.02",
+            "status": "READY",
+            "description": "As a delivery driver, I want to receive my daily scheduled route with village stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch."
+          },
+          {
+            "id": "INT-03.01.01",
+            "type": "integration",
+            "title": "Google Maps Distance Matrix Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to integrate with Google Maps Distance Matrix and Routes API to compute road distances, optimal waypoint ordering, and travel durations."
+          },
+          {
+            "id": "INT-03.01.02",
+            "type": "integration",
+            "title": "Pamphlet Service Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest for the vehicle run."
+          },
+          {
+            "id": "INT-03.01.03",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to synchronize all gig state changes to Cloud Firestore collection `/Gigs/{gigId}` every 2000ms."
+          },
+          {
+            "id": "PWA-03.01.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Supplier Gig Scheduler (`SUP-02`) and Route Planner (`SUP-03`) with interactive village waypoint selection, Google Maps route visualizer, and departure schedule configuration in `web/`."
+          },
+          {
+            "id": "AND-03.01.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Driver Scheduled Route view with offline waypoint caching and push notification listener for newly assigned gigs in `android/`."
+          },
+          {
+            "id": "IOS-03.01.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Supplier Route Monitoring view in iOS management app with route sequence cards and transit time estimates."
+          },
+          {
+            "id": "TEST-03.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating gig composition on `SUP-03`, Google Maps distance calculation, and automatic pamphlet instantiation against `gigs-service` and `pamphlet-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-03.01.01",
+            "type": "devops",
+            "title": "DevOps & Database Migrations",
+            "status": "READY",
+            "description": "Deploy `gigs-service` container on Kubernetes (`03-gigs.yaml`), configure database migrations for `gigs_db`, and establish secret bindings for Google Maps API keys."
+          },
+          {
+            "id": "DOC-03.01.01",
+            "type": "documentation",
+            "title": "Route Computation & Gig Specs",
+            "status": "READY",
+            "description": "Document the deterministic `{vehicleId}_{startDatetime}` gig ID generation rule and Google Maps API quota policies in `microservices/` docs."
+          },
+          {
+            "id": "TEST-03.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying composite key generation and waypoint persistence."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-03.02",
+        "title": "Live Gig Execution & Real-Time Telemetry",
+        "status": "READY",
+        "scope": "Gig start attestation, background GPS ping ingestion, real-time driver tracking, and Play Integrity verification.",
+        "endpoints": "POST /v1/gigs/{gigId}:start",
+        "stories": [
+          {
+            "id": "US-03.02.01",
+            "type": "user_journey",
+            "title": "US-03.02.01",
+            "status": "READY",
+            "description": "As a driver on the road, I want my Android app to continuously stream GPS coordinates in the background, so that villagers are notified ahead of my arrival without my manual intervention."
+          },
+          {
+            "id": "INT-03.02.01",
+            "type": "integration",
+            "title": "Play Integrity App Check Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to reject `startGig` and `updateGigLocation` requests that do not provide a valid Android Google Play Integrity token to prevent fake GPS injection."
+          },
+          {
+            "id": "INT-03.02.02",
+            "type": "integration",
+            "title": "Firestore Telemetry Sync Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to stream driver GPS coordinates to Firestore collection `/DriverLocations/{vehicleId}` for ultra-low latency client map rendering."
+          },
+          {
+            "id": "PWA-03.02.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Buyer Live Tracking map (`BUY-05`) with smooth vehicle pin animation reacting to Firestore `/DriverLocations` stream."
+          },
+          {
+            "id": "AND-03.02.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Driver Active Gig navigation screen (`VEH-02`) with Foreground Service background GPS pinging, Play Integrity attestation, and offline waypoint caching."
+          },
+          {
+            "id": "IOS-03.02.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Buyer Live Tracking map using MapKit with real-time Firestore vehicle coordinate binding."
+          },
+          {
+            "id": "TEST-03.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying that when synthetic telemetry is pushed to `gigs-service`, the buyer PWA tracking view updates the delivery vehicle position smoothly on `logikchain-test`."
+          },
+          {
+            "id": "OPS-03.02.01",
+            "type": "devops",
+            "title": "High-Throughput Ingestion Tuning",
+            "status": "READY",
+            "description": "Configure connection pooling and write-batching in `gigs-service` to efficiently handle 10,000 concurrent driver GPS pings per minute."
+          },
+          {
+            "id": "DOC-03.02.01",
+            "type": "documentation",
+            "title": "Telemetry Pipeline Documentation",
+            "status": "READY",
+            "description": "Publish sequence diagrams showing GPS ping ingestion, validation, and real-time distribution."
+          },
+          {
+            "id": "TEST-03.02.01",
+            "type": "automation_test",
+            "title": "Bruno & Performance Tests",
+            "status": "READY",
+            "description": "Execute automated Bruno test `tests/bruno/03-gigs/locationPing/` and load test endpoint with synthetic vehicle telemetry."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-03.03",
+        "title": "Gig Finalization & Route Settlement",
+        "status": "READY",
+        "scope": "End-of-day gig audit, completion sign-off, route mileage reconciliation, and driver handoff readiness.",
+        "endpoints": "POST /v1/gigs/{gigId}:complete",
+        "stories": [
+          {
+            "id": "US-03.03.01",
+            "type": "user_journey",
+            "title": "US-03.03.01",
+            "status": "READY",
+            "description": "As a driver finishing my shift, I want a complete operational summary of my day's deliveries, returns, and mileage, so that I can verify my performance before heading to cash settlement."
+          },
+          {
+            "id": "INT-03.03.01",
+            "type": "integration",
+            "title": "Pamphlet Service Close Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to call `pamphlet-service` (`:4004`) on gig completion to trigger stock unload auditing."
+          },
+          {
+            "id": "INT-03.03.02",
+            "type": "integration",
+            "title": "Cash Service Verification Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to query `cash-service` (`:4007`) to verify if any cash collected during the gig remains outstanding."
+          },
+          {
+            "id": "PWA-03.03.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Supplier Route Monitoring summary dashboard (`SUP-05`) with gig completion status, total mileage, and return auditing."
+          },
+          {
+            "id": "AND-03.03.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Driver End-of-Day Summary screen (`VEH-06`) showing delivered count, cash collected total, and \"Proceed to Cashier\" prompt."
+          },
+          {
+            "id": "IOS-03.03.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Supplier route audit cards with actual vs estimated mileage comparison."
+          },
+          {
+            "id": "TEST-03.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating gig completion audit on Supplier PWA console and verifying status updates against `gigs-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-03.03.01",
+            "type": "devops",
+            "title": "DevOps & Reporting Queries",
+            "status": "READY",
+            "description": "Create optimized SQL aggregation views in `gigs_db` for driver daily and monthly performance metrics."
+          },
+          {
+            "id": "DOC-03.03.01",
+            "type": "documentation",
+            "title": "End-of-Gig Settlement Runbook",
+            "status": "READY",
+            "description": "Document standard operating procedures for handling stranded vehicles or premature gig suspensions."
+          },
+          {
+            "id": "TEST-03.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno automated test `tests/bruno/03-gigs/completeGig/` validating that gigs with open orders cannot be finalized."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-04",
+    "title": "Pamphlet & Dynamic Inventory Distribution",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/pamphlet-service",
+    "port": "4004",
+    "db": "pamphlet_db",
+    "mdFile": "EPIC-04-PAMPHLET-INVENTORY.md",
+    "features": [
+      {
+        "id": "FEAT-04.01",
+        "title": "Dynamic Gig Pamphlet Creation & Manifest Keying",
+        "status": "READY",
+        "scope": "Automated manifest initialization, composite key binding (`{vehicleId}_{startDatetime}`), and initial SKU allocation.",
+        "endpoints": "POST /v1/pamphlets",
+        "stories": [
+          {
+            "id": "US-04.01.01",
+            "type": "user_journey",
+            "title": "US-04.01.01",
+            "status": "READY",
+            "description": "As a warehouse dispatcher, I want a dedicated digital manifest for every scheduled vehicle departure, so that inventory loaded onto the truck is tracked with total fidelity."
+          },
+          {
+            "id": "INT-04.01.01",
+            "type": "integration",
+            "title": "Gigs Service Lifecycle Hook Integration",
+            "status": "READY",
+            "description": "As the Pamphlet Service, I need to receive REST calls from `gigs-service` (`:4003`) to auto-create and close vehicle manifests matching gig lifecycles."
+          },
+          {
+            "id": "INT-04.01.02",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Pamphlet Service, I need to synchronize manifest items to Firestore collection `/Pamphlets/{pamphletId}` every 2000ms for real-time mobile app updates."
+          },
+          {
+            "id": "PWA-04.01.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Supplier Warehouse Loading dashboard (`SUP-06`) showing dynamic manifest items per scheduled vehicle departure with real-time stock sync in `web/`."
+          },
+          {
+            "id": "AND-04.01.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Vehicle Manifest screen (`VEH-03`) with offline SQLite cache and barcode scanner support for loaded SKU verification in `android/`."
+          },
+          {
+            "id": "IOS-04.01.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Supplier Warehouse inventory audit view with real-time Firestore pamphlet snapshot binding."
+          },
+          {
+            "id": "TEST-04.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating that when a gig is composed, the matching pamphlet is automatically generated and visible on Supplier PWA console on `logikchain-test`."
+          },
+          {
+            "id": "OPS-04.01.01",
+            "type": "devops",
+            "title": "DevOps & Database Schema",
+            "status": "READY",
+            "description": "Maintain multi-stage Docker build, configure Kubernetes deployment (`03-pamphlet.yaml`), and apply PostgreSQL schema migrations for `pamphlet_db`."
+          },
+          {
+            "id": "DOC-04.01.01",
+            "type": "documentation",
+            "title": "Manifest Schema Documentation",
+            "status": "READY",
+            "description": "Publish technical documentation detailing the relationship between Gigs, Orders, and Pamphlet SKUs."
+          },
+          {
+            "id": "TEST-04.01.01",
+            "type": "automation_test",
+            "title": "Automated Test Suite",
+            "status": "READY",
+            "description": "Build automated Bruno API test collection `tests/bruno/04-pamphlet/createPamphlet/` verifying deterministic ID generation."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-04.02",
+        "title": "Warehouse Loading, Unloading & Stock Deltas",
+        "status": "READY",
+        "scope": "Physical stock load delta verification, gate dispatch approval, and post-trip stock unloading.",
+        "endpoints": "POST /v1/pamphlets/{id}/load",
+        "stories": [
+          {
+            "id": "US-04.02.01",
+            "type": "user_journey",
+            "title": "US-04.02.01",
+            "status": "READY",
+            "description": "As a delivery driver, I want to review and confirm the exact inventory loaded into my vehicle before departure, so that I am not held liable for shortages originating in the warehouse."
+          },
+          {
+            "id": "INT-04.02.01",
+            "type": "integration",
+            "title": "Orders Service Linkage Integration",
+            "status": "READY",
+            "description": "As the Pamphlet Service, I need to accept `linkOrderToPamphlet` events from `orders-service` (`:4002`) to verify that all loaded items correspond to approved customer orders."
+          },
+          {
+            "id": "INT-04.02.02",
+            "type": "integration",
+            "title": "Firestore Delta Sync Integration",
+            "status": "READY",
+            "description": "As the Pamphlet Service, I need to push real-time delta events to Firestore so the driver's Android app immediately reflects updated stock counts."
+          },
+          {
+            "id": "PWA-04.02.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Warehouse Dispatch gate screen (`SUP-06`) with SKU load counter, variance warning banner, and driver digital signature pad in `web/`."
+          },
+          {
+            "id": "AND-04.02.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Driver Manifest Inspection screen (`VEH-03`) with item-by-item checklist, loading seal acceptance button, and Play Integrity gate verification in `android/`."
+          },
+          {
+            "id": "IOS-04.02.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Warehouse Loading approval view with barcode scanner and seal status gauge."
+          },
+          {
+            "id": "TEST-04.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating warehouse stock loading, gate seal verification, and status lock against `pamphlet-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-04.02.01",
+            "type": "devops",
+            "title": "PostgreSQL Transaction Isolation",
+            "status": "READY",
+            "description": "Ensure strict row-level locking (`SELECT ... FOR UPDATE`) in `pamphlet_db` to prevent race conditions during simultaneous load/unload delta writes."
+          },
+          {
+            "id": "DOC-04.02.01",
+            "type": "documentation",
+            "title": "Loading Gate Runbook",
+            "status": "READY",
+            "description": "Document warehouse gate check operating procedures and variance dispute escalation trees."
+          },
+          {
+            "id": "TEST-04.02.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno automated test `tests/bruno/04-pamphlet/loadStock/` asserting item count math."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-04.03",
+        "title": "In-Transit Stock Adjustments & Damage Claims",
+        "status": "READY",
+        "scope": "On-road inventory adjustments, damaged carton write-offs, missing items, and stock re-balancing.",
+        "endpoints": "POST /v1/pamphlets/{id}/adjust",
+        "stories": [
+          {
+            "id": "US-04.03.01",
+            "type": "user_journey",
+            "title": "US-04.03.01",
+            "status": "READY",
+            "description": "As a driver, I want to immediately log damaged or spilled goods with photo evidence, so that customer orders can be adjusted before delivery attempts."
+          },
+          {
+            "id": "INT-04.03.01",
+            "type": "integration",
+            "title": "Orders Service Adjustment Integration",
+            "status": "READY",
+            "description": "As the Pamphlet Service, I need to notify `orders-service` (`:4002`) if an inventory adjustment causes an order fulfillment shortfall, so the order is automatically flagged for partial delivery."
+          },
+          {
+            "id": "INT-04.03.02",
+            "type": "integration",
+            "title": "Firebase Cloud Storage Photo Sync Integration",
+            "status": "READY",
+            "description": "As the Pamphlet Service, I need to sync damage claim photos to Firebase Cloud Storage `/claims/{id}/damage.jpg`."
+          },
+          {
+            "id": "PWA-04.03.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Supplier Inventory Audit screen (`SUP-07`) displaying real-time damage claims, attached photo evidence thumbnails, and shrinkage ledger adjustments."
+          },
+          {
+            "id": "AND-04.03.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Driver Stock Adjustment (`VEH-04`) with camera capture, offline image compression, and damage reason code selector."
+          },
+          {
+            "id": "IOS-04.03.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Supplier damage claims audit review sheet with high-resolution image viewer."
+          },
+          {
+            "id": "TEST-04.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating that when a damage claim is recorded by driver API, the claim and photo proof appear on Supplier PWA console in real-time on `logikchain-test`."
+          },
+          {
+            "id": "OPS-04.03.01",
+            "type": "devops",
+            "title": "Storage Event Queue DevOps",
+            "status": "READY",
+            "description": "Configure `storage_sync_events` worker in `pamphlet-service` to reliably sync image binary metadata."
+          },
+          {
+            "id": "DOC-04.03.01",
+            "type": "documentation",
+            "title": "Breakage Policy Documentation",
+            "status": "READY",
+            "description": "Publish supplier shrinkage thresholds and driver liability terms in standard operating documentation."
+          },
+          {
+            "id": "TEST-04.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno test collection `tests/bruno/04-pamphlet/adjustStockItem/` verifying non-negative inventory constraints."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-05",
+    "title": "Payments, UPI Collections & Gateway Integration",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/payments-service",
+    "port": "4005",
+    "db": "payments_db",
+    "mdFile": "EPIC-05-PAYMENTS-COLLECTIONS.md",
+    "features": [
+      {
+        "id": "FEAT-05.01",
+        "title": "UPI Intent & Dynamic QR Code Generation",
+        "status": "READY",
+        "scope": "Dynamic UPI deep-link generation, QR code rendering for UPI apps (GPay, PhonePe, Paytm, BHIM), and transaction session creation.",
+        "endpoints": "POST /v1/payments/intent",
+        "stories": [
+          {
+            "id": "US-05.01.01",
+            "type": "user_journey",
+            "title": "US-05.01.01",
+            "status": "READY",
+            "description": "As a rural buyer using a smartphone, I want the app to open my preferred UPI application directly (e.g. PhonePe or Google Pay), so that I can authorize payment with a single PIN entry."
+          },
+          {
+            "id": "US-05.01.02",
+            "type": "user_journey",
+            "title": "US-05.01.02",
+            "status": "READY",
+            "description": "As a merchant ordering from a desktop or tablet, I want a dynamic QR code displayed on screen, so that I can scan and pay instantly using my mobile phone."
+          },
+          {
+            "id": "INT-05.01.01",
+            "type": "integration",
+            "title": "Payment Gateway REST Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to integrate with Razorpay Payment Gateway APIs to create payment orders and obtain verified transaction handles."
+          },
+          {
+            "id": "INT-05.01.02",
+            "type": "integration",
+            "title": "GCP Secret Manager Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to fetch PSP API keys (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`) securely from GCP Secret Manager at runtime without embedding keys in code or images."
+          },
+          {
+            "id": "INT-05.01.03",
+            "type": "integration",
+            "title": "Firestore Sync Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to synchronize payment intent statuses to Firestore collection `/PaymentIntents/{id}` every 2000ms."
+          },
+          {
+            "id": "PWA-05.01.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Dynamic QR Code modal with auto-refresh timer, UPI Intent deep-linking button for mobile browsers, and payment status polling in `web/`."
+          },
+          {
+            "id": "AND-05.01.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement native Android UPI Intent chooser (launching GPay, PhonePe, Paytm, BHIM) with ActivityResultCallback handling in `android/`."
+          },
+          {
+            "id": "IOS-05.01.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement dynamic UPI URI handler (`UIApplication.shared.open`) and fallback QR display modal in `ios/`."
+          },
+          {
+            "id": "TEST-05.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test asserting that selecting UPI payment on checkout renders valid dynamic QR code and initiates payment session with `payments-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-05.01.01",
+            "type": "devops",
+            "title": "DevOps & Security Hardening",
+            "status": "READY",
+            "description": "Configure Kubernetes deployment (`03-payments.yaml`), GCP Workload Identity for Secret Manager access, and apply database migrations for `payments_db`."
+          },
+          {
+            "id": "DOC-05.01.01",
+            "type": "documentation",
+            "title": "UPI Integration Guide",
+            "status": "READY",
+            "description": "Document NPCI UPI intent URL formatting standards, timeout handling (15-minute expiry), and payload structure."
+          },
+          {
+            "id": "TEST-05.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/05-payments/createIntent/` mocking PSP gateway responses with stubbed tokens."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-05.02",
+        "title": "PSP Webhook Processing & Cryptographic Validation",
+        "status": "READY",
+        "scope": "Gateway raw webhook ingress, HMAC-SHA256 signature verification, idempotent transaction capture, and order completion dispatch.",
+        "endpoints": "POST /v1/payments/webhook",
+        "stories": [
+          {
+            "id": "US-05.02.01",
+            "type": "user_journey",
+            "title": "US-05.02.01",
+            "status": "READY",
+            "description": "As a platform operator, I want all incoming payment webhooks cryptographically verified before processing, so that fraudulent status updates and replay attacks are impossible."
+          },
+          {
+            "id": "INT-05.02.01",
+            "type": "integration",
+            "title": "Orders Service Payment Notification Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to call `orders-service` (`:4002`) upon payment capture to transition order status from `pending_payment` to `placed`."
+          },
+          {
+            "id": "INT-05.02.02",
+            "type": "integration",
+            "title": "Finance Service Ledger Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to emit an event to `finance-service` (`:4009`) to record debit in Gateway Clearing and credit in Customer Advance accounts."
+          },
+          {
+            "id": "INT-05.02.03",
+            "type": "integration",
+            "title": "Governance AML Alert Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to send transaction telemetry to `governance-service` (`:4011`) for velocity monitoring and AML compliance."
+          },
+          {
+            "id": "PWA-05.02.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Payment Success screen with celebratory micro-animation, order confirmation link, and real-time Firestore listener updating checkout status in `web/`."
+          },
+          {
+            "id": "AND-05.02.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement native payment callback receiver updating order status banner upon webhook capture verification in `android/`."
+          },
+          {
+            "id": "IOS-05.02.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement SwiftUI payment confirmation view with haptic feedback upon webhook completion trigger in `ios/`."
+          },
+          {
+            "id": "TEST-05.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test simulating Razorpay HMAC webhook dispatch to `payments-service` and verifying that the open buyer PWA checkout transitions to \"Payment Successful\" in real-time on `logikchain-test`."
+          },
+          {
+            "id": "OPS-05.02.01",
+            "type": "devops",
+            "title": "DevOps & Raw Body Middleware",
+            "status": "READY",
+            "description": "Configure Express raw body buffer parser in `payments-service` to prevent whitespace alteration during HMAC calculation."
+          },
+          {
+            "id": "DOC-05.02.01",
+            "type": "documentation",
+            "title": "Webhook Security Protocol",
+            "status": "READY",
+            "description": "Document webhook signature verification algorithm, retry policy (up to 24h), and replay prevention mechanism."
+          },
+          {
+            "id": "TEST-05.02.01",
+            "type": "automation_test",
+            "title": "Bruno & Security Test Suite",
+            "status": "READY",
+            "description": "Build automated test in `tests/bruno/05-payments/webhook/` testing genuine signature vs forged signature rejection."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-05.03",
+        "title": "Automated Refunds & Credit Note Issuance",
+        "status": "READY",
+        "scope": "Order cancellation refunds, partial item refund processing, PSP gateway reverse transfers, and GST credit note generation.",
+        "endpoints": "POST /v1/payments/{paymentId}/refund",
+        "stories": [
+          {
+            "id": "US-05.03.01",
+            "type": "user_journey",
+            "title": "US-05.03.01",
+            "status": "READY",
+            "description": "As a rural buyer whose order was cancelled, I want my money refunded automatically to my original UPI account within standard banking timelines, so that I maintain complete trust in the platform."
+          },
+          {
+            "id": "INT-05.03.01",
+            "type": "integration",
+            "title": "PSP Refund API Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to execute refund calls to Razorpay APIs and handle synchronous/asynchronous refund callbacks."
+          },
+          {
+            "id": "INT-05.03.02",
+            "type": "integration",
+            "title": "Finance Service Credit Note Integration",
+            "status": "READY",
+            "description": "As the Payments Service, I need to call `finance-service` (`:4009`) to generate statutory credit notes for all refunded transactions."
+          },
+          {
+            "id": "PWA-05.03.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Support Orders Console refund management interface (`SPT-04`) with refund authorization prompt and credit note PDF download in `web/`."
+          },
+          {
+            "id": "AND-05.03.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Buyer Order Details refund status banner and notification card with bank UTR reference."
+          },
+          {
+            "id": "IOS-05.03.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Buyer Order Details refund tracking timeline."
+          },
+          {
+            "id": "TEST-05.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating refund execution from Support PWA console, verifying status update on buyer PWA, and confirming credit note generation on `logikchain-test`."
+          },
+          {
+            "id": "OPS-05.03.01",
+            "type": "devops",
+            "title": "DevOps & Refund Queue",
+            "status": "READY",
+            "description": "Implement retry policies with exponential backoff for transient PSP refund gateway failures."
+          },
+          {
+            "id": "DOC-05.03.01",
+            "type": "documentation",
+            "title": "Refund & Credit Note Policy Docs",
+            "status": "READY",
+            "description": "Document NPCI T+1 refund mandates, GST credit note compliance rules, and customer communication templates."
+          },
+          {
+            "id": "TEST-05.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno automated test `tests/bruno/05-payments/refundOrder/` asserting refund bounds and double-refund blocks."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-06",
+    "title": "Payouts, Disbursements & Beneficiary Banking",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/payouts-service",
+    "port": "4006",
+    "db": "payouts_db",
+    "mdFile": "EPIC-06-PAYOUTS-DISBURSEMENTS.md",
+    "features": [
+      {
+        "id": "FEAT-06.01",
+        "title": "Beneficiary Registration & KMS Account Encryption",
+        "status": "READY",
+        "scope": "Secure bank account & UPI VPA onboarding, Penny-drop validation, and Cloud KMS envelope encryption at rest.",
+        "endpoints": "POST /v1/payouts/beneficiaries",
+        "stories": [
+          {
+            "id": "US-06.01.01",
+            "type": "user_journey",
+            "title": "US-06.01.01",
+            "status": "READY",
+            "description": "As a delivery driver, I want to securely add my bank account details on my phone, so that my delivery earnings can be directly deposited into my bank account."
+          },
+          {
+            "id": "US-06.01.02",
+            "type": "user_journey",
+            "title": "US-06.01.02",
+            "status": "READY",
+            "description": "As an organization, I want banking details encrypted at rest using Cloud KMS, so that customer financial data is completely secure against database leaks."
+          },
+          {
+            "id": "INT-06.01.01",
+            "type": "integration",
+            "title": "Google Cloud KMS Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to integrate with Google Cloud Key Management Service (KMS) to encrypt and decrypt sensitive bank account details using hardware-backed cryptographic keys."
+          },
+          {
+            "id": "INT-06.01.02",
+            "type": "integration",
+            "title": "Penny-Drop Verification Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to call the banking penny-drop verification API to authenticate beneficiary account existence and name matching before activation."
+          },
+          {
+            "id": "INT-06.01.03",
+            "type": "integration",
+            "title": "Firestore Sync Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to mirror masked beneficiary metadata to Firestore collection `/PayoutBeneficiaries/{id}`."
+          },
+          {
+            "id": "PWA-06.01.01",
+            "type": "pwa",
+            "title": "Web PWA Client",
+            "status": "READY",
+            "description": "Implement Supplier Bank Profile (`SUP-08`) with IFSC code auto-lookup, masked account number preview, and penny-drop verification badge in `web/`."
+          },
+          {
+            "id": "AND-06.01.01",
+            "type": "android",
+            "title": "Android Native Client",
+            "status": "READY",
+            "description": "Implement Driver Earnings & Bank Setup view (`VEH-07`) with account input, IFSC lookup, and local biometric authorization before submission in `android/`."
+          },
+          {
+            "id": "IOS-06.01.01",
+            "type": "ios",
+            "title": "iOS Native Client",
+            "status": "READY",
+            "description": "Implement Supplier Bank Profile view with secure field masking and FaceID confirmation."
+          },
+          {
+            "id": "TEST-06.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating bank account onboarding from Supplier PWA, verifying IFSC resolution and KMS encrypted storage against `payouts-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-06.01.01",
+            "type": "devops",
+            "title": "DevOps & IAM KMS Roles",
+            "status": "READY",
+            "description": "Configure Kubernetes service account with GCP Workload Identity granting `roles/cloudkms.cryptoKeyEncrypterDecrypter` on key ring `logikchain-banking-keys`."
+          },
+          {
+            "id": "DOC-06.01.01",
+            "type": "documentation",
+            "title": "Banking Data Security Specification",
+            "status": "READY",
+            "description": "Publish technical documentation of the KMS envelope encryption architecture and PCI/RBI compliance alignment."
+          },
+          {
+            "id": "TEST-06.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/06-payouts/registerBeneficiary/` verifying that raw account numbers never appear in database dumps."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-06.02",
+        "title": "Driver & Supplier Payout Requests & Approval Workflow",
+        "status": "READY",
+        "scope": "Driver earnings balance validation, withdrawal request creation, threshold validation, and Support review workflow.",
+        "endpoints": "POST /v1/payouts/requests",
+        "stories": [
+          {
+            "id": "US-06.02.01",
+            "type": "user_journey",
+            "title": "US-06.02.01",
+            "status": "READY",
+            "description": "As a delivery driver, I want to withdraw my weekly earnings with one tap, so that I receive my income promptly."
+          },
+          {
+            "id": "US-06.02.02",
+            "type": "user_journey",
+            "title": "US-06.02.02",
+            "status": "READY",
+            "description": "As a Support operator, I want large payout requests flagged for review, so that fraudulent or unverified payouts are prevented."
+          },
+          {
+            "id": "INT-06.02.01",
+            "type": "integration",
+            "title": "Cash Service Custody Check Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to call `cash-service` (`:4007`) to ensure driver has zero unresolved physical cash shortages before approving a payout."
+          },
+          {
+            "id": "INT-06.02.02",
+            "type": "integration",
+            "title": "Finance Service Withholding Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to notify `finance-service` (`:4009`) to compute and deduct statutory TDS (Section 194C / 194O) prior to final approval."
+          },
+          {
+            "id": "PWA-06.02.01",
+            "type": "pwa",
+            "title": "Web PWA Support Review & Supplier Portal",
+            "status": "READY",
+            "description": "Implement Support Operator payout review dashboard (`SPT-05`) and Supplier withdrawal portal in `web/` with real-time balance queries and threshold warning modals."
+          },
+          {
+            "id": "AND-06.02.01",
+            "type": "android",
+            "title": "Android Native Driver Wallet & Withdrawal",
+            "status": "READY",
+            "description": "Build native Android Jetpack Compose wallet UI (`VEH-07`) in `android/` displaying cleared earnings, cash custody lock alerts, and one-tap withdrawal."
+          },
+          {
+            "id": "IOS-06.02.01",
+            "type": "ios",
+            "title": "iOS Native Driver Wallet & Withdrawal",
+            "status": "READY",
+            "description": "Build native iOS SwiftUI wallet UI (`VEH-07`) in `ios/` showing cleared balance, cash custody notices, and withdrawal requests."
+          },
+          {
+            "id": "TEST-06.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating driver payout submission on PWA, threshold validation, and Support review workflow against `payouts-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-06.02.01",
+            "type": "devops",
+            "title": "DevOps & Database Schema",
+            "status": "READY",
+            "description": "Execute PostgreSQL migration for `payouts_db.payout_requests` including foreign key constraints and approval audit columns."
+          },
+          {
+            "id": "DOC-06.02.01",
+            "type": "documentation",
+            "title": "Disbursement Threshold Rules",
+            "status": "READY",
+            "description": "Document threshold rules (auto-approval caps, daily limits) and operator review workflows."
+          },
+          {
+            "id": "TEST-06.02.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno automated test `tests/bruno/06-payouts/requestPayout/` testing boundary conditions and threshold triggers."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-06.03",
+        "title": "Automated Cloud Tasks Payout Execution & Settlement",
+        "status": "READY",
+        "scope": "Rate-limited payout queue execution, Cloud Tasks worker integration, RazorpayX payout disbursement, and settlement logging.",
+        "endpoints": "POST /v1/payouts/tasks/transfer",
+        "stories": [
+          {
+            "id": "US-06.03.01",
+            "type": "user_journey",
+            "title": "US-06.03.01",
+            "status": "READY",
+            "description": "As a platform administrator, I want payouts disbursed through a rate-limited queue, so that banking gateway rate limits are never exceeded during peak weekly settlements."
+          },
+          {
+            "id": "INT-06.03.01",
+            "type": "integration",
+            "title": "Google Cloud Tasks Queue Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to integrate with Google Cloud Tasks API to enqueue approved payout jobs and handle rate-controlled delivery."
+          },
+          {
+            "id": "INT-06.03.02",
+            "type": "integration",
+            "title": "Banking Disbursement Gateway Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to call RazorpayX / IMPS Payout API to execute electronic bank transfers."
+          },
+          {
+            "id": "INT-06.03.03",
+            "type": "integration",
+            "title": "Finance Service Payout Journal Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to notify `finance-service` (`:4009`) with UTR and TDS details for ledger reconciliation."
+          },
+          {
+            "id": "PWA-06.03.01",
+            "type": "pwa",
+            "title": "Web PWA Disbursement Status & Live UTR Tracker",
+            "status": "READY",
+            "description": "Implement real-time payout settlement status tracker in `web/` with WebSocket/polling for UTR reference display on Support and Supplier consoles."
+          },
+          {
+            "id": "AND-06.03.01",
+            "type": "android",
+            "title": "Android Native Payout Notification & UTR View",
+            "status": "READY",
+            "description": "Build driver push notification receiver and settlement detail bottom-sheet in `android/` displaying UTR reference and timestamp."
+          },
+          {
+            "id": "IOS-06.03.01",
+            "type": "ios",
+            "title": "iOS Native Payout Notification & UTR View",
+            "status": "READY",
+            "description": "Build driver push notification receiver and settlement detail sheet in `ios/` showing UTR reference and bank settlement confirmation."
+          },
+          {
+            "id": "TEST-06.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying live state transition of payout request to settled with UTR on PWA against `payouts-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-06.03.01",
+            "type": "devops",
+            "title": "DevOps & Task Queue Configuration",
+            "status": "READY",
+            "description": "Configure Terraform scripts for Google Cloud Tasks queue `payout-transfer-queue` with max 10 dispatches/sec and dead-letter queue."
+          },
+          {
+            "id": "DOC-06.03.01",
+            "type": "documentation",
+            "title": "Disbursement Sequence Docs",
+            "status": "READY",
+            "description": "Publish end-to-end sequence diagram detailing KMS decryption, Cloud Task execution, and bank UTR capture."
+          },
+          {
+            "id": "TEST-06.03.01",
+            "type": "automation_test",
+            "title": "Automated Test Suite",
+            "status": "READY",
+            "description": "Build automated Bruno API test in `tests/bruno/06-payouts/transferTask/` validating OIDC token authorization and idempotent re-executions."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-07",
+    "title": "Cash Management & Rural CoD Custody",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/cash-service",
+    "port": "4007",
+    "db": "cash_db",
+    "mdFile": "EPIC-07-CASH-CUSTODY.md",
+    "features": [
+      {
+        "id": "FEAT-07.01",
+        "title": "CoD Cash Collection & Driver Custody Tracking",
+        "status": "READY",
+        "scope": "Field currency collection logging, driver real-time cash balance tracking, offline custody capture, and mobile outbox sync.",
+        "endpoints": "GET /v1/cash/summary/{driverId}",
+        "stories": [
+          {
+            "id": "US-07.01.01",
+            "type": "user_journey",
+            "title": "US-07.01.01",
+            "status": "READY",
+            "description": "As a rural delivery driver, I want my mobile app to reliably record cash collections even when there is no mobile network in the village, so that my collected cash tally remains accurate."
+          },
+          {
+            "id": "US-07.01.02",
+            "type": "user_journey",
+            "title": "US-07.01.02",
+            "status": "READY",
+            "description": "As a supplier, I want real-time visibility into the exact physical cash currently held by each driver on the road, so that operational financial risk is monitored continuously."
+          },
+          {
+            "id": "INT-07.01.01",
+            "type": "integration",
+            "title": "Orders Service Handover Integration",
+            "status": "READY",
+            "description": "As the Cash Service, I need to receive cash collection events from `orders-service` (`:4002`) to link cash entries directly with order IDs."
+          },
+          {
+            "id": "INT-07.01.02",
+            "type": "integration",
+            "title": "Mobile Offline WorkManager Integration",
+            "status": "READY",
+            "description": "As the Cash Service, I need to accept batch-queued offline cash events from Android WorkManager, ensuring duplicate events with identical `idempotencyKey` are safely deduplicated."
+          },
+          {
+            "id": "INT-07.01.03",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Cash Service, I need to synchronize driver custody balances to Firestore collection `/CashCustody/{driverId}` every 2000ms."
+          },
+          {
+            "id": "PWA-07.01.01",
+            "type": "pwa",
+            "title": "Web PWA Cash Custody Monitor",
+            "status": "READY",
+            "description": "Build real-time driver cash custody monitor on Supplier and Support PWA in `web/` with live aggregate collection tallies and filterable route audit views."
+          },
+          {
+            "id": "AND-07.01.01",
+            "type": "android",
+            "title": "Android Native CoD Cash Collection",
+            "status": "READY",
+            "description": "Implement driver native Android cash collection UI (`VEH-05`, `VEH-08`) in `android/` with Room DB offline queuing, WorkManager sync, and tamper-resistant cash tally."
+          },
+          {
+            "id": "IOS-07.01.01",
+            "type": "ios",
+            "title": "iOS Native CoD Cash Collection",
+            "status": "READY",
+            "description": "Implement driver native iOS cash collection UI (`VEH-05`, `VEH-08`) in `ios/` with CoreData offline store and background sync."
+          },
+          {
+            "id": "TEST-07.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying cash collection recording, driver custody balance updates, and offline sync reconciliation against `cash-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-07.01.01",
+            "type": "devops",
+            "title": "DevOps & Database Schema",
+            "status": "READY",
+            "description": "Execute PostgreSQL migration for `cash_db.driver_custody` and configure unique index on `(idempotency_key, driver_id)`."
+          },
+          {
+            "id": "DOC-07.01.01",
+            "type": "documentation",
+            "title": "Cash Invariance Technical Spec",
+            "status": "READY",
+            "description": "Document mathematical proofs of cash custody conservation and mobile offline outbox synchronization guarantees."
+          },
+          {
+            "id": "TEST-07.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/07-cash/custodySummary/` verifying balance increment math."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-07.02",
+        "title": "Driver-to-Supplier Cash Handover & OTP Verification",
+        "status": "READY",
+        "scope": "End-of-shift cash turn-in, supplier cashier declaration, 6-digit cryptographic OTP generation, and custody discharge.",
+        "endpoints": "POST /v1/cash/handover/declare",
+        "stories": [
+          {
+            "id": "US-07.02.01",
+            "type": "user_journey",
+            "title": "US-07.02.01",
+            "status": "READY",
+            "description": "As a driver handing over cash, I want a secure OTP confirmation from the cashier, so that I receive an instant digital receipt proving I handed over the money."
+          },
+          {
+            "id": "US-07.02.02",
+            "type": "user_journey",
+            "title": "US-07.02.02",
+            "status": "READY",
+            "description": "As a supplier cashier, I want to confirm cash receipts with the driver's OTP, so that neither party can dispute the physical handover amount later."
+          },
+          {
+            "id": "INT-07.02.01",
+            "type": "integration",
+            "title": "Finance Service Cash Booking Integration",
+            "status": "READY",
+            "description": "As the Cash Service, I need to call `finance-service` (`:4009`) upon successful cash settlement to credit Driver Custody Clearing and debit Warehouse Safe Cash accounts."
+          },
+          {
+            "id": "INT-07.02.02",
+            "type": "integration",
+            "title": "Credit Service Repayment Integration",
+            "status": "READY",
+            "description": "As the Cash Service, I need to notify `credit-service` (`:4008`) if any portion of the turned-in cash corresponds to collected merchant credit repayments."
+          },
+          {
+            "id": "PWA-07.02.01",
+            "type": "pwa",
+            "title": "Web PWA Cashier Handover Console",
+            "status": "READY",
+            "description": "Build cashier turn-in console (`SUP-09`) in `web/` allowing physical cash counting, OTP verification, denomination breakdown, and instant digital receipt generation."
+          },
+          {
+            "id": "AND-07.02.01",
+            "type": "android",
+            "title": "Android Native Cash Turn-In & OTP",
+            "status": "READY",
+            "description": "Implement driver turn-in declaration screen (`VEH-08`) in `android/` generating 6-digit OTP and displaying handover status."
+          },
+          {
+            "id": "IOS-07.02.01",
+            "type": "ios",
+            "title": "iOS Native Cash Turn-In & OTP",
+            "status": "READY",
+            "description": "Implement driver turn-in declaration screen (`VEH-08`) in `ios/` with secure OTP view and receipt archiving."
+          },
+          {
+            "id": "TEST-07.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test simulating driver cash handover declaration and cashier OTP verification in PWA against `cash-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-07.02.01",
+            "type": "devops",
+            "title": "DevOps & Code Expiry Jobs",
+            "status": "READY",
+            "description": "Implement background cleanup job in `cash-service` expiring unused handover OTPs after 15 minutes."
+          },
+          {
+            "id": "DOC-07.02.01",
+            "type": "documentation",
+            "title": "Cashier Settlement Runbook",
+            "status": "READY",
+            "description": "Publish SOP documentation for warehouse cashiers handling physical bill counting and counterfeit detection."
+          },
+          {
+            "id": "TEST-07.02.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/07-cash/confirmSettlement/` asserting replay protection on used OTP codes."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-07.03",
+        "title": "Cash Discrepancy Reporting & Resolution Workflow",
+        "status": "READY",
+        "scope": "Cash shortfall/excess recording, dispute documentation, photo attachment of forged bills, and Support resolution.",
+        "endpoints": "POST /v1/cash/discrepancies",
+        "stories": [
+          {
+            "id": "US-07.03.01",
+            "type": "user_journey",
+            "title": "US-07.03.01",
+            "status": "READY",
+            "description": "As a cashier encountering a cash discrepancy, I want to record the exact shortage and upload notes, so that the discrepancy is escalated to Support without delaying the driver's next trip."
+          },
+          {
+            "id": "INT-07.03.01",
+            "type": "integration",
+            "title": "Payouts Service Lockout Integration",
+            "status": "READY",
+            "description": "As the Cash Service, I need to call `payouts-service` (`:4006`) to place a hold on driver withdrawal requests whenever an open cash discrepancy exists."
+          },
+          {
+            "id": "INT-07.03.02",
+            "type": "integration",
+            "title": "Governance Audit Integration",
+            "status": "READY",
+            "description": "As the Cash Service, I need to send discrepancy alerts to `governance-service` (`:4011`) when shortages exceed ₹1,000."
+          },
+          {
+            "id": "PWA-07.03.01",
+            "type": "pwa",
+            "title": "Web PWA Cash Discrepancy & Audit Console",
+            "status": "READY",
+            "description": "Build cashier shortage reporting form on `SUP-09` and Support discrepancy audit dashboard (`SPT-06`) in `web/` with evidence attachment and resolution controls."
+          },
+          {
+            "id": "AND-07.03.01",
+            "type": "android",
+            "title": "Android Native Discrepancy Notice",
+            "status": "READY",
+            "description": "Implement driver push notification and shortage acknowledgment modal in `android/` with locked withdrawal banner."
+          },
+          {
+            "id": "IOS-07.03.01",
+            "type": "ios",
+            "title": "iOS Native Discrepancy Notice",
+            "status": "READY",
+            "description": "Implement driver push notification and shortage acknowledgment modal in `ios/` with payout lock alert."
+          },
+          {
+            "id": "TEST-07.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test asserting cashier discrepancy logging, driver lock status, and Support resolution in PWA against `cash-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-07.03.01",
+            "type": "devops",
+            "title": "DevOps & Reporting Queries",
+            "status": "READY",
+            "description": "Create SQL views in `cash_db` tracking driver shortage frequency and cumulative loss ratios."
+          },
+          {
+            "id": "DOC-07.03.01",
+            "type": "documentation",
+            "title": "Discrepancy Resolution Protocol",
+            "status": "READY",
+            "description": "Publish guidelines for distinguishing accidental shortages from systemic theft."
+          },
+          {
+            "id": "TEST-07.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/07-cash/raiseDiscrepancy/` validating payout lock triggers."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-08",
+    "title": "Merchant Credit & Risk Underwriting",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/credit-service",
+    "port": "4008",
+    "db": "credit_db",
+    "mdFile": "EPIC-08-MERCHANT-CREDIT.md",
+    "features": [
+      {
+        "id": "FEAT-08.01",
+        "title": "Merchant Credit Line Underwriting & Limit Assignment",
+        "status": "READY",
+        "scope": "Merchant trade credit underwriting, credit limit assignment, limit increase requests, and Supplier/Support review.",
+        "endpoints": "POST /v1/credit/limits",
+        "stories": [
+          {
+            "id": "US-08.01.01",
+            "type": "user_journey",
+            "title": "US-08.01.01",
+            "status": "READY",
+            "description": "As a village merchant, I want to view my credit limit, used credit, and available headroom on my phone, so that I can plan my store inventory purchases effectively."
+          },
+          {
+            "id": "US-08.01.02",
+            "type": "user_journey",
+            "title": "US-08.01.02",
+            "status": "READY",
+            "description": "As a regional supplier, I want to assign customized credit limits to local shopkeepers based on their order history, so that I can drive sales while mitigating credit risk."
+          },
+          {
+            "id": "INT-08.01.01",
+            "type": "integration",
+            "title": "Identity Service Role Check Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to verify with `identity-service` (`:4001`) that target merchant account is in `approved` status before enabling credit."
+          },
+          {
+            "id": "INT-08.01.02",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to synchronize credit balances to Firestore collection `/CreditProfiles/{merchantId}` every 2000ms."
+          },
+          {
+            "id": "PWA-08.01.01",
+            "type": "pwa",
+            "title": "Web PWA Merchant Credit Dashboard & Supplier Underwriting",
+            "status": "READY",
+            "description": "Build merchant credit dashboard on `web/m/` (`MER-07`) and Supplier underwriting governance console on `web/s/` (`SUP-10`) with tier selector and limit adjustment sliders."
+          },
+          {
+            "id": "AND-08.01.01",
+            "type": "android",
+            "title": "Android Native Merchant Credit Application",
+            "status": "READY",
+            "description": "Build native Android Jetpack Compose credit limit viewer and increase application screen in `android/` (`MER-07`)."
+          },
+          {
+            "id": "IOS-08.01.01",
+            "type": "ios",
+            "title": "iOS Native Merchant Credit Application",
+            "status": "READY",
+            "description": "Build native iOS SwiftUI credit limit viewer and increase application screen in `ios/` (`MER-07`)."
+          },
+          {
+            "id": "TEST-08.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying credit application submission, Supplier underwriting approval, and live headroom update on PWA against `credit-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-08.01.01",
+            "type": "devops",
+            "title": "DevOps & Database Migrations",
+            "status": "READY",
+            "description": "Deploy `credit-service` on Kubernetes (`03-credit.yaml`), apply schema migrations for `credit_db`, and configure health probe `GET /health`."
+          },
+          {
+            "id": "DOC-08.01.01",
+            "type": "documentation",
+            "title": "Underwriting Policy Documentation",
+            "status": "READY",
+            "description": "Publish risk tier definitions, maximum credit ceilings per village category, and underwriting guidelines."
+          },
+          {
+            "id": "TEST-08.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/08-credit/setCreditLimit/` asserting input validation on credit amounts."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-08.02",
+        "title": "Revolving Credit Authorization & Order Holds",
+        "status": "READY",
+        "scope": "Real-time synchronous credit availability evaluation, order balance hold, and commit/release rollback protocol.",
+        "endpoints": "POST /v1/credit/holds",
+        "stories": [
+          {
+            "id": "US-08.02.01",
+            "type": "user_journey",
+            "title": "US-08.02.01",
+            "status": "READY",
+            "description": "As a village merchant, I want my credit purchase authorized instantly at checkout without waiting for manual approvals, so that my delivery orders are processed without delay."
+          },
+          {
+            "id": "INT-08.02.01",
+            "type": "integration",
+            "title": "Orders Service Two-Phase Hold Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to provide idempotent `/holds`, `/commit`, and `/release` endpoints for `orders-service` to ensure zero lost or phantom credit balances."
+          },
+          {
+            "id": "INT-08.02.02",
+            "type": "integration",
+            "title": "Finance Service Ledger Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to notify `finance-service` (`:4009`) upon hold commit to book Trade Receivable vs Supplier Payable."
+          },
+          {
+            "id": "PWA-08.02.01",
+            "type": "pwa",
+            "title": "Web PWA Credit Checkout Flow",
+            "status": "READY",
+            "description": "Implement merchant wholesale checkout screen (`MER-05`) in `web/m/` displaying real-time available headroom and synchronous trade credit payment selection."
+          },
+          {
+            "id": "AND-08.02.01",
+            "type": "android",
+            "title": "Android Native Credit Checkout",
+            "status": "READY",
+            "description": "Build native Android wholesale checkout flow in `android/` with instant credit hold validation and error handling for limit exhaustion."
+          },
+          {
+            "id": "IOS-08.02.01",
+            "type": "ios",
+            "title": "iOS Native Credit Checkout",
+            "status": "READY",
+            "description": "Build native iOS wholesale checkout flow in `ios/` with trade credit hold validation."
+          },
+          {
+            "id": "TEST-08.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test executing credit checkout order placement, two-phase hold commit, and headroom balance decrement on PWA against `credit-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-08.02.01",
+            "type": "devops",
+            "title": "High-Performance Concurrency Locks",
+            "status": "READY",
+            "description": "Configure strict transactional isolation (`REPEATABLE READ`) in PostgreSQL for hold operations to prevent concurrent overdrafts."
+          },
+          {
+            "id": "DOC-08.02.01",
+            "type": "documentation",
+            "title": "Two-Phase Commit Technical Specs",
+            "status": "READY",
+            "description": "Document failure recovery protocol if network drops between hold and commit calls."
+          },
+          {
+            "id": "TEST-08.02.01",
+            "type": "automation_test",
+            "title": "Bruno & Concurrency Tests",
+            "status": "READY",
+            "description": "Execute automated Bruno test `tests/bruno/08-credit/creditHold/` and concurrency test simulating 10 parallel checkout requests against limited headroom."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-08.03",
+        "title": "Credit Repayment Collection & Post-Due Relief",
+        "status": "READY",
+        "scope": "Partial/full credit repayments (via visiting driver cash or online UPI), scheduled overdue relief, and credit freezing.",
+        "endpoints": "POST /v1/credit/repayments/initiate",
+        "stories": [
+          {
+            "id": "US-08.03.01",
+            "type": "user_journey",
+            "title": "US-08.03.01",
+            "status": "READY",
+            "description": "As a village merchant, I want to hand over cash repayments to the delivery driver and see my available credit restored immediately on my phone, so that I can place my next wholesale order right away."
+          },
+          {
+            "id": "INT-08.03.01",
+            "type": "integration",
+            "title": "Cash Service Custody Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to call `cash-service` (`:4007`) upon in-person cash repayments to register physical currency custody with the collecting driver."
+          },
+          {
+            "id": "INT-08.03.02",
+            "type": "integration",
+            "title": "Payments Service UPI Repayment Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to accept payment capture callbacks from `payments-service` (`:4005`) for online digital credit repayments."
+          },
+          {
+            "id": "PWA-08.03.01",
+            "type": "pwa",
+            "title": "Web PWA Credit Repayment & Statement Portal",
+            "status": "READY",
+            "description": "Build repayment interface on `web/m/` (`MER-07`) with UPI gateway integration, dynamic QR display, and downloadable ledger statement."
+          },
+          {
+            "id": "AND-08.03.01",
+            "type": "android",
+            "title": "Android Native Cash Repayment Handover",
+            "status": "READY",
+            "description": "Implement merchant in-person payment trigger on `android/` (`MER-07`) and driver collection receipt on `VEH-05` with instant headroom restoration."
+          },
+          {
+            "id": "IOS-08.03.01",
+            "type": "ios",
+            "title": "iOS Native Cash Repayment Handover",
+            "status": "READY",
+            "description": "Implement merchant in-person payment trigger on `ios/` (`MER-07`) and driver collection receipt on `VEH-05`."
+          },
+          {
+            "id": "TEST-08.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying credit repayment via UPI/cash, headroom restoration, and overdue relief status on PWA against `credit-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-08.03.01",
+            "type": "devops",
+            "title": "Cloud Scheduler Hourly Cron",
+            "status": "READY",
+            "description": "Configure Cloud Scheduler cron job invoking `postDueCreditRelief` hourly to evaluate aging balances and apply overdue grace periods."
+          },
+          {
+            "id": "DOC-08.03.01",
+            "type": "documentation",
+            "title": "Aging & Relief Policies",
+            "status": "READY",
+            "description": "Document aging buckets (0-14 days: Current, 15-30 days: Overdue Grace, 30+ days: Frozen) and interest calculation formulas."
+          },
+          {
+            "id": "TEST-08.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/08-credit/repayment/` verifying headroom math and partial repayment handling."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-09",
+    "title": "Financial Ledger, Reconciliation & Tax Accounting",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/finance-service",
+    "port": "4009",
+    "db": "finance_db",
+    "mdFile": "EPIC-09-FINANCE-RECONCILIATION.md",
+    "features": [
+      {
+        "id": "FEAT-09.01",
+        "title": "Double-Entry Platform General Ledger",
+        "status": "READY",
+        "scope": "Immutable multi-currency double-entry ledger, journal entry posting, chart of accounts, and balance conservation.",
+        "endpoints": "POST /v1/finance/journal-entries",
+        "stories": [
+          {
+            "id": "US-09.01.01",
+            "type": "user_journey",
+            "title": "US-09.01.01",
+            "status": "READY",
+            "description": "As a platform financial controller, I want all transactions recorded using strict double-entry principles, so that financial audits pass without discrepancy."
+          },
+          {
+            "id": "US-09.01.02",
+            "type": "user_journey",
+            "title": "US-09.01.02",
+            "status": "READY",
+            "description": "As an auditor, I want an immutable journal entry ledger that cannot be updated or deleted, so that the financial history of the platform is tamper-proof."
+          },
+          {
+            "id": "INT-09.01.01",
+            "type": "integration",
+            "title": "Multi-Service Ingestion Integration",
+            "status": "READY",
+            "description": "As the Finance Service, I need to ingest journal creation events from `payments-service`, `payouts-service`, `cash-service`, and `credit-service` via internal REST endpoints."
+          },
+          {
+            "id": "INT-09.01.02",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Finance Service, I need to mirror daily balance summaries to Firestore collection `/FinanceSummaries/{date}`."
+          },
+          {
+            "id": "PWA-09.01.01",
+            "type": "pwa",
+            "title": "Web PWA General Ledger Explorer & Journal Audit",
+            "status": "READY",
+            "description": "Build financial ledger audit interface on Support Web PWA (`web/x/` on `SPT-07`, `SPT-08`) with interactive balance sheet, drill-down transaction view, and CSV export."
+          },
+          {
+            "id": "AND-09.01.01",
+            "type": "android",
+            "title": "Android Native Financial Summary Dashboard",
+            "status": "READY",
+            "description": "Build native Android financial summary view in `android/` for warehouse managers displaying daily collection totals and cash balancing."
+          },
+          {
+            "id": "IOS-09.01.01",
+            "type": "ios",
+            "title": "iOS Native Financial Summary Dashboard",
+            "status": "READY",
+            "description": "Build native iOS financial summary screen in `ios/` showing daily branch accounting summaries."
+          },
+          {
+            "id": "TEST-09.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying double-entry journal creation, balance sheet calculations, and immutability invariants on PWA against `finance-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-09.01.01",
+            "type": "devops",
+            "title": "DevOps & Immutability Rules",
+            "status": "READY",
+            "description": "Configure PostgreSQL permissions in `finance_db` revoking `UPDATE` and `DELETE` grants on `journal_lines` table."
+          },
+          {
+            "id": "DOC-09.01.01",
+            "type": "documentation",
+            "title": "Standard Chart of Accounts Spec",
+            "status": "READY",
+            "description": "Publish comprehensive Logikchain Chart of Accounts (Assets, Liabilities, Equity, Revenue, Expense) in platform documentation."
+          },
+          {
+            "id": "TEST-09.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/09-finance/postJournalEntry/` validating debits-equal-credits invariant."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-09.02",
+        "title": "Automated Scheduled Daily Reconciliation",
+        "status": "READY",
+        "scope": "Nightly three-way automated reconciliation (Gateway settlement file vs Bank statement vs Internal ledger), variance identification, and Vertex AI discrepancy analysis.",
+        "endpoints": "POST /v1/finance/reconciliation:run",
+        "stories": [
+          {
+            "id": "US-09.02.01",
+            "type": "user_journey",
+            "title": "US-09.02.01",
+            "status": "READY",
+            "description": "As a finance manager, I want the system to automatically reconcile bank and payment gateway statements every night, so that I start each morning with an accurate variance report."
+          },
+          {
+            "id": "INT-09.02.01",
+            "type": "integration",
+            "title": "Google Cloud Scheduler Integration",
+            "status": "READY",
+            "description": "As the Finance Service, I need to receive cron triggers from Google Cloud Scheduler configured with OIDC authentication tokens."
+          },
+          {
+            "id": "INT-09.02.02",
+            "type": "integration",
+            "title": "Vertex AI Discrepancy Analysis Integration",
+            "status": "READY",
+            "description": "As the Finance Service, I need to call Google Cloud Vertex AI to identify recurring merchant or driver variance patterns across historical data."
+          },
+          {
+            "id": "PWA-09.02.01",
+            "type": "pwa",
+            "title": "Web PWA Reconciliation Dashboard & Variance Audit",
+            "status": "READY",
+            "description": "Build interactive reconciliation viewer on Support Web PWA (`web/x/` on `SPT-07`) with side-by-side transaction matching and Vertex AI variance breakdown."
+          },
+          {
+            "id": "AND-09.02.01",
+            "type": "android",
+            "title": "Android Native Reconciliation Alert Receiver",
+            "status": "READY",
+            "description": "Build native Android push notification handler and status viewer for critical reconciliation discrepancies."
+          },
+          {
+            "id": "IOS-09.02.01",
+            "type": "ios",
+            "title": "iOS Native Reconciliation Alert Receiver",
+            "status": "READY",
+            "description": "Build native iOS push notification handler and status viewer for finance auditors."
+          },
+          {
+            "id": "TEST-09.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test simulating three-way reconciliation run, variance alert rendering, and AI audit report generation in PWA against `finance-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-09.02.01",
+            "type": "devops",
+            "title": "Cloud Scheduler Terraform DevOps",
+            "status": "READY",
+            "description": "Define Terraform resource for Cloud Scheduler job `daily-finance-reconciliation` running at `0 1 * * *`."
+          },
+          {
+            "id": "DOC-09.02.01",
+            "type": "documentation",
+            "title": "Reconciliation Operating Manual",
+            "status": "READY",
+            "description": "Document three-way matching criteria, variance tolerance thresholds, and manual intervention steps."
+          },
+          {
+            "id": "TEST-09.02.01",
+            "type": "automation_test",
+            "title": "Automated Test Suite",
+            "status": "READY",
+            "description": "Build Bruno test in `tests/bruno/09-finance/runReconciliation/` simulating synthetic mismatch scenarios."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-09.03",
+        "title": "Statutory Tax Compliance & TDS Register",
+        "status": "READY",
+        "scope": "Statutory TDS withholding (Sections 194C / 194O), tax liability accumulation, quarterly Challan recording, and Form 16A generation.",
+        "endpoints": "POST /v1/finance/tds/challans",
+        "stories": [
+          {
+            "id": "US-09.03.01",
+            "type": "user_journey",
+            "title": "US-09.03.01",
+            "status": "READY",
+            "description": "As a finance officer, I want a complete TDS register detailing every tax deduction and its corresponding government tax deposit challan, so that quarterly tax filings are flawless."
+          },
+          {
+            "id": "INT-09.03.01",
+            "type": "integration",
+            "title": "Config Service Tax Profile Integration",
+            "status": "READY",
+            "description": "As the Finance Service, I need to read statutory TDS thresholds and tax rates dynamically from `config-service` (`:4010`)."
+          },
+          {
+            "id": "INT-09.03.02",
+            "type": "integration",
+            "title": "Firebase Cloud Storage Challan PDF Sync",
+            "status": "READY",
+            "description": "As the Finance Service, I need to store scanned government bank challan receipts in Firebase Cloud Storage `/tax/challans/{id}.pdf`."
+          },
+          {
+            "id": "PWA-09.03.01",
+            "type": "pwa",
+            "title": "Web PWA Tax & TDS Console",
+            "status": "READY",
+            "description": "Build TDS ledger dashboard on `web/x/` (`SPT-09`) with government Challan upload, BSR verification, and automated 26Q report generation."
+          },
+          {
+            "id": "AND-09.03.01",
+            "type": "android",
+            "title": "Android Native Driver TDS Certificate Viewer",
+            "status": "READY",
+            "description": "Build driver tax deduction statement and Form 16A download view in `android/`."
+          },
+          {
+            "id": "IOS-09.03.01",
+            "type": "ios",
+            "title": "iOS Native Driver TDS Certificate Viewer",
+            "status": "READY",
+            "description": "Build driver tax deduction statement and Form 16A viewer in `ios/`."
+          },
+          {
+            "id": "TEST-09.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying TDS calculation, challan PDF upload to Firebase Storage, and TDS register queries on PWA against `finance-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-09.03.01",
+            "type": "devops",
+            "title": "DevOps & Reporting Views",
+            "status": "READY",
+            "description": "Create database view `vw_tds_quarterly_summary` in `finance_db` for instant export to government e-filing utilities."
+          },
+          {
+            "id": "DOC-09.03.01",
+            "type": "documentation",
+            "title": "TDS Statutory Compliance Guide",
+            "status": "READY",
+            "description": "Document Indian Income Tax Act compliance rules (Section 194C / 194O) applicable to rural gig logistics."
+          },
+          {
+            "id": "TEST-09.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/09-finance/recordChallan/` validating BSR code formatting."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-10",
+    "title": "Master Configuration, Geo-Hierarchy & Subscriptions",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/config-service",
+    "port": "4010",
+    "db": "config_db",
+    "mdFile": "EPIC-10-PLATFORM-CONFIG.md",
+    "features": [
+      {
+        "id": "FEAT-10.01",
+        "title": "Geographic Hierarchy & Google Maps Geocoding",
+        "status": "READY",
+        "scope": "Hierarchical spatial registry (Country $\\rightarrow$ State $\\rightarrow$ District $\\rightarrow$ Village), Google Maps Geocoding integration, pin-code resolution, and boundary polygons.",
+        "endpoints": "POST /v1/config/villages",
+        "stories": [
+          {
+            "id": "US-10.01.01",
+            "type": "user_journey",
+            "title": "US-10.01.01",
+            "status": "READY",
+            "description": "As a logistics planner, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate."
+          },
+          {
+            "id": "US-10.01.02",
+            "type": "user_journey",
+            "title": "US-10.01.02",
+            "status": "READY",
+            "description": "As a rural buyer, I want to select my village and nearest landmark easily, so that delivery vehicles can find my location without calling multiple times."
+          },
+          {
+            "id": "INT-10.01.01",
+            "type": "integration",
+            "title": "Google Maps Geocoding & Places API Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the Config Service, I need to integrate with Google Maps Geocoding and Places API using GCP restricted server-side API keys."
+          },
+          {
+            "id": "INT-10.01.02",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Config Service, I need to mirror all active villages and geo-hierarchies to Cloud Firestore collection `/Villages/{villageId}` every 2000ms."
+          },
+          {
+            "id": "INT-10.01.03",
+            "type": "integration",
+            "title": "Gateway Cache Integration",
+            "status": "READY",
+            "description": "As the Config Service, I need to push cache invalidation signals to API Gateway when village boundaries or master configs are altered."
+          },
+          {
+            "id": "PWA-10.01.01",
+            "type": "pwa",
+            "title": "Web PWA Geo-Hierarchy & Village Registry",
+            "status": "IN_PROGRESS",
+            "description": "Build spatial search and Google Maps autocomplete village picker on Support Web PWA (`web/x/` on `SPT-10`) and Supplier portal (`web/s/` on `SUP-03`)."
+          },
+          {
+            "id": "AND-10.01.01",
+            "type": "android",
+            "title": "Android Native Location Picker & Offline Village Cache",
+            "status": "READY",
+            "description": "Build native Android location selector with Google Play Services Places SDK and offline SQLite village cache."
+          },
+          {
+            "id": "IOS-10.01.01",
+            "type": "ios",
+            "title": "iOS Native Location Picker & Village Cache",
+            "status": "READY",
+            "description": "Build native iOS location selector with Apple Maps / Google Maps SDK and offline CoreData village catalog."
+          },
+          {
+            "id": "TEST-10.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying village search, Google Maps Places geocoding integration, and Firestore mirror sync on PWA against `config-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-10.01.01",
+            "type": "devops",
+            "title": "DevOps & PostGIS / Geo Indexing",
+            "status": "READY",
+            "description": "Configure PostgreSQL with spatial indices on `villages(latitude, longitude)` for high-speed radius and nearest-village queries."
+          },
+          {
+            "id": "DOC-10.01.01",
+            "type": "documentation",
+            "title": "Geographical Hierarchy Standards",
+            "status": "READY",
+            "description": "Document census village naming conventions, LGD (Local Government Directory) code mapping, and PIN code datasets."
+          },
+          {
+            "id": "TEST-10.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/10-config/upsertVillage/` validating hierarchy constraints."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-10.02",
+        "title": "Subscription Plans & Tiered Tariffs",
+        "status": "READY",
+        "scope": "SaaS subscription plan definition, feature flag entitlements, multi-tier pricing, and platform service fees.",
+        "endpoints": "POST /v1/config/plans",
+        "stories": [
+          {
+            "id": "US-10.02.01",
+            "type": "user_journey",
+            "title": "US-10.02.01",
+            "status": "READY",
+            "description": "As a supplier selecting a subscription tier, I want clear visibility into vehicle quotas and platform fees, so that I can choose the appropriate plan for my fleet size."
+          },
+          {
+            "id": "INT-10.02.01",
+            "type": "integration",
+            "title": "Firestore Plan Sync Integration",
+            "status": "READY",
+            "description": "As the Config Service, I need to sync subscription plans and tariff catalogs to Firestore collection `/SubscriptionPlans/{id}`."
+          },
+          {
+            "id": "PWA-10.02.01",
+            "type": "pwa",
+            "title": "Web PWA Subscription Plan Viewer & Management",
+            "status": "READY",
+            "description": "Build subscription tier comparison table and entitlement editor on Support Web PWA (`web/x/` on `SPT-11`) and Supplier account portal (`web/s/`)."
+          },
+          {
+            "id": "AND-10.02.01",
+            "type": "android",
+            "title": "Android Native Subscription Status Card",
+            "status": "READY",
+            "description": "Build native Android subscription tier and quota utilization card for supplier admins."
+          },
+          {
+            "id": "IOS-10.02.01",
+            "type": "ios",
+            "title": "iOS Native Subscription Status Card",
+            "status": "READY",
+            "description": "Build native iOS subscription tier view for supplier admins."
+          },
+          {
+            "id": "TEST-10.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying plan creation, price calculation, and Firestore collection sync on PWA against `config-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-10.02.01",
+            "type": "devops",
+            "title": "DevOps & Database Schema",
+            "status": "READY",
+            "description": "Execute PostgreSQL migration for `config_db.subscription_plans` and establish seed data scripts."
+          },
+          {
+            "id": "DOC-10.02.01",
+            "type": "documentation",
+            "title": "Tariff & Entitlement Specification",
+            "status": "READY",
+            "description": "Publish master tariff documentation and feature entitlement matrices."
+          },
+          {
+            "id": "TEST-10.02.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/10-config/upsertPlan/` validating pricing rules."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-10.03",
+        "title": "Statutory Tax Profiles & TDS Rules",
+        "status": "READY",
+        "scope": "GST rate slabs (0%, 5%, 12%, 18%), HSN/SAC code mapping, and Section 194C / 194O TDS percentage configurations.",
+        "endpoints": "POST /v1/config/tax-profiles",
+        "stories": [
+          {
+            "id": "US-10.03.01",
+            "type": "user_journey",
+            "title": "US-10.03.01",
+            "status": "READY",
+            "description": "As a compliance officer, I want tax rates and TDS rules centrally configured and versioned, so that regulatory updates can be applied platform-wide without code redeployment."
+          },
+          {
+            "id": "INT-10.03.01",
+            "type": "integration",
+            "title": "Finance & Orders Service Ingestion Integration",
+            "status": "READY",
+            "description": "As the Config Service, I need to provide high-speed cached endpoints for `orders-service` and `finance-service` to query active tax rates."
+          },
+          {
+            "id": "PWA-10.03.01",
+            "type": "pwa",
+            "title": "Web PWA Tax Profile Console",
+            "status": "READY",
+            "description": "Build master GST slab and TDS configuration UI on Support Web PWA (`web/x/` on `SPT-12`) with version history and scheduled effective date controls."
+          },
+          {
+            "id": "AND-10.03.01",
+            "type": "android",
+            "title": "Android Native Tax Summary Viewer",
+            "status": "READY",
+            "description": "Build native Android tax rate summary viewer for billing operators."
+          },
+          {
+            "id": "IOS-10.03.01",
+            "type": "ios",
+            "title": "iOS Native Tax Summary Viewer",
+            "status": "READY",
+            "description": "Build native iOS tax rate viewer for billing operators."
+          },
+          {
+            "id": "TEST-10.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying tax profile versioning, TDS rate validation, and cache synchronization on PWA against `config-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-10.03.01",
+            "type": "devops",
+            "title": "DevOps & Cache Warming",
+            "status": "READY",
+            "description": "Implement in-memory LRU cache in `config-service` for millisecond-latency tax profile retrieval."
+          },
+          {
+            "id": "DOC-10.03.01",
+            "type": "documentation",
+            "title": "GST & TDS Rules Architecture",
+            "status": "READY",
+            "description": "Document HSN/SAC classification hierarchy and statutory compliance references."
+          },
+          {
+            "id": "TEST-10.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/10-config/upsertTaxProfile/` validating percentage bounds."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-11",
+    "title": "Platform Governance, Compliance & AML",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/governance-service",
+    "port": "4011",
+    "db": "governance_db",
+    "mdFile": "EPIC-11-PLATFORM-GOVERNANCE.md",
+    "features": [
+      {
+        "id": "FEAT-11.01",
+        "title": "UPI TPAP Compliance & VPA Lifecycle Governance",
+        "status": "READY",
+        "scope": "NPCI TPAP guidelines enforcement, Virtual Payment Address (VPA) registration, bank account binding verification, and VPA de-registration.",
+        "endpoints": "POST /v1/governance/vpa/register",
+        "stories": [
+          {
+            "id": "US-11.01.01",
+            "type": "user_journey",
+            "title": "US-11.01.01",
+            "status": "READY",
+            "description": "As a compliance officer, I want all merchant and platform VPAs verified against NPCI TPAP regulations before any transactions occur, so that the platform avoids regulatory penalties or license suspension."
+          },
+          {
+            "id": "INT-11.01.01",
+            "type": "integration",
+            "title": "PSP Verification Gateway Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to integrate with authorized PSP TPAP bank verification APIs to confirm VPA ownership and account linkage."
+          },
+          {
+            "id": "INT-11.01.02",
+            "type": "integration",
+            "title": "Firestore Compliance Sync Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to mirror verified VPA states to Firestore collection `/VerifiedVPAs/{id}`."
+          },
+          {
+            "id": "PWA-11.01.01",
+            "type": "pwa",
+            "title": "Web PWA Compliance & TPAP Console",
+            "status": "READY",
+            "description": "Build VPA verification dashboard on Support Web PWA (`web/x/` on `SPT-13`) displaying NPCI compliance status, device linkage certs, and blacklist audit log."
+          },
+          {
+            "id": "AND-11.01.01",
+            "type": "android",
+            "title": "Android Native VPA Verification Badge",
+            "status": "READY",
+            "description": "Build native Android merchant VPA certification badge and bank account link status indicator."
+          },
+          {
+            "id": "IOS-11.01.01",
+            "type": "ios",
+            "title": "iOS Native VPA Verification Badge",
+            "status": "READY",
+            "description": "Build native iOS merchant VPA certification badge and status indicator."
+          },
+          {
+            "id": "TEST-11.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test verifying VPA syntax validation, blacklist checks, and regulatory audit logging on PWA against `governance-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-11.01.01",
+            "type": "devops",
+            "title": "DevOps & Database Schema",
+            "status": "READY",
+            "description": "Execute PostgreSQL migration for `governance_db.registered_vpas` and configure unique index on `(vpa, status)`."
+          },
+          {
+            "id": "DOC-11.01.01",
+            "type": "documentation",
+            "title": "NPCI TPAP Regulatory Blueprint",
+            "status": "READY",
+            "description": "Document NPCI procedural guidelines for third-party application providers and VPA lifecycle requirements."
+          },
+          {
+            "id": "TEST-11.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/11-governance/registerVPA/` testing blacklist rejection rules."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-11.02",
+        "title": "Real-Time AML Fraud Detection & Velocity Guardrails",
+        "status": "READY",
+        "scope": "Real-time transaction velocity checks, circular transaction ring detection, rapid cash-out prevention, and automated account lockdown.",
+        "endpoints": "POST /v1/governance/aml/check",
+        "stories": [
+          {
+            "id": "US-11.02.01",
+            "type": "user_journey",
+            "title": "US-11.02.01",
+            "status": "READY",
+            "description": "As a fraud risk manager, I want high-velocity fraudulent transaction rings automatically intercepted in real time, so that platform financial losses and chargebacks are prevented."
+          },
+          {
+            "id": "INT-11.02.01",
+            "type": "integration",
+            "title": "Identity Service Account Freeze Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to call `identity-service` (`:4001`) to automatically suspend user accounts flagged for AML fraud."
+          },
+          {
+            "id": "INT-11.02.02",
+            "type": "integration",
+            "title": "Payments Service Interceptor Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to provide sub-50ms REST response times to `payments-service` during synchronous pre-transaction fraud scoring."
+          },
+          {
+            "id": "PWA-11.02.01",
+            "type": "pwa",
+            "title": "Web PWA AML Alert & Incident Console",
+            "status": "READY",
+            "description": "Build real-time AML alert stream on Support Web PWA (`web/x/` on `SPT-13`) with transaction velocity graphs and 1-click unfreeze controls."
+          },
+          {
+            "id": "AND-11.02.01",
+            "type": "android",
+            "title": "Android Native AML Security Banner",
+            "status": "READY",
+            "description": "Build native Android security freeze warning banner for users flagged by velocity rules."
+          },
+          {
+            "id": "IOS-11.02.01",
+            "type": "ios",
+            "title": "iOS Native AML Security Banner",
+            "status": "READY",
+            "description": "Build native iOS security freeze alert screen for flagged accounts."
+          },
+          {
+            "id": "TEST-11.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test simulating rapid transaction spikes, triggering AML freeze alert, and verifying account lock status on PWA against `governance-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-11.02.01",
+            "type": "devops",
+            "title": "DevOps & Redis Sliding-Window Rate Limiter",
+            "status": "READY",
+            "description": "Deploy Redis cluster supporting atomic sliding-window rate tracking for real-time velocity calculations."
+          },
+          {
+            "id": "DOC-11.02.01",
+            "type": "documentation",
+            "title": "AML Fraud Matrix & Thresholds",
+            "status": "READY",
+            "description": "Publish formal AML risk policy defining threshold matrices, scoring algorithms, and escalation tiers."
+          },
+          {
+            "id": "TEST-11.02.01",
+            "type": "automation_test",
+            "title": "Bruno & Benchmark Test Suite",
+            "status": "READY",
+            "description": "Build automated test in `tests/bruno/11-governance/amlCheck/` validating boundary thresholds and latency limits."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-11.03",
+        "title": "Dispute SLA Tracking & Regulatory Reporting",
+        "status": "READY",
+        "scope": "NPCI-mandated T+1 dispute SLA tracking, customer complaint escalation, audit logging, and automated daily compliance filing.",
+        "endpoints": "POST /v1/governance/disputes",
+        "stories": [
+          {
+            "id": "US-11.03.01",
+            "type": "user_journey",
+            "title": "US-11.03.01",
+            "status": "READY",
+            "description": "As a support dispute officer, I want a live countdown timer for all open UPI disputes, so that our team never breaches NPCI's statutory 24-hour turnaround requirement."
+          },
+          {
+            "id": "INT-11.03.01",
+            "type": "integration",
+            "title": "Payments Service Dispute Forwarding Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to receive automated dispute webhooks forwarded from `payments-service` (`:4005`)."
+          },
+          {
+            "id": "INT-11.03.02",
+            "type": "integration",
+            "title": "NPCI Regulatory Portal Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to package and securely transmit daily settlement and dispute compliance files to NPCI via SFTP/API."
+          },
+          {
+            "id": "PWA-11.03.01",
+            "type": "pwa",
+            "title": "Web PWA Dispute Escalation & SLA Tracker",
+            "status": "READY",
+            "description": "Build dispute tracking console on Support Web PWA (`web/x/` on `SPT-14`) with live countdown timers, evidence upload, and NPCI report export."
+          },
+          {
+            "id": "AND-11.03.01",
+            "type": "android",
+            "title": "Android Native Dispute Status View",
+            "status": "READY",
+            "description": "Build native Android dispute ticket history and resolution notification screen for users."
+          },
+          {
+            "id": "IOS-11.03.01",
+            "type": "ios",
+            "title": "iOS Native Dispute Status View",
+            "status": "READY",
+            "description": "Build native iOS dispute ticket status and push notification handler for users."
+          },
+          {
+            "id": "TEST-11.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test asserting 24-hour dispute SLA countdown, evidence submission, and NPCI report generation on PWA against `governance-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-11.03.01",
+            "type": "devops",
+            "title": "Scheduled Compliance Cron",
+            "status": "READY",
+            "description": "Configure Cloud Scheduler job triggering `reportToNPCI` daily at `23:30:00 UTC`."
+          },
+          {
+            "id": "DOC-11.03.01",
+            "type": "documentation",
+            "title": "Dispute Resolution SOP",
+            "status": "READY",
+            "description": "Document NPCI customer grievance redressal mechanism and ombudsman escalation paths."
+          },
+          {
+            "id": "TEST-11.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/11-governance/trackDispute/` verifying SLA date calculations."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-12",
+    "title": "API Gateway & Bidirectional Data Sync Infrastructure",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/gateway",
+    "port": "gateway",
+    "db": "sync_db",
+    "mdFile": "EPIC-12-GATEWAY-SYNC-INFRASTRUCTURE.md",
+    "features": [
+      {
+        "id": "FEAT-12.01",
+        "title": "Unified API Gateway & Multi-Client Protocol Ingress",
+        "status": "READY",
+        "scope": "Perimeter reverse proxy, internal VPC microservice routing, client context header injection, and rate limiting.",
+        "endpoints": "ALL /v1/*",
+        "stories": [
+          {
+            "id": "US-12.01.01",
+            "type": "user_journey",
+            "title": "US-12.01.01",
+            "status": "READY",
+            "description": "As a mobile/web developer, I want a single unified API endpoint (`api.logikchain.com`), so that client applications do not need complex multi-host network configurations."
+          },
+          {
+            "id": "US-12.01.02",
+            "type": "user_journey",
+            "title": "US-12.01.02",
+            "status": "READY",
+            "description": "As an infrastructure security engineer, I want internal microservices completely isolated within a private VPC, so that unauthorized internet traffic cannot reach internal databases directly."
+          },
+          {
+            "id": "INT-12.01.01",
+            "type": "integration",
+            "title": "Internal VPC Service Dispatch Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the API Gateway, I need to maintain dynamic DNS service discovery to route incoming path prefixes (`/v1/orders/*`, `/v1/gigs/*`, etc.) to their respective microservices across the Kubernetes cluster."
+          },
+          {
+            "id": "INT-12.01.02",
+            "type": "integration",
+            "title": "Redis Rate Limiting Integration",
+            "status": "READY",
+            "description": "As the API Gateway, I need to integrate with a Redis cluster to enforce a strict 300 requests/minute sliding-window rate limit per client IP and user UID."
+          },
+          {
+            "id": "PWA-12.01.01",
+            "type": "pwa",
+            "title": "Web PWA Gateway HTTP Client & Header Interceptor",
+            "status": "IN_PROGRESS",
+            "description": "Implement centralized HTTP client in `web/` with automatic Bearer token injection, retry on network drops, and global 401 handling."
+          },
+          {
+            "id": "AND-12.01.01",
+            "type": "android",
+            "title": "Android Native OkHttp Gateway Client",
+            "status": "IN_PROGRESS",
+            "description": "Implement Retrofit/OkHttp network stack in `android/` with automatic token refresh, device attestation headers, and offline error interception."
+          },
+          {
+            "id": "IOS-12.01.01",
+            "type": "ios",
+            "title": "iOS Native URLSession Gateway Client",
+            "status": "READY",
+            "description": "Implement URLSession network client in `ios/` with token refresh interceptor and structured error handling."
+          },
+          {
+            "id": "TEST-12.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test asserting API Gateway routing, identity header forwarding, and rate limiting on live PWA against `gateway` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-12.01.01",
+            "type": "devops",
+            "title": "DevOps & Gateway Docker/K8s",
+            "status": "IN_PROGRESS",
+            "description": "Deploy API Gateway using multi-stage Docker build (`microservices/services/gateway/Dockerfile`), configure Kubernetes Ingress controller with TLS certificates, and set HPA autoscaling based on CPU/traffic."
+          },
+          {
+            "id": "DOC-12.01.01",
+            "type": "documentation",
+            "title": "Gateway Architecture & Route Table",
+            "status": "READY",
+            "description": "Publish master API Gateway routing table, header injection specification, and error handling taxonomy in platform documentation."
+          },
+          {
+            "id": "TEST-12.01.01",
+            "type": "automation_test",
+            "title": "Gateway Benchmark & Load Test",
+            "status": "READY",
+            "description": "Build automated load test using k6/Autocannon asserting sub-10ms gateway routing overhead under 5,000 concurrent connections."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-12.02",
+        "title": "Firebase App Check Zero-Trust Perimeter Attestation",
+        "status": "READY",
+        "scope": "Multi-platform hardware-backed device attestation verification: reCAPTCHA Enterprise (PWA), Play Integrity (Android), and DeviceCheck/App Attest (iOS).",
+        "endpoints": "Ingress Middleware on API Gateway",
+        "stories": [
+          {
+            "id": "US-12.02.01",
+            "type": "user_journey",
+            "title": "US-12.02.01",
+            "status": "READY",
+            "description": "As a platform architect, I want all non-browser bots and script injections blocked by Firebase App Check, so that malicious actors cannot scrape pricing or flood backend microservices."
+          },
+          {
+            "id": "INT-12.02.01",
+            "type": "integration",
+            "title": "Firebase App Check SDK Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the API Gateway, I need to integrate with the Firebase Admin App Check SDK to validate cryptographic attestation tokens for Web, Android, and iOS runtimes."
+          },
+          {
+            "id": "INT-12.02.02",
+            "type": "integration",
+            "title": "Governance Security Alert Integration",
+            "status": "READY",
+            "description": "As the API Gateway, I need to stream App Check failure spikes to `governance-service` (`:4011`) for DDoS and bot mitigation."
+          },
+          {
+            "id": "PWA-12.02.01",
+            "type": "pwa",
+            "title": "Web PWA reCAPTCHA Enterprise Attestation",
+            "status": "IN_PROGRESS",
+            "description": "Initialize Firebase App Check in `web/` using reCAPTCHA Enterprise provider with automatic token refresh on network requests."
+          },
+          {
+            "id": "AND-12.02.01",
+            "type": "android",
+            "title": "Android Native Play Integrity Attestation",
+            "status": "IN_PROGRESS",
+            "description": "Configure Firebase App Check Play Integrity provider in `android/` with hardware-backed tamper detection."
+          },
+          {
+            "id": "IOS-12.02.01",
+            "type": "ios",
+            "title": "iOS Native DeviceCheck Attestation",
+            "status": "READY",
+            "description": "Configure Firebase App Check App Attest / DeviceCheck provider in `ios/`."
+          },
+          {
+            "id": "TEST-12.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test validating that PWA requests with valid reCAPTCHA App Check tokens succeed while requests with missing/invalid tokens are rejected with 401 on `logikchain-test`."
+          },
+          {
+            "id": "OPS-12.02.01",
+            "type": "devops",
+            "title": "App Check Local Emulator Bypass",
+            "status": "IN_PROGRESS",
+            "description": "Configure debug token bypass mechanisms in development environments (`NODE_ENV=development`) to facilitate local Bruno API and Playwright automated testing."
+          },
+          {
+            "id": "DOC-12.02.01",
+            "type": "documentation",
+            "title": "App Check Configuration Manual",
+            "status": "READY",
+            "description": "Document registration of Play Integrity SHA-256 fingerprints, iOS Team IDs, and reCAPTCHA Enterprise site keys."
+          },
+          {
+            "id": "TEST-12.02.01",
+            "type": "automation_test",
+            "title": "Automated Test Suite",
+            "status": "READY",
+            "description": "Build test in `tests/bruno/00-gateway/appCheck/` testing valid vs invalid vs missing App Check tokens."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-12.03",
+        "title": "Bidirectional Microservice-to-Firestore CDC Sync Engine",
+        "status": "READY",
+        "scope": "PostgreSQL transactional outbox polling, Change Data Capture (CDC), batch commits to Cloud Firestore collections, and real-time offline mutation ingestion.",
+        "endpoints": "GET /sync/status",
+        "stories": [
+          {
+            "id": "US-12.03.01",
+            "type": "user_journey",
+            "title": "US-12.03.01",
+            "status": "READY",
+            "description": "As a rural user with intermittent internet, I want my app to read data from Firestore's local cache instantly, while the backend sync engine ensures the data is always up-to-date with the PostgreSQL master database."
+          },
+          {
+            "id": "INT-12.03.01",
+            "type": "integration",
+            "title": "PostgreSQL Outbox Stream Integration",
+            "status": "READY",
+            "description": "As the Sync Engine, I need to connect to all microservice PostgreSQL outbox tables to poll and process pending replication events."
+          },
+          {
+            "id": "INT-12.03.02",
+            "type": "integration",
+            "title": "Cloud Firestore Batch Write Integration",
+            "status": "READY",
+            "description": "As the Sync Engine, I need to utilize Firestore Admin SDK batch operations to minimize API operations and maintain write atomicity."
+          },
+          {
+            "id": "INT-12.03.03",
+            "type": "integration",
+            "title": "Firestore Inbound Snapshot Listener Integration",
+            "status": "READY",
+            "description": "As the Sync Engine, I need to listen to incoming offline mutations committed by mobile clients in Firestore `/outbox_mobile/` and ingest them into PostgreSQL with idempotency checks."
+          },
+          {
+            "id": "PWA-12.03.01",
+            "type": "pwa",
+            "title": "Web PWA Firestore Realtime Listener Client",
+            "status": "READY",
+            "description": "Implement Firestore snapshot listeners in `web/` subscribing to synchronized collections with automatic reconciliation on reconnect."
+          },
+          {
+            "id": "AND-12.03.01",
+            "type": "android",
+            "title": "Android Native Offline Outbox & Firestore Sync",
+            "status": "READY",
+            "description": "Implement Android offline Firestore outbox queue in `android/` writing to `/outbox_mobile/` during cellular outages."
+          },
+          {
+            "id": "IOS-12.03.01",
+            "type": "ios",
+            "title": "iOS Native Offline Outbox & Firestore Sync",
+            "status": "READY",
+            "description": "Implement iOS offline Firestore outbox queue in `ios/` with automatic batch flush."
+          },
+          {
+            "id": "TEST-12.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test creating an order in PostgreSQL, waiting 2000ms, and verifying real-time Firestore listener update on PWA against `logikchain-test`."
+          },
+          {
+            "id": "OPS-12.03.01",
+            "type": "devops",
+            "title": "Sync Engine Docker & Daemon Deployment",
+            "status": "READY",
+            "description": "Build production image using `microservices/devops/docker/Dockerfile.sync-engine` and deploy as a Kubernetes DaemonSet / StatefulSet with dedicated database pool."
+          },
+          {
+            "id": "DOC-12.03.01",
+            "type": "documentation",
+            "title": "Data Replication Architecture Spec",
+            "status": "READY",
+            "description": "Publish CDC replication architecture documentation detailing at-least-once delivery guarantees and conflict resolution strategies."
+          },
+          {
+            "id": "TEST-12.03.01",
+            "type": "automation_test",
+            "title": "Automated Lag & Failure Tests",
+            "status": "READY",
+            "description": "Build automated test in `tests/integration/sync/` verifying replication lag remains under 2000ms under 500 events/second load."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-12.04",
+        "title": "Firebase Cloud Storage Media Synchronization",
+        "status": "READY",
+        "scope": "Delivery photo uploads, KYC document sync, TDS challan PDFs, and Cloud Storage signed URL generation.",
+        "endpoints": "POST /v1/storage/upload-ticket",
+        "stories": [
+          {
+            "id": "US-12.04.01",
+            "type": "user_journey",
+            "title": "US-12.04.01",
+            "status": "READY",
+            "description": "As a delivery driver taking delivery proof photos, I want uploads to complete quickly and reliably even over 3G rural networks, so that I can proceed to the next delivery without waiting."
+          },
+          {
+            "id": "INT-12.04.01",
+            "type": "integration",
+            "title": "Firebase Cloud Storage SDK Integration",
+            "status": "READY",
+            "description": "As the Sync Engine, I need to interface with `@google-cloud/storage` / Firebase Admin Storage to generate signed URLs and manage lifecycle retention policies."
+          },
+          {
+            "id": "INT-12.04.02",
+            "type": "integration",
+            "title": "Microservice Media Metadata Integration",
+            "status": "READY",
+            "description": "As the Sync Engine, I need to notify calling microservices (`orders-service`, `finance-service`, `pamphlet-service`) once uploaded media is verified."
+          },
+          {
+            "id": "PWA-12.04.01",
+            "type": "pwa",
+            "title": "Web PWA Direct Binary Uploader",
+            "status": "READY",
+            "description": "Implement direct-to-GCS chunked binary uploader in `web/` with progress bar, compression, and signed URL retrieval."
+          },
+          {
+            "id": "AND-12.04.01",
+            "type": "android",
+            "title": "Android Native Camera Photo Direct Uploader",
+            "status": "READY",
+            "description": "Implement Android camera photo capture, client-side JPEG compression, and direct GCS background upload in `android/`."
+          },
+          {
+            "id": "IOS-12.04.01",
+            "type": "ios",
+            "title": "iOS Native Camera Photo Direct Uploader",
+            "status": "READY",
+            "description": "Implement iOS camera photo capture, HEIC/JPEG compression, and direct GCS background upload in `ios/`."
+          },
+          {
+            "id": "TEST-12.04.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test requesting upload ticket, uploading test binary to Firebase Cloud Storage, and asserting media URL resolution on PWA against `gateway` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-12.04.01",
+            "type": "devops",
+            "title": "Cloud Storage IAM & Bucket DevOps",
+            "status": "READY",
+            "description": "Configure Terraform scripts for GCS bucket `logikchain-media` with regional dual-region redundancy and CORS policies."
+          },
+          {
+            "id": "DOC-12.04.01",
+            "type": "documentation",
+            "title": "Media Storage Guidelines",
+            "status": "READY",
+            "description": "Document maximum upload limits (5MB for photos, 10MB for PDFs), allowed MIME types (`image/jpeg`, `application/pdf`), and access control."
+          },
+          {
+            "id": "TEST-12.04.01",
+            "type": "automation_test",
+            "title": "Automated Test Suite",
+            "status": "READY",
+            "description": "Build Bruno automated test `tests/bruno/00-gateway/uploadTicket/` verifying URL signature validity."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EPIC-13",
+    "title": "Social Media Connect & User Interaction Orchestrator",
+    "status": "READY",
+    "functionalArea": "",
+    "microservice": "microservices/services/social-connect-service",
+    "port": "4012",
+    "db": "social_connect_db",
+    "mdFile": "EPIC-13-SOCIAL-CONNECT.md",
+    "features": [
+      {
+        "id": "FEAT-13.01",
+        "title": "User Notification Preferences & Firestore Synchronization",
+        "status": "READY",
+        "scope": "User preference management (WhatsApp, In-App Push, SMS), notification categories (OTPs, Orders, Bills, Ownership Alerts), local database preference cache, and Cloud Firestore synchronization.",
+        "endpoints": "GET /api/v1/preferences/{userId}",
+        "stories": [
+          {
+            "id": "US-13.01.01",
+            "type": "user_journey",
+            "title": "US-13.01.01",
+            "status": "READY",
+            "description": "As a rural merchant, I want to choose WhatsApp as my default notification channel, so that I receive order receipts and invoices in the messaging app I use every day."
+          },
+          {
+            "id": "US-13.01.02",
+            "type": "user_journey",
+            "title": "US-13.01.02",
+            "status": "READY",
+            "description": "As a buyer, I want granular control over notification categories, so that I receive critical order and security OTP messages without being disturbed by promotional content."
+          },
+          {
+            "id": "INT-13.01.01",
+            "type": "integration",
+            "title": "Local DB Preference Cache Check",
+            "status": "IN_PROGRESS",
+            "description": "As the Social Connect Service, I need to query `social_connect_db.user_notification_preferences` before every notification dispatch to evaluate channel opt-ins and quiet-hour rules."
+          },
+          {
+            "id": "INT-13.01.02",
+            "type": "integration",
+            "title": "Firestore Periodic Sync Integration",
+            "status": "READY",
+            "description": "As the Social Connect Service, I need to mirror all user notification preferences to Cloud Firestore collection `/NotificationPreferences/{userId}` every 2000ms."
+          },
+          {
+            "id": "PWA-13.01.01",
+            "type": "pwa",
+            "title": "Web PWA Notification Preferences Manager",
+            "status": "IN_PROGRESS",
+            "description": "Build notification settings interface in `web/` (`SHR-12`) with WhatsApp opt-in toggle, channel selection, and category checkboxes."
+          },
+          {
+            "id": "AND-13.01.01",
+            "type": "android",
+            "title": "Android Native WhatsApp & Push Preferences",
+            "status": "IN_PROGRESS",
+            "description": "Build native Android notification preferences screen in `android/` with FCM push token registration."
+          },
+          {
+            "id": "IOS-13.01.01",
+            "type": "ios",
+            "title": "iOS Native WhatsApp & Push Preferences",
+            "status": "READY",
+            "description": "Build native iOS notification preferences screen in `ios/` with APNS push token registration."
+          },
+          {
+            "id": "TEST-13.01.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test updating notification preferences on PWA, verifying Firestore sync, and checking local DB query on `social-connect-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-13.01.01",
+            "type": "devops",
+            "title": "DevOps & Database Migrations",
+            "status": "IN_PROGRESS",
+            "description": "Execute PostgreSQL migration for `social_connect_db.user_notification_preferences` with index on `user_id`."
+          },
+          {
+            "id": "DOC-13.01.01",
+            "type": "documentation",
+            "title": "Preference Schema Documentation",
+            "status": "READY",
+            "description": "Publish OpenAPI 3.0 schema and data dictionary for notification preferences."
+          },
+          {
+            "id": "TEST-13.01.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/13-social/preferences/` validating preference updates and default values."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-13.02",
+        "title": "WhatsApp Authentication & OTP Orchestration",
+        "status": "READY",
+        "scope": "WhatsApp Cloud API authentication message dispatch, one-tap copyable OTP buttons, delivery receipt tracking, and automatic SMS fallback.",
+        "endpoints": "POST /api/v1/interaction/otp",
+        "stories": [
+          {
+            "id": "US-13.02.01",
+            "type": "user_journey",
+            "title": "US-13.02.01",
+            "status": "READY",
+            "description": "As a rural user logging in, I want to receive my verification code on WhatsApp with a single-tap copy button, so that I can authenticate quickly without navigating away to an SMS inbox."
+          },
+          {
+            "id": "US-13.02.02",
+            "type": "user_journey",
+            "title": "US-13.02.02",
+            "status": "READY",
+            "description": "As an authenticating user without WhatsApp active, I want the system to automatically send an SMS OTP fallback, so that I am never locked out of my account."
+          },
+          {
+            "id": "INT-13.02.01",
+            "type": "integration",
+            "title": "Meta WhatsApp Cloud API Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the Social Connect Service, I need to integrate with Meta WhatsApp Business Cloud API (`graph.facebook.com/v19.0/{phone_id}/messages`) to dispatch pre-approved HSM authentication templates."
+          },
+          {
+            "id": "INT-13.02.02",
+            "type": "integration",
+            "title": "Identity Service Orchestration Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the Social Connect Service, I need to provide internal endpoints for `identity-service` (:4001) to orchestrate signup and login OTPs."
+          },
+          {
+            "id": "INT-13.02.03",
+            "type": "integration",
+            "title": "Meta Webhook Ingress Integration",
+            "status": "IN_PROGRESS",
+            "description": "As the Social Connect Service, I need to ingest and parse Meta WhatsApp delivery receipts (`sent`, `delivered`, `read`) to maintain real-time dispatch observability."
+          },
+          {
+            "id": "PWA-13.02.01",
+            "type": "pwa",
+            "title": "Web PWA WhatsApp OTP Dispatch & Verification Screen",
+            "status": "IN_PROGRESS",
+            "description": "Build OTP entry modal on `web/` (`SHR-04`) with \"Resend via WhatsApp\" button and automatic clipboard paste support."
+          },
+          {
+            "id": "AND-13.02.01",
+            "type": "android",
+            "title": "Android Native WhatsApp Intent & OTP Auto-Read",
+            "status": "IN_PROGRESS",
+            "description": "Implement Android SMS/WhatsApp verification receiver with automatic OTP detection on screen `SHR-04`."
+          },
+          {
+            "id": "IOS-13.02.01",
+            "type": "ios",
+            "title": "iOS Native WhatsApp & One-Time-Code AutoFill",
+            "status": "READY",
+            "description": "Implement iOS One-Time-Code keyboard autofill on screen `SHR-04`."
+          },
+          {
+            "id": "TEST-13.02.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test requesting WhatsApp OTP on PWA login screen, verifying webhook receipt status, and confirming authentication against `social-connect-service` on `logikchain-test`."
+          },
+          {
+            "id": "OPS-13.02.01",
+            "type": "devops",
+            "title": "GCP Secret Manager WhatsApp Credentials",
+            "status": "IN_PROGRESS",
+            "description": "Store `WHATSAPP_SYSTEM_ACCESS_TOKEN` and `WHATSAPP_PHONE_NUMBER_ID` in GCP Secret Manager and mount via Kubernetes secrets."
+          },
+          {
+            "id": "DOC-13.02.01",
+            "type": "documentation",
+            "title": "WhatsApp Template Catalog Documentation",
+            "status": "READY",
+            "description": "Document all registered Meta WhatsApp Business templates, variables, and HSM language locales (English, Telugu, Hindi)."
+          },
+          {
+            "id": "TEST-13.02.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/13-social/otpDispatch/` validating template substitution and fallback trigger."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-13.03",
+        "title": "Real-Time Order Lifecycle Updates & Delivery Alerts",
+        "status": "READY",
+        "scope": "Real-time order placement, dispatch, out-for-delivery, and delivery completion notifications with live tracking links via WhatsApp and FCM Push.",
+        "endpoints": "POST /api/v1/interaction/order-update",
+        "stories": [
+          {
+            "id": "US-13.03.01",
+            "type": "user_journey",
+            "title": "US-13.03.01",
+            "status": "READY",
+            "description": "As a rural buyer, I want order updates delivered directly to my WhatsApp, so that I know when the delivery vehicle is approaching my village without having to open the app."
+          },
+          {
+            "id": "INT-13.03.01",
+            "type": "integration",
+            "title": "Orders Service Event Integration",
+            "status": "READY",
+            "description": "As the Social Connect Service, I need to receive order lifecycle webhooks from `orders-service` (:4002) to trigger contextual customer messaging."
+          },
+          {
+            "id": "INT-13.03.02",
+            "type": "integration",
+            "title": "FCM Push Notification Integration",
+            "status": "READY",
+            "description": "As the Social Connect Service, I need to dispatch Firebase Cloud Messaging (FCM) in-app push notifications for users who prefer in-app alerts over WhatsApp."
+          },
+          {
+            "id": "PWA-13.03.01",
+            "type": "pwa",
+            "title": "Web PWA Live Order Notification Banner & Deep-Link",
+            "status": "READY",
+            "description": "Build order status notification bar in `web/` with deep-links to tracking screen `BUY-05`."
+          },
+          {
+            "id": "AND-13.03.01",
+            "type": "android",
+            "title": "Android Native FCM Order Notification Handler",
+            "status": "READY",
+            "description": "Build native Android FCM notification receiver opening real-time vehicle map tracking."
+          },
+          {
+            "id": "IOS-13.03.01",
+            "type": "ios",
+            "title": "iOS Native APNS Order Notification Handler",
+            "status": "READY",
+            "description": "Build native iOS APNS notification receiver opening live order status."
+          },
+          {
+            "id": "TEST-13.03.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test dispatching order update, verifying WhatsApp webhook simulation, and clicking live tracking link in PWA on `logikchain-test`."
+          },
+          {
+            "id": "OPS-13.03.01",
+            "type": "devops",
+            "title": "High-Volume Notification Queue DevOps",
+            "status": "READY",
+            "description": "Deploy Redis-backed queue in `social-connect-service` to buffer high-frequency order notifications during peak morning delivery dispatch windows."
+          },
+          {
+            "id": "DOC-13.03.01",
+            "type": "documentation",
+            "title": "Order Notification Flow Specs",
+            "status": "READY",
+            "description": "Document sequence diagrams for order lifecycle transitions and corresponding message payloads."
+          },
+          {
+            "id": "TEST-13.03.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/13-social/orderUpdate/` testing opt-out suppression."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-13.04",
+        "title": "Digital Bills, GST Invoices & Business Ownership Alerts",
+        "status": "READY",
+        "scope": "Automated delivery of PDF tax invoices, merchant bulk order bills, TDS deduction certificates, and business ownership notifications (daily payout confirmations, credit limit updates).",
+        "endpoints": "POST /api/v1/interaction/bill",
+        "stories": [
+          {
+            "id": "US-13.04.01",
+            "type": "user_journey",
+            "title": "US-13.04.01",
+            "status": "READY",
+            "description": "As a village merchant, I want wholesale purchase invoices and payment receipts sent to my WhatsApp as downloadable PDFs, so that I have instant digital records for my accounting and GST filings."
+          },
+          {
+            "id": "US-13.04.02",
+            "type": "user_journey",
+            "title": "US-13.04.02",
+            "status": "READY",
+            "description": "As a delivery driver or fleet supplier, I want daily earnings and payout confirmation alerts on WhatsApp, so that I am always updated on my business cash flow."
+          },
+          {
+            "id": "INT-13.04.01",
+            "type": "integration",
+            "title": "Finance & Payouts Service Integration",
+            "status": "READY",
+            "description": "As the Social Connect Service, I need to accept billing and payout notification requests from `finance-service` (:4009) and `payouts-service` (:4006)."
+          },
+          {
+            "id": "INT-13.04.02",
+            "type": "integration",
+            "title": "Firebase Cloud Storage Document Integration",
+            "status": "READY",
+            "description": "As the Social Connect Service, I need to validate that signed PDF document URLs hosted on Firebase Cloud Storage are accessible by Meta WhatsApp Cloud API servers for media attachment."
+          },
+          {
+            "id": "PWA-13.04.01",
+            "type": "pwa",
+            "title": "Web PWA Digital Bill & Invoice Archive",
+            "status": "READY",
+            "description": "Build digital bill repository and invoice download view in `web/` (`MER-07`, `SUP-08`) with \"Share via WhatsApp\" action."
+          },
+          {
+            "id": "AND-13.04.01",
+            "type": "android",
+            "title": "Android Native Bill & Payout Alert View",
+            "status": "READY",
+            "description": "Build native Android PDF bill viewer and payout confirmation dialog in `android/`."
+          },
+          {
+            "id": "IOS-13.04.01",
+            "type": "ios",
+            "title": "iOS Native Bill & Payout Alert View",
+            "status": "READY",
+            "description": "Build native iOS PDF invoice viewer and payout confirmation alert in `ios/`."
+          },
+          {
+            "id": "TEST-13.04.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright test generating PDF bill, invoking WhatsApp dispatch, and opening PDF attachment in PWA on `logikchain-test`."
+          },
+          {
+            "id": "OPS-13.04.01",
+            "type": "devops",
+            "title": "DevOps & Media Retention",
+            "status": "READY",
+            "description": "Configure Cloud Storage bucket lifecycle rules retaining WhatsApp-dispatched PDF bills for 7 years to meet statutory tax record requirements."
+          },
+          {
+            "id": "DOC-13.04.01",
+            "type": "documentation",
+            "title": "Billing Notification Specifications",
+            "status": "READY",
+            "description": "Document WhatsApp document message payload requirements, file size limits (max 100MB), and PDF metadata formatting."
+          },
+          {
+            "id": "TEST-13.04.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test `tests/bruno/13-social/sendBill/` verifying document attachment formatting."
+          }
+        ]
+      }
+    ]
+  }
+];
+
+  // Storage key for interactive browser mutations
+  const STORAGE_KEY = 'logikchain_work_management_state';
+
+  class WorkManagementStore {
+    constructor() {
+      this.baseline = JSON.parse(JSON.stringify(BASELINE_DATA));
+      this.data = this.loadState();
+      this.listeners = [];
+      this.serverOnline = false;
+      this.checkServerStatus();
+      this.initIndexedDB();
+    }
+
+    async checkServerStatus() {
+      try {
+        const resp = await fetch('http://127.0.0.1:3005/api/status', { method: 'GET', mode: 'cors' });
+        if (resp.ok) {
+          const d = await resp.json();
+          this.serverOnline = !!d.ok;
+        } else {
+          this.serverOnline = false;
+        }
+      } catch (e) {
+        this.serverOnline = false;
+      }
+      this.notify();
+      return this.serverOnline;
+    }
+
+    initIndexedDB() {
+      if (typeof indexedDB === 'undefined') return;
+      try {
+        const req = indexedDB.open('LogikchainWorkDB', 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('stateStore')) {
+            db.createObjectStore('stateStore');
+          }
+        };
+        req.onsuccess = (e) => {
+          const db = e.target.result;
+          try {
+            const tx = db.transaction('stateStore', 'readonly');
+            const getReq = tx.objectStore('stateStore').get('workState');
+            getReq.onsuccess = () => {
+              if (getReq.result) {
+                // If local storage was empty, restore from indexedDB
+                let hasLocal = false;
+                try { hasLocal = !!localStorage.getItem(STORAGE_KEY); } catch(err){}
+                if (!hasLocal) {
+                  this.data = this.mergeState(this.baseline, getReq.result);
+                  this.notify();
+                }
+              }
+            };
+          } catch(err) {}
+        };
+      } catch (e) {
+        console.warn('IndexedDB initialization skipped:', e);
+      }
+    }
+
+    loadState() {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            return this.mergeState(BASELINE_DATA, parsed);
+          }
+        }
+      } catch (e) {
+        console.warn('LocalStorage access restricted on file:/// protocol:', e);
+      }
+      return JSON.parse(JSON.stringify(BASELINE_DATA));
+    }
+
+    mergeState(baseline, overrides) {
+      const merged = JSON.parse(JSON.stringify(baseline));
+      if (!overrides || !Array.isArray(overrides)) return merged;
+
+      const overrideMap = new Map();
+      overrides.forEach(e => overrideMap.set(e.id, e));
+
+      merged.forEach(epic => {
+        const ovEpic = overrideMap.get(epic.id);
+        if (ovEpic) {
+          if (ovEpic.status) epic.status = ovEpic.status;
+          const featMap = new Map();
+          if (ovEpic.features) ovEpic.features.forEach(f => featMap.set(f.id, f));
+
+          epic.features.forEach(feat => {
+            const ovFeat = featMap.get(feat.id);
+            if (ovFeat) {
+              if (ovFeat.status) feat.status = ovFeat.status;
+              const storyMap = new Map();
+              if (ovFeat.stories) ovFeat.stories.forEach(s => storyMap.set(s.id, s));
+
+              feat.stories.forEach(story => {
+                const ovStory = storyMap.get(story.id);
+                if (ovStory && ovStory.status) story.status = ovStory.status;
+              });
+            }
+          });
+        }
+      });
+      return merged;
+    }
+
+    saveDraft() {
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+        }
+      } catch (e) {
+        console.warn('LocalStorage save failed (file:/// restriction):', e);
+      }
+
+      if (typeof indexedDB !== 'undefined') {
+        try {
+          const req = indexedDB.open('LogikchainWorkDB', 1);
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (db.objectStoreNames.contains('stateStore')) {
+              const tx = db.transaction('stateStore', 'readwrite');
+              tx.objectStore('stateStore').put(this.data, 'workState');
+            }
+          };
+        } catch (e) {}
+      }
+      this.notify();
+    }
+
+    async saveState(options = {}) {
+      this.saveDraft();
+      const serverUrl = options.serverUrl || 'http://127.0.0.1:3005';
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+        const resp = await fetch(serverUrl + '/api/save', {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ epics: this.data }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (resp.ok) {
+          const resData = await resp.json();
+          // Update in-memory baseline to match current data so diff is 0!
+          this.baseline = JSON.parse(JSON.stringify(this.data));
+          try {
+            if (typeof localStorage !== 'undefined') {
+              localStorage.removeItem(STORAGE_KEY);
+            }
+          } catch (e) {}
+          this.serverOnline = true;
+          this.notify();
+          return {
+            success: true,
+            savedToDisk: true,
+            updatedFiles: resData.updatedFiles || [],
+            timestamp: resData.timestamp
+          };
+        } else {
+          return {
+            success: true,
+            savedToDisk: false,
+            localOnly: true,
+            error: 'Server HTTP ' + resp.status
+          };
+        }
+      } catch (err) {
+        this.serverOnline = false;
+        return {
+          success: true,
+          savedToDisk: false,
+          localOnly: true,
+          error: err.message || 'Server connection failed'
+        };
+      }
+    }
+
+    resetToBaseline() {
+      this.data = JSON.parse(JSON.stringify(BASELINE_DATA));
+      this.baseline = JSON.parse(JSON.stringify(BASELINE_DATA));
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch (e) {}
+      if (typeof indexedDB !== 'undefined') {
+        try {
+          const req = indexedDB.open('LogikchainWorkDB', 1);
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            if (db.objectStoreNames.contains('stateStore')) {
+              const tx = db.transaction('stateStore', 'readwrite');
+              tx.objectStore('stateStore').delete('workState');
+            }
+          };
+        } catch (e) {}
+      }
+      this.notify();
+      return this.data;
+    }
+
+    hasUnsavedChanges() {
+      return this.exportMarkdownDiff().length > 0;
+    }
+
+    getEpics() {
+      return this.data;
+    }
+
+    getEpic(epicId) {
+      return this.data.find(e => e.id === epicId);
+    }
+
+    getFeature(featId) {
+      for (const epic of this.data) {
+        const feat = epic.features.find(f => f.id === featId);
+        if (feat) return { ...feat, epicId: epic.id, epicTitle: epic.title };
+      }
+      return null;
+    }
+
+    updateEpicStatus(epicId, newStatus) {
+      const epic = this.getEpic(epicId);
+      if (epic) {
+        epic.status = newStatus;
+        this.saveDraft();
+        return true;
+      }
+      return false;
+    }
+
+    updateFeatureStatus(featId, newStatus) {
+      for (const epic of this.data) {
+        const feat = epic.features.find(f => f.id === featId);
+        if (feat) {
+          feat.status = newStatus;
+          this.saveDraft();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    updateStoryStatus(storyId, newStatus) {
+      for (const epic of this.data) {
+        for (const feat of epic.features) {
+          const story = feat.stories.find(s => s.id === storyId);
+          if (story) {
+            story.status = newStatus;
+            this.saveDraft();
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    getStats() {
+      let totalEpics = this.data.length;
+      let totalFeatures = 0;
+      let totalStories = 0;
+      const statusCounts = {
+        DONE: 0,
+        IN_PROGRESS: 0,
+        READY: 0,
+        PLANNED: 0,
+        BLOCKED: 0
+      };
+
+      this.data.forEach(epic => {
+        epic.features.forEach(feat => {
+          totalFeatures++;
+          feat.stories.forEach(story => {
+            totalStories++;
+            statusCounts[story.status] = (statusCounts[story.status] || 0) + 1;
+          });
+        });
+      });
+
+      return { totalEpics, totalFeatures, totalStories, statusCounts };
+    }
+
+    exportMarkdownDiff() {
+      const patches = [];
+      const baseline = this.baseline || BASELINE_DATA;
+      this.data.forEach((epic) => {
+        const baseEpic = baseline.find(b => b.id === epic.id);
+        if (!baseEpic) return;
+        if (epic.status !== baseEpic.status) {
+          patches.push({ file: epic.mdFile, type: 'epic', id: epic.id, oldStatus: baseEpic.status, newStatus: epic.status });
+        }
+        epic.features.forEach((feat) => {
+          const baseFeat = baseEpic.features.find(bf => bf.id === feat.id);
+          if (baseFeat && feat.status !== baseFeat.status) {
+            patches.push({ file: epic.mdFile, type: 'feature', id: feat.id, oldStatus: baseFeat.status, newStatus: feat.status });
+          }
+          feat.stories.forEach((story) => {
+            const baseStory = baseFeat ? baseFeat.stories.find(bs => bs.id === story.id) : null;
+            if (baseStory && story.status !== baseStory.status) {
+              patches.push({ file: epic.mdFile, type: 'story', id: story.id, oldStatus: baseStory.status, newStatus: story.status });
+            }
+          });
+        });
+      });
+      return patches;
+    }
+
+    subscribe(listener) {
+      this.listeners.push(listener);
+      return () => {
+        this.listeners = this.listeners.filter(l => l !== listener);
+      };
+    }
+
+    notify() {
+      this.listeners.forEach(cb => {
+        try { cb(this.data); } catch (e) { console.error(e); }
+      });
+    }
+  }
+
+  window.WorkManagementStore = new WorkManagementStore();
+  window.WORK_MANAGEMENT_BASELINE = BASELINE_DATA;
+})(window);
