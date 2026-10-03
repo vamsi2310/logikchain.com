@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: logikchain-ingress
+  namespace: logikchain-backend
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, Idempotency-Key, X-Firebase-AppCheck, X-Client-Platform, X-Client-Version, X-Correlation-Id"
+spec:
+  tls:
+    - hosts:
+        - api.logikchain.com
+      secretName: logikchain-tls-cert
+  rules:
+    - host: api.logikchain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080

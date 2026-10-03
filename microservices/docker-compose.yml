@@ -1,0 +1,268 @@
+version: '3.8'
+
+# Common environment for all domain microservices performing independent Firebase syncs
+x-microservice-env: &service-env
+  NODE_ENV: development
+  GCLOUD_PROJECT: logikchain-dev
+  FIREBASE_STORAGE_BUCKET: logikchain-dev.appspot.com
+  SYNC_INTERVAL_MS: "2000"
+
+services:
+  # ─── CORE DATA INFRASTRUCTURE ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: logikchain-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./devops/scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: logikchain-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  # ─── API GATEWAY (SERVING PWA, ANDROID, IOS) ──────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.gateway
+    container_name: logikchain-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      NODE_ENV: development
+      ENFORCE_APP_CHECK: "false"
+      IDENTITY_SERVICE_URL: http://identity-service:4001
+      ORDERS_SERVICE_URL: http://orders-service:4002
+      GIGS_SERVICE_URL: http://gigs-service:4003
+      PAMPHLET_SERVICE_URL: http://pamphlet-service:4004
+      PAYMENTS_SERVICE_URL: http://payments-service:4005
+      PAYOUTS_SERVICE_URL: http://payouts-service:4006
+      CASH_SERVICE_URL: http://cash-service:4007
+      CREDIT_SERVICE_URL: http://credit-service:4008
+      FINANCE_SERVICE_URL: http://finance-service:4009
+      CONFIG_SERVICE_URL: http://config-service:4010
+      GOVERNANCE_SERVICE_URL: http://governance-service:4011
+    depends_on:
+      - identity-service
+      - orders-service
+      - gigs-service
+      - payments-service
+
+  # ─── DOMAIN MICROSERVICES (INDEPENDENT FIREBASE & STORAGE SYNCS) ───────────
+  identity-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: identity-service
+    container_name: logikchain-identity
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      <<: *service-env
+      PORT: 4001
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/identity_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  orders-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: orders-service
+    container_name: logikchain-orders
+    restart: unless-stopped
+    ports:
+      - "4002:4002"
+    environment:
+      <<: *service-env
+      PORT: 4002
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/orders_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  gigs-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: gigs-service
+    container_name: logikchain-gigs
+    restart: unless-stopped
+    ports:
+      - "4003:4003"
+    environment:
+      <<: *service-env
+      PORT: 4003
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/gigs_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  pamphlet-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: pamphlet-service
+    container_name: logikchain-pamphlet
+    restart: unless-stopped
+    ports:
+      - "4004:4004"
+    environment:
+      <<: *service-env
+      PORT: 4004
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/pamphlet_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  payments-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: payments-service
+    container_name: logikchain-payments
+    restart: unless-stopped
+    ports:
+      - "4005:4005"
+    environment:
+      <<: *service-env
+      PORT: 4005
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/payments_db
+      PSP_WEBHOOK_SECRET: dev_secret_key
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  payouts-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: payouts-service
+    container_name: logikchain-payouts
+    restart: unless-stopped
+    ports:
+      - "4006:4006"
+    environment:
+      <<: *service-env
+      PORT: 4006
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/payouts_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  cash-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: cash-service
+    container_name: logikchain-cash
+    restart: unless-stopped
+    ports:
+      - "4007:4007"
+    environment:
+      <<: *service-env
+      PORT: 4007
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/cash_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  credit-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: credit-service
+    container_name: logikchain-credit
+    restart: unless-stopped
+    ports:
+      - "4008:4008"
+    environment:
+      <<: *service-env
+      PORT: 4008
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/credit_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  finance-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: finance-service
+    container_name: logikchain-finance
+    restart: unless-stopped
+    ports:
+      - "4009:4009"
+    environment:
+      <<: *service-env
+      PORT: 4009
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/finance_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  config-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: config-service
+    container_name: logikchain-config
+    restart: unless-stopped
+    ports:
+      - "4010:4010"
+    environment:
+      <<: *service-env
+      PORT: 4010
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/config_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  governance-service:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: governance-service
+    container_name: logikchain-governance
+    restart: unless-stopped
+    ports:
+      - "4011:4011"
+    environment:
+      <<: *service-env
+      PORT: 4011
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/governance_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

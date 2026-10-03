@@ -1,7 +1,7 @@
 # EPIC-02: Gig Planning, Dispatch & Real-Time Logistics Execution
 
 ## Executive Summary
-EPIC-02 governs the multi-village rural logistics engine. A "Gig" is a planned delivery run connecting a supplier, an authorized driver/vehicle, a physical or digital catalog (Pamphlet), a predefined sequence of villages along a route, and scheduled merchant stops.
+EPIC-02 governs the multi-village rural logistics engine. A "Gig" is a planned delivery run connecting a supplier, an authorized driver, a **mandatory vehicle** (vehicleId + startDatetime form the canonical Gig document key), a predefined sequence of villages along a route, and scheduled merchant stops. Each Gig is backed by a **Pamphlet** — a dynamic stock manifest microservice that updates in real-time as stock loads, unloads, and delivers throughout the run.
 
 ---
 
@@ -185,3 +185,103 @@ Scenario: Supplier suspends gig due to vehicle breakdown
 - **Bruno API Test**: `tests/bruno/02-gigs/suspendGig/` and `reassignGigDriver/`.
 - **UI E2E Test**: `tests/e2e/supplier/gig-reassignment.spec.ts`.
 - **Unit Tests**: Order hold state mapper on gig suspension.
+
+---
+
+## FEAT-02.06: Gig Pamphlet — Dynamic Stock Manifest Microservice
+
+### 1. Hierarchy & Metadata
+- **Epic**: `EPIC-02`
+- **Feature ID**: `FEAT-02.06`
+- **Official Runtimes**: Supplier Web Console (`web/s/index.html`), Android Native (Driver), Web PWA (Buyer read-only), Functions
+- **Screens**: [SUP-04 Compose Gig](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-04), [DRV-03 Active Run](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Driver.md#DRV-03)
+- **Microservice Handler**: `handlers/pamphlet.ts` (separate Cloud Functions module, co-deployed with Gigs)
+- **Functions / APIs**:
+  - `POST /v1/pamphlets` (`createGigPamphlet`) — supplier creates manifest from their catalog
+  - `POST /v1/pamphlets/{pamphletId}/stock:load` (`loadStock`) — driver scans/confirms items loaded at warehouse
+  - `POST /v1/pamphlets/{pamphletId}/stock:unload` (`unloadStock`) — items returned / offloaded at a stop
+  - `PATCH /v1/pamphlets/{pamphletId}/stock/{itemId}` (`adjustStockItem`) — quantity correction by supplier
+  - `POST /v1/pamphlets/{pamphletId}/orders/{orderId}:link` (`linkOrderToPamphlet`) — called internally when an order is placed on an active gig
+  - `GET /v1/pamphlets/{pamphletId}` (`getPamphletSnapshot`) — full manifest at current point in time
+  - `POST /v1/pamphlets/{pamphletId}:close` (`closePamphlet`) — triggered by `completeAndFinalizeGig`; seals the manifest
+
+### 2. Document Key & Naming Convention
+
+```
+Firestore path:  /Pamphlets/{vehicleId}_{startDatetime}
+Example key:     VH-KA01AB1234_2026-10-05T06:30:00Z
+
+Sub-collections:
+  /Pamphlets/{id}/StockItems/{itemId}
+    { skuId, name, qtyLoaded, qtySold, qtyReturned, qtyAdjusted, unit, pricePerUnit }
+  /Pamphlets/{id}/LinkedOrders/{orderId}
+    { orderId, buyerId, merchantId, villageLgdCode, allocatedItems[], status }
+  /Pamphlets/{id}/StockEvents/{eventId}
+    { type: 'load'|'unload'|'adjust'|'link'|'close', delta, actorUid, serverTimestamp }
+```
+
+### 3. Business Value & Problem Statement
+Before this feature, the supplier's static Pamphlet (catalog) and the Gig's runtime stock were unlinked. Drivers had no live view of what remained in the vehicle, and buyers could not see whether their ordered item was still aboard. This microservice bridges the gap:
+- **Supplier** authors the catalog → generates a Pamphlet for the specific Gig
+- **Driver** confirms load at warehouse → each scan/confirmation updates `qtyLoaded`
+- **Orders** link in real-time → `qtySold` ticks up as deliveries are marked
+- **Returns** decrement sold, increment returned
+- **Buyers & Merchants** read `/Pamphlets/{id}` via `onSnapshot` for live stock visibility
+- **Close** seals the manifest when the Gig completes; immutable thereafter
+
+### 4. Users in Use Case
+- **Primary Actor**: Supplier Logistics Manager — creates and adjusts the manifest.
+- **Secondary Actor**: Driver — confirms load/unload events on Android.
+- **Observer**: Buyer, Merchant — read-only `onSnapshot` subscriber.
+
+### 5. Acceptance Criteria (Gherkin)
+
+```gherkin
+Scenario: Supplier creates a Gig Pamphlet from catalog
+  Given an authenticated supplier with an active pamphlet catalog "pmp_groceries_oct"
+  When supplier calls "POST /v1/pamphlets" with:
+    | gigId          | "gig_VH-KA01AB1234_2026-10-05T06:30:00Z" |
+    | vehicleId      | "VH-KA01AB1234"                           |
+    | startDatetime  | "2026-10-05T06:30:00Z"                    |
+    | sourcePamphlet | "pmp_groceries_oct"                       |
+  Then a Pamphlet document is created at "/Pamphlets/VH-KA01AB1234_2026-10-05T06:30:00Z"
+  And StockItems sub-collection is seeded from the source catalog
+  And status is "draft"
+
+Scenario: Driver loads stock at warehouse
+  Given gig "gig_VH-KA01AB1234_2026-10-05T06:30:00Z" in status "acknowledged"
+  When driver calls "POST /v1/pamphlets/VH-KA01AB1234_2026-10-05T06:30:00Z/stock:load" with:
+    | itemId  | "sku_rice_5kg" |
+    | qty     | 40             |
+  Then StockItem "sku_rice_5kg" field "qtyLoaded" becomes 40
+  And a StockEvent of type "load" is appended
+  And Pamphlet status transitions to "active"
+
+Scenario: Order links to Pamphlet on placement
+  Given an active pamphlet for gig "gig_VH-KA01AB1234_2026-10-05T06:30:00Z"
+  When buyer places an order for 2x "sku_rice_5kg" on this gig
+  Then "linkOrderToPamphlet" is called internally
+  And LinkedOrders sub-collection gains a new entry for this orderId
+  And StockItem "sku_rice_5kg" field "qtySold" increments by 2
+
+Scenario: Pamphlet is sealed on Gig completion
+  Given an active pamphlet for gig "gig_VH-KA01AB1234_2026-10-05T06:30:00Z"
+  When "completeAndFinalizeGig" is called
+  Then "closePamphlet" is triggered automatically
+  And Pamphlet status transitions to "closed"
+  And all subsequent write attempts to StockItems are rejected with 403 PAMPHLET_SEALED
+
+Scenario: Buyer reads live stock via onSnapshot
+  Given an active pamphlet with 38 units of "sku_rice_5kg" remaining
+  When buyer subscribes to "/Pamphlets/VH-KA01AB1234_2026-10-05T06:30:00Z" via Firestore onSnapshot
+  And driver unloads 5 units at a village
+  Then buyer's UI receives a real-time update showing 33 units remaining
+  And no Cloud Function is invoked for this read
+```
+
+### 6. Developer Test Plan & Mapping
+- **Bruno API Test**: `tests/bruno/02-gigs/pamphlet/createGigPamphlet/`, `loadStock/`, `unloadStock/`, `adjustStockItem/`, `getPamphletSnapshot/`, `closePamphlet/`.
+- **UI E2E Test**: `tests/e2e/supplier/pamphlet-compose.spec.ts`, `tests/e2e/driver/pamphlet-load.spec.ts`.
+- **Unit Tests**: Key generation (`vehicleId + startDatetime`), qty arithmetic (qtyLoaded ≥ qtySold + qtyReturned), sealed-manifest write rejection.
+- **Firestore Rules**: StockItems and StockEvents writable only by Functions; LinkedOrders writable only by the `linkOrderToPamphlet` function; read-only for buyers/merchants.
+- **Integration Tests**: `completeAndFinalizeGig` → `closePamphlet` trigger chain.

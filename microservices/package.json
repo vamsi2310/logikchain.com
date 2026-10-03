@@ -1,0 +1,18 @@
+{
+  "name": "logikchain-microservices-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Logikchain Microservices Backend with Database-Per-Service and Firestore/Storage Sync Engine",
+  "workspaces": [
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

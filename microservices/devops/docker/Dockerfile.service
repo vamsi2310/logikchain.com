@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1.4
+# Stage 1: Build
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copy root configurations and common package
+COPY packages/common/package.json ./packages/common/
+COPY packages/common/tsconfig.json ./packages/common/
+COPY packages/common/src ./packages/common/src/
+
+# Build @logikchain/common
+WORKDIR /app/packages/common
+RUN npm install && npm run build
+
+# Build target microservice (passed as build arg, e.g. orders-service)
+ARG SERVICE_NAME=orders-service
+WORKDIR /app/services/${SERVICE_NAME}
+COPY services/${SERVICE_NAME}/package.json ./
+COPY services/${SERVICE_NAME}/tsconfig.json ./
+COPY services/${SERVICE_NAME}/src ./src/
+
+# Install dependencies (link local common)
+RUN npm install && npm link /app/packages/common && npm run build
+
+# Stage 2: Production Runtime
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Security: Non-root user
+USER node
+
+ARG SERVICE_NAME=orders-service
+COPY --chown=node:node --from=builder /app/packages/common/dist /app/packages/common/dist
+COPY --chown=node:node --from=builder /app/packages/common/package.json /app/packages/common/package.json
+COPY --chown=node:node --from=builder /app/services/${SERVICE_NAME}/package.json ./
+COPY --chown=node:node --from=builder /app/services/${SERVICE_NAME}/dist ./dist
+
+# Install production dependencies only
+RUN npm install --omit=dev && npm link /app/packages/common
+
+EXPOSE 4000-4020
+
+CMD ["node", "dist/index.js"]

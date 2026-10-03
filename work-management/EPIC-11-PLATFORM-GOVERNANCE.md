@@ -1,45 +1,62 @@
 # EPIC-11: Platform Governance, Master Data Configuration & Ops Console
 
 ## Executive Summary
-EPIC-11 establishes foundational governance, master data structures, geo-spatial village configuration, crowd-sourced village coverage expansion, device push notifications, platform telemetry/health monitoring, and statutory privacy controls (GDPR / Indian DPDP Act data exports and deletion requests).
+EPIC-11 establishes foundational governance, master data structures, Google Maps-powered location services (Places Autocomplete & Geocoding API) for geo-spatial hierarchy resolution, crowd-sourced village coverage expansion, device push notifications, platform telemetry/health monitoring, and statutory privacy controls (GDPR / Indian DPDP Act data exports and deletion requests).
 
 ---
 
-## FEAT-11.01: Geographic Hierarchy Master Data Management
+## FEAT-11.01: Location Services via Google Maps
 
 ### 1. Hierarchy & Metadata
 - **Epic**: `EPIC-11`
 - **Feature ID**: `FEAT-11.01`
-- **Official Runtimes**: Support Ops Web Console (`web/x/index.html`), Functions
+- **Official Runtimes**: Support Ops Web Console (`web/x/index.html`), Web PWA (Buyer), Android Native, Functions
 - **Screens**: [SPT-11 Geo & Master Data](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md)
+- **External Integration**: Google Maps Platform — Places Autocomplete API, Geocoding API (server-side via Cloud Functions only; restricted API key)
 - **Functions / APIs**:
-  - `PUT /v1/config/countries/{countryId}` (`upsertCountry`)
-  - `PUT /v1/config/states/{stateId}` (`upsertState`)
-  - `PUT /v1/config/districts/{districtId}` (`upsertDistrict`)
-  - `PUT /v1/config/villages/{villageId}` (`upsertVillage`)
+  - `POST /v1/config/location:resolve` (`resolveLocation`) — server-side Geocoding lookup returning country→state→district→village hierarchy
+  - `POST /v1/config/location:autocomplete` (`autocompleteLocation`) — proxied Places Autocomplete for address input UIs
+  - `PUT /v1/config/villages/{villageId}` (`upsertVillage`) — pins a confirmed Google Maps result as an official service village
   - `PATCH /v1/config/{collection}/{recordId}:deactivate` (`deactivateConfigurationRecord`)
   - `GET /v1/config/catalog` (`listConfigurationCatalog`)
 
 ### 2. Business Value & Problem Statement
-Logikchain operates across rural administrative boundaries (Country $\rightarrow$ State $\rightarrow$ District $\rightarrow$ Mandal $\rightarrow$ Village/LGD code). Support administrators manage these boundaries to ensure route optimization and localized taxation.
+Previously, support admins had to manually create country, state, and district records via upsert APIs — error-prone and misaligned with real administrative boundaries. By delegating geographic hierarchy resolution to **Google Maps Places Autocomplete** and **Geocoding API** (server-side, Cloud Functions only), Logikchain ensures:
+- Accurate country→state→district hierarchy derived from authoritative geodata.
+- No manual upsert of country/state/district records by support staff.
+- Village records are pinned from confirmed Maps results, with LGD codes overlaid by support.
+- All Maps API calls are server-side to protect restricted API keys (never embedded in APK/PWA).
 
 ### 3. Acceptance Criteria (Gherkin)
 
 ```gherkin
-Scenario: Admin upserts country, state, district, and village records
+Scenario: Buyer inputs delivery address via autocomplete
+  Given an authenticated buyer on Web PWA or Android
+  When buyer types a partial address in the delivery field
+  Then the PWA/Android calls the Functions proxy "POST /v1/config/location:autocomplete"
+  And returns a ranked list of place suggestions from Google Maps Places API
+  And no Maps API key is exposed to the client
+
+Scenario: Support admin resolves and pins a new village
   Given an authenticated Support administrator
-  When submitting "PUT /v1/config/countries/country_in" with currency "INR" and mobilePrefix "+91"
-  And submitting "PUT /v1/config/states/state_ap" with countryId "country_in"
-  And submitting "PUT /v1/config/districts/dist_prakasam" with stateId "state_ap"
-  And submitting "PUT /v1/config/villages/vil_inkollu" with LGD code "592100" and GPS coordinates
-  Then all geographic hierarchy entities are stored and linked
-  And public clients can query them via "GET /v1/config/catalog?types[]=villages"
+  When admin submits "POST /v1/config/location:resolve" with a Google place_id
+  Then the function geocodes the place and returns country, state, district, and GPS coordinates
+  And admin confirms and calls "PUT /v1/config/villages/vil_inkollu" with the resolved data and LGD code "592100"
+  Then the village is stored and available via "GET /v1/config/catalog?types[]=villages"
+
+Scenario: Maps API key is never exposed to clients
+  Given any client runtime (Web PWA or Android)
+  When the client requests location autocomplete or geocoding
+  Then the request is routed through Cloud Functions
+  And the Google Maps API key is read from Secret Manager at runtime
+  And the raw key is never present in any APK or PWA bundle
 ```
 
 ### 4. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/11-config/upsertCountry/`, `upsertState/`, `upsertDistrict/`, `upsertVillage/`, `deactivateConfigurationRecord/`, and `listConfigurationCatalog/`.
-- **UI E2E Test**: `tests/e2e/support/geo-master-data.spec.ts`.
-- **Unit Tests**: Geo-coordinate polygon bounds check.
+- **Bruno API Test**: `tests/bruno/11-config/resolveLocation/`, `autocompleteLocation/`, `upsertVillage/`, `deactivateConfigurationRecord/`, `listConfigurationCatalog/`.
+- **UI E2E Test**: `tests/e2e/support/location-services.spec.ts`, `tests/e2e/buyer/address-autocomplete.spec.ts`.
+- **Unit Tests**: Maps API response → hierarchy mapping, Secret Manager key injection, restricted-key header validation.
+- **Security**: Verify Maps restricted API key is sourced from Secret Manager and absent from all client bundles.
 
 ---
 

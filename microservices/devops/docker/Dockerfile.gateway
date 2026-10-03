@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1.4
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+COPY packages/common/package.json ./packages/common/
+COPY packages/common/tsconfig.json ./packages/common/
+COPY packages/common/src ./packages/common/src/
+
+WORKDIR /app/packages/common
+RUN npm install && npm run build
+
+WORKDIR /app/services/gateway
+COPY services/gateway/package.json ./
+COPY services/gateway/tsconfig.json ./
+COPY services/gateway/src ./src/
+
+RUN npm install && npm link /app/packages/common && npm run build
+
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+ENV NODE_ENV=production
+USER node
+
+COPY --chown=node:node --from=builder /app/packages/common/dist /app/packages/common/dist
+COPY --chown=node:node --from=builder /app/packages/common/package.json /app/packages/common/package.json
+COPY --chown=node:node --from=builder /app/services/gateway/package.json ./
+COPY --chown=node:node --from=builder /app/services/gateway/dist ./dist
+
+RUN npm install --omit=dev && npm link /app/packages/common
+
+EXPOSE 8080
+
+CMD ["node", "dist/index.js"]
