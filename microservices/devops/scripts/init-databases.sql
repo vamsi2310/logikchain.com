@@ -12,6 +12,7 @@ CREATE DATABASE credit_db;
 CREATE DATABASE finance_db;
 CREATE DATABASE config_db;
 CREATE DATABASE governance_db;
+CREATE DATABASE social_connect_db;
 CREATE DATABASE sync_db;
 
 -- Grant privileges to default user
@@ -26,6 +27,7 @@ GRANT ALL PRIVILEGES ON DATABASE credit_db TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE finance_db TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE config_db TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE governance_db TO postgres;
+GRANT ALL PRIVILEGES ON DATABASE social_connect_db TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE sync_db TO postgres;
 
 \connect sync_db;

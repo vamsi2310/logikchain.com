@@ -426,6 +426,7 @@
     <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>GCP Services</div>
     <div class="legend-item"><div class="legend-dot" style="background:#e11d48"></div>Governance</div>
     <div class="legend-item"><div class="legend-dot" style="background:#0f766e"></div>Pamphlet</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#25d366"></div>Social Connect</div>
   </div>
 </header>
 
@@ -528,9 +529,28 @@ const NODES = [
       { name: 'proxy /v1/pamphlet · :4004', m: 'call' },
       { name: 'proxy /v1/payments · :4005', m: 'call' },
       { name: 'proxy /v1/cash · credit · etc', m: 'call' },
+      { name: 'proxy /v1/social · :4012', m: 'call' },
     ],
-    connects: ['identity', 'orders', 'gigs', 'pamphlet', 'payments', 'payouts', 'cash', 'credit', 'finance', 'config', 'governance'],
+    connects: ['identity', 'orders', 'gigs', 'pamphlet', 'payments', 'payouts', 'cash', 'credit', 'finance', 'config', 'governance', 'social-connect'],
     tags: ['Clients NEVER call services directly', 'port 8080', 'App Check perimeter firewall', 'Rate limiting (300/min)']
+  },
+
+  /* ── USER INTERACTION & SOCIAL MEDIA ORCHESTRATOR ── */
+  {
+    id: 'social-connect', x: 290, y: 150, w: 220, h: 320, color: '#25d366', layer: 'gateway',
+    icon: '💬', title: 'Social & Interaction', sub: 'social-connect-service · :4012',
+    desc: 'User interaction orchestrator within Gateway ingress. Serves WhatsApp for OTPs, signups/logins, order updates, PDF bills, and business ownership alerts. Reads user preferences from local social_connect_db before dispatching, and synchronizes preferences with Firebase Firestore.',
+    fns: [
+      { name: 'sendWhatsAppOTP', m: 'call' },
+      { name: 'sendOrderNotification', m: 'call' },
+      { name: 'sendBillOrInvoice', m: 'call' },
+      { name: 'sendOwnershipAlert', m: 'call' },
+      { name: 'updateNotificationPreference', m: 'call' },
+      { name: 'getNotificationPreference', m: 'call' },
+      { name: 'handleWhatsAppWebhook', m: 'webhook' },
+    ],
+    connects: ['api-gateway','firebase-core','identity','orders','finance','gcp-services'],
+    tags: ['social_connect_db','WhatsApp Cloud API','orchestrates OTPs & bills','local preference check','Firestore sync /NotificationPreferences']
   },
 
   /* ── FIREBASE CORE (CENTER HUB) ── */
@@ -777,6 +797,7 @@ const EDGES_DEF = [
   { from: 'api-gateway', to: 'finance',    label: 'proxy /v1/finance (:4009)', color: '#6366f1', dash: false },
   { from: 'api-gateway', to: 'config',     label: 'proxy /v1/config (:4010)', color: '#6366f1', dash: false },
   { from: 'api-gateway', to: 'governance', label: 'proxy /v1/governance (:4011)', color: '#6366f1', dash: false },
+  { from: 'api-gateway', to: 'social-connect', label: 'proxy /v1/social & interaction (:4012)', color: '#25d366', dash: false },
 
   /* 4. Microservices → Firebase Core (Independent Periodic Sync) */
   { from: 'orders',     to: 'firebase-core', label: 'independent periodic sync · Orders', color: '#d97706', dash: true },
@@ -790,8 +811,12 @@ const EDGES_DEF = [
   { from: 'finance',    to: 'firebase-core', label: 'independent periodic sync · Reconciliations', color: '#d97706', dash: true },
   { from: 'config',     to: 'firebase-core', label: 'independent periodic sync · Villages', color: '#d97706', dash: true },
   { from: 'governance', to: 'firebase-core', label: 'independent periodic sync · AuditLogs', color: '#d97706', dash: true },
+  { from: 'social-connect', to: 'firebase-core', label: 'independent periodic sync · NotificationPreferences', color: '#25d366', dash: true },
 
   /* 5. Cross-domain interactions */
+  { from: 'social-connect', to: 'identity',   label: 'signup & login OTPs', color: '#25d366', dash: false },
+  { from: 'orders',   to: 'social-connect', label: 'order updates & delivery OTPs', color: '#25d366', dash: false },
+  { from: 'finance',  to: 'social-connect', label: 'PDF bills & invoices', color: '#25d366', dash: false },
   { from: 'orders',   to: 'gigs',     label: 'order on gig', color: '#64748b', dash: true },
   { from: 'gigs',     to: 'pamphlet', label: 'stock load / unload / close', color: '#0f766e', dash: false },
   { from: 'orders',   to: 'pamphlet', label: 'link order to manifest', color: '#0f766e', dash: true },
@@ -1224,7 +1249,8 @@ function openDetail(n) {
     'pwa':'PWA',
     'android':'Android',
     'ios':'iOS',
-    'governance':'Governance' 
+    'governance':'Governance',
+    'social-connect':'Social & Interaction'
   };
 
   body.innerHTML = `

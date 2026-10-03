@@ -1,0 +1,2206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logikchain — Work Management Dependency Graph & Execution Matrix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --surface: #0f172a;
+      --surface-elevated: #1e293b;
+      --surface-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      
+      /* Tier Colors */
+      --tier-0: #64748b; /* Foundation */
+      --tier-1: #8b5cf6; /* Identity & Interaction */
+      --tier-2: #06b6d4; /* Fleet Logistics & Inventory */
+      --tier-3: #ec4899; /* Commerce & Credit */
+      --tier-4: #f59e0b; /* Custody & Payouts */
+      --tier-5: #10b981; /* Governance & Ledger */
+
+      --whatsapp: #25d366;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius: 12px;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+    }
+
+    /* ─── APP HEADER ────────────────────────────────────────── */
+    header {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 70px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-badge {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35);
+    }
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-text h1 span {
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ─── TABS ─────────────────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #090d16;
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+    }
+
+    /* ─── HEADER ACTIONS ───────────────────────────────────── */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-box {
+      position: relative;
+      width: 220px;
+    }
+    .search-box input {
+      width: 100%;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 6px 12px 6px 32px;
+      color: #fff;
+      font-size: 12px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+      width: 260px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px; top: 8px;
+      font-size: 12px;
+      color: var(--text-faint);
+    }
+    .btn-action {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ─── TIER STATUS BAR ──────────────────────────────────── */
+    .tier-bar {
+      position: absolute;
+      top: 70px; left: 0; right: 0;
+      height: 38px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 90;
+      font-size: 11px;
+    }
+    .tier-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .tier-item:hover { opacity: 1; }
+    .tier-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ─── CANVAS & GRAPH CONTAINER ─────────────────────────── */
+    #canvas-container {
+      position: absolute;
+      top: 108px; bottom: 0; left: 0; right: 0;
+      overflow: hidden;
+      cursor: grab;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px, 10px 10px;
+      background-position: 0 0, 20px 20px;
+    }
+    #canvas-container:active { cursor: grabbing; }
+
+    #world {
+      position: absolute;
+      top: 0; left: 0;
+      transform-origin: 0 0;
+      width: 4000px;
+      height: 3000px;
+      pointer-events: none;
+    }
+
+    svg#edges {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* ─── EPIC & FEATURE CARDS ─────────────────────────────── */
+    .node-card {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      padding: 14px 16px;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s, border-color 0.2s;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .node-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--node-color, var(--accent));
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(var(--node-rgb, 56, 189, 248), 0.25);
+      z-index: 30;
+    }
+    .node-card.highlight-target {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.4), 0 12px 30px rgba(0, 0, 0, 0.8) !important;
+    }
+    .node-card.highlight-prereq {
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.4), 0 12px 30px rgba(0, 0, 0, 0.8) !important;
+    }
+    .node-card.highlight-dependent {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4), 0 12px 30px rgba(0, 0, 0, 0.8) !important;
+    }
+    .node-card.dimmed {
+      opacity: 0.25;
+      filter: grayscale(0.6);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .epic-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--node-color, var(--text-main));
+      border: 1px solid var(--node-color, rgba(255, 255, 255, 0.15));
+    }
+    .tier-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .service-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .service-meta .pill {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .feat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 8px;
+    }
+    .feat-item {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .feat-item span.feat-code {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 8px;
+      font-size: 10px;
+      color: var(--text-faint);
+    }
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-badge strong {
+      color: var(--text-main);
+    }
+
+    /* ─── DETAIL SIDEBAR ───────────────────────────────────── */
+    #detail-panel {
+      position: absolute;
+      top: 108px; bottom: 0; right: 0;
+      width: 440px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid var(--surface-border);
+      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.6);
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 150;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #detail-panel.open {
+      transform: translateX(0);
+    }
+    .dp-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .dp-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dp-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .dp-content {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .dp-section h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dp-dep-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .dp-dep-tag:hover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.15);
+      color: #fff;
+    }
+    .dp-dep-tag.prereq { border-left: 3px solid #f59e0b; }
+    .dp-dep-tag.dependent { border-left: 3px solid #10b981; }
+
+    /* ─── ROADMAP & CIRCUIT BREAKER OVERLAYS ────────────────── */
+    .view-overlay {
+      position: absolute;
+      top: 108px; bottom: 0; left: 0; right: 0;
+      background: var(--bg);
+      z-index: 50;
+      overflow-y: auto;
+      padding: 32px 48px;
+      display: none;
+    }
+    .view-overlay.active { display: block; }
+
+    /* Roadmap Timeline */
+    .timeline-container {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .phase-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .phase-badge {
+      min-width: 90px;
+      height: 90px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+    }
+    .phase-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .phase-title { font-size: 10px; text-transform: uppercase; color: var(--text-faint); font-weight: 700; }
+    .phase-body { flex: 1; }
+    .phase-body h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .phase-body p { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
+    .phase-epics { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    /* Circuit Breaker Cards */
+    .cb-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .cb-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-left: 4px solid var(--danger);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .cb-card h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .cb-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .cb-code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: #f43f5e;
+      border: 1px solid rgba(244, 63, 94, 0.2);
+    }
+
+    /* Matrix Table */
+    .table-container {
+      max-width: 1300px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    table.matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    table.matrix-table th {
+      background: rgba(30, 41, 59, 0.8);
+      padding: 12px 16px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--surface-border);
+    }
+    table.matrix-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+    table.matrix-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ─── CONTROLS HUD ─────────────────────────────────────── */
+    .hud-controls {
+      position: absolute;
+      bottom: 24px; left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 90;
+    }
+    .hud-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      transition: all 0.15s;
+    }
+    .hud-btn:hover {
+      background: var(--surface-elevated);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Edge Tooltip */
+    #edge-tip {
+      position: absolute;
+      padding: 6px 12px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #fff;
+      pointer-events: none;
+      z-index: 200;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ─── HAPPY PATH GOLDEN GLOW & ACTIVE NODES ─────────────── */
+    .node-card.golden-active {
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 35px rgba(251, 191, 36, 0.7), 0 0 70px rgba(245, 158, 11, 0.35) !important;
+      transform: scale(1.05) !important;
+      z-index: 60 !important;
+      animation: goldPulse 1.8s infinite alternate ease-in-out;
+    }
+    @keyframes goldPulse {
+      0% { box-shadow: 0 0 25px rgba(251, 191, 36, 0.5); }
+      100% { box-shadow: 0 0 45px rgba(251, 191, 36, 0.95); }
+    }
+    svg#edges path.edge-golden {
+      stroke: #fbbf24 !important;
+      stroke-width: 4px !important;
+      stroke-dasharray: 8 4;
+      animation: flowEdge 0.8s linear infinite;
+    }
+    @keyframes flowEdge {
+      from { stroke-dashoffset: 24; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* ─── FLOATING HAPPY PATH HUD PLAYER ─────────────────────── */
+    #happy-path-player {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 30px rgba(245, 158, 11, 0.25);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 16px 24px;
+      z-index: 150;
+      display: none;
+      max-width: 840px;
+      width: calc(100% - 48px);
+      flex-direction: column;
+      gap: 10px;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #happy-path-player.active { display: flex; }
+    @keyframes slideUp {
+      from { transform: translate(-50%, 40px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .hp-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .hp-stage-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hp-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .hp-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .hp-progress-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .hp-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      transition: width 0.3s ease;
+    }
+    .hp-narrative {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .hp-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .hp-chip {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #f8fafc;
+    }
+    .hp-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .hp-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hp-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .hp-btn:hover {
+      border-color: #f59e0b;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .hp-btn.primary {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #090d16;
+      border: none;
+      font-weight: 700;
+    }
+    .hp-btn.primary:hover {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+    }
+
+    /* ─── STORYBOARD OVERLAY ────────────────────────────────── */
+    .storyboard-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .stage-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      gap: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      border-left: 5px solid #f59e0b;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stage-card:hover {
+      border-color: #fbbf24;
+      transform: translateY(-2px);
+    }
+    .stage-badge-box {
+      min-width: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      gap: 8px;
+    }
+    .stage-pill {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .stage-num-big {
+      font-size: 32px;
+      font-weight: 800;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+    }
+    .stage-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .stage-content h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stage-actor-tag {
+      font-size: 11px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .stage-narrative {
+      font-size: 13.5px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .stage-grid-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .stage-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .stage-meta-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-faint);
+    }
+    .stage-meta-val {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+    }
+    .stage-focus-btn {
+      align-self: flex-start;
+      margin-top: 4px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .stage-focus-btn:hover {
+      background: #f59e0b;
+      color: #090d16;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="logo-badge">LC</div>
+      <div class="brand-text">
+        <h1>Logikchain <span>Dependency Graph</span></h1>
+        <p>Microservices Work Management Traceability & Execution Gates</p>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchView('epic-dag')">🏛️ Epic DAG</button>
+      <button class="tab-btn" onclick="switchView('happy-path')">🌟 Happy Path (100% Coverage)</button>
+      <button class="tab-btn" onclick="switchView('feature-clusters')">🔬 Feature Clusters</button>
+      <button class="tab-btn" onclick="switchView('roadmap')">🚀 Critical Path Roadmap</button>
+      <button class="tab-btn" onclick="switchView('circuit-breakers')">🛡️ Circuit Breakers</button>
+      <button class="tab-btn" onclick="switchView('matrix')">📋 Traceability Matrix</button>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-action" style="border-color:#f59e0b; color:#fbbf24; font-weight:700;" onclick="startHappyPathWalkthrough()" title="Interactive step-by-step DAG walkthrough">✨ Play Golden Path</button>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Filter Epic, Feature or Port..." oninput="handleSearch(this.value)">
+      </div>
+      <button class="btn-action" onclick="resetHighlight()">🔄 Reset</button>
+      <button class="btn-action" onclick="fitView()">⊙ Fit</button>
+    </div>
+  </header>
+
+  <!-- TIER BAR -->
+  <div class="tier-bar" id="tierBar">
+    <div class="tier-item" onclick="filterTier(0)"><div class="tier-dot" style="background:var(--tier-0)"></div>Tier 0: Foundation</div>
+    <div class="tier-item" onclick="filterTier(1)"><div class="tier-dot" style="background:var(--tier-1)"></div>Tier 1: Identity & Interaction</div>
+    <div class="tier-item" onclick="filterTier(2)"><div class="tier-dot" style="background:var(--tier-2)"></div>Tier 2: Fleet & Manifest</div>
+    <div class="tier-item" onclick="filterTier(3)"><div class="tier-dot" style="background:var(--tier-3)"></div>Tier 3: Commerce & Credit</div>
+    <div class="tier-item" onclick="filterTier(4)"><div class="tier-dot" style="background:var(--tier-4)"></div>Tier 4: Custody & Payouts</div>
+    <div class="tier-item" onclick="filterTier(5)"><div class="tier-dot" style="background:var(--tier-5)"></div>Tier 5: Governance & Ledger</div>
+  </div>
+
+  <!-- CANVAS FOR EPIC DAG -->
+  <div id="canvas-container">
+    <div id="world">
+      <svg id="edges"></svg>
+      <div id="nodes-container"></div>
+    </div>
+  </div>
+
+  <!-- HAPPY PATH STORYBOARD OVERLAY -->
+  <div class="view-overlay" id="overlay-happy-path">
+    <div class="storyboard-container">
+      <div style="text-align:center; margin-bottom: 24px;">
+        <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245,158,11,0.3); padding:4px 14px; border-radius:20px; color:#fbbf24; font-size:12px; font-weight:700; margin-bottom:12px;">
+          ✨ End-to-End Master Execution Traceability
+        </div>
+        <h2 style="font-size:26px; font-weight:800; margin-bottom:8px; color:#fff;">The Master "Golden Path" Lifecycle</h2>
+        <p style="color:var(--text-muted); font-size:14px; max-width:780px; margin:0 auto; line-height:1.6;">
+          One end-to-end operational journey covering <strong style="color:#fbbf24;">100% of all 13 Epics</strong> and their core features in strict prerequisite dependency order — from Day 0 geocoding to citizen WhatsApp signup, fleet dispatch, dual commerce ordering, CoD custody, driver payouts, and nightly 01:00 AM double-entry reconciliation.
+        </p>
+        <div style="margin-top:18px; display:flex; justify-content:center; gap:12px;">
+          <button class="hp-btn primary" style="padding:10px 22px; font-size:13px;" onclick="startHappyPathWalkthrough()">▶ Launch Interactive DAG Player</button>
+        </div>
+      </div>
+
+      <div id="storyboardList" style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Dynamically populated by renderHappyPathStoryboard() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ROADMAP OVERLAY -->
+  <div class="view-overlay" id="overlay-roadmap">
+    <div class="timeline-container">
+      <div style="text-align:center; margin-bottom: 24px;">
+        <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Execution Critical Path & Sequential Milestones</h2>
+        <p style="color:var(--text-muted); font-size:14px;">Logikchain rollout phased across 6 strictly ordered prerequisite gates.</p>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge"><span class="phase-num">00</span><span class="phase-title">Foundation</span></div>
+        <div class="phase-body">
+          <h3>Phase 0: Foundation Enablers & Ingress Perimeter</h3>
+          <p>Deploy master configuration, Google Maps geocoding registry, unified API Gateway perimeter security, and the bidirectional PostgreSQL-Firestore CDC sync engine.</p>
+          <div class="phase-epics">
+            <span class="epic-badge" style="--node-color:var(--tier-0)">EPIC-10: Config & Geo-Hierarchy</span>
+            <span class="epic-badge" style="--node-color:var(--tier-0)">EPIC-12: API Gateway & CDC Sync</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge"><span class="phase-num">01</span><span class="phase-title">Identity</span></div>
+        <div class="phase-body">
+          <h3>Phase 1: Identity, Social Interaction & WhatsApp OTP</h3>
+          <p>Orchestrate WhatsApp Business OTP verification, phone number authentication, custom claims bootstrap, and user notification preference management.</p>
+          <div class="phase-epics">
+            <span class="epic-badge" style="--node-color:var(--whatsapp)">EPIC-13: Social Connect & WhatsApp</span>
+            <span class="epic-badge" style="--node-color:var(--tier-1)">EPIC-01: Identity & Role Lifecycle</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge"><span class="phase-num">02</span><span class="phase-title">Logistics</span></div>
+        <div class="phase-body">
+          <h3>Phase 2: Fleet Dispatch Scheduling & Dynamic Inventory Manifest</h3>
+          <p>Automate vehicle-keyed delivery runs ({vehicleId}_{startDatetime}), warehouse physical loading gate checks, and driver GPS background telemetry.</p>
+          <div class="phase-epics">
+            <span class="epic-badge" style="--node-color:var(--tier-2)">EPIC-03: Gig Logistics & Routing</span>
+            <span class="epic-badge" style="--node-color:var(--tier-2)">EPIC-04: Pamphlet Stock Manifest</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge"><span class="phase-num">03</span><span class="phase-title">Commerce</span></div>
+        <div class="phase-body">
+          <h3>Phase 3: Commerce Fulfillment, UPI Payments & B2B Credit</h3>
+          <p>Enable buyer grocery ordering, UPI intent pay-in, merchant bulk wholesale restocking, and real-time revolving credit line holds.</p>
+          <div class="phase-epics">
+            <span class="epic-badge" style="--node-color:var(--tier-3)">EPIC-08: Merchant Credit & Limits</span>
+            <span class="epic-badge" style="--node-color:var(--tier-3)">EPIC-05: Payments & UPI Ingress</span>
+            <span class="epic-badge" style="--node-color:var(--tier-3)">EPIC-02: Orders & Commerce Fulfillment</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge"><span class="phase-num">04</span><span class="phase-title">Custody</span></div>
+        <div class="phase-body">
+          <h3>Phase 4: Field Cash Custody & Cloud Tasks Banking Disbursements</h3>
+          <p>Record CoD cash collections, 6-digit OTP driver-cashier handovers, and rate-limited KMS-encrypted bank transfers for driver earnings.</p>
+          <div class="phase-epics">
+            <span class="epic-badge" style="--node-color:var(--tier-4)">EPIC-07: Cash Management & Custody</span>
+            <span class="epic-badge" style="--node-color:var(--tier-4)">EPIC-06: Payouts & Disbursements</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phase-card">
+        <div class="phase-badge"><span class="phase-num">05</span><span class="phase-title">Governance</span></div>
+        <div class="phase-body">
+          <h3>Phase 5: Financial Ledger, Nightly Bank Reconciliation & TPAP AML</h3>
+          <p>Immutable double-entry platform ledger, 01:00 AM automated three-way bank reconciliation, Section 194C/194O TDS registers, and NPCI regulatory reporting.</p>
+          <div class="phase-epics">
+            <span class="epic-badge" style="--node-color:var(--tier-5)">EPIC-11: Platform Governance & AML</span>
+            <span class="epic-badge" style="--node-color:var(--tier-5)">EPIC-09: Financial Ledger & Tax</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CIRCUIT BREAKERS OVERLAY -->
+  <div class="view-overlay" id="overlay-circuit-breakers">
+    <div style="max-width:1200px; margin: 0 auto; text-align:center; margin-bottom: 32px;">
+      <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Critical Operational Gates & Circuit Breakers</h2>
+      <p style="color:var(--text-muted); font-size:14px;">Strict automated system blocks preventing financial losses and custody violations.</p>
+    </div>
+
+    <div class="cb-grid">
+      <div class="cb-card">
+        <h3>💰 Payout Custody Gate</h3>
+        <p>A delivery driver <strong>cannot</strong> request or receive payout disbursements if there is an unresolved cash custody discrepancy.</p>
+        <div class="cb-code">BLOCK: payouts-service checks cash-service (discrepancies > 0) -> 403 CASH_DISCREPANCY_UNRESOLVED</div>
+        <p style="font-size:11px; color:var(--text-faint)">Enforces: Zero cash leakage before driver wallet settlement.</p>
+      </div>
+
+      <div class="cb-card">
+        <h3>🚚 Vehicle Departure Gate</h3>
+        <p>A driver <strong>cannot</strong> start route navigation or stream GPS location until the warehouse loading manifest is sealed.</p>
+        <div class="cb-code">BLOCK: gigs-service checks pamphlet-service (status != 'sealed') -> 400 MANIFEST_UNSEALED</div>
+        <p style="font-size:11px; color:var(--text-faint)">Enforces: Physical stock custody transfer verification before road transit.</p>
+      </div>
+
+      <div class="cb-card">
+        <h3>📊 Merchant Credit Headroom Gate</h3>
+        <p>A merchant <strong>cannot</strong> place a wholesale bulk order on credit unless available headroom exceeds order amount.</p>
+        <div class="cb-code">BLOCK: orders-service two-phase hold to credit-service -> 402 INSUFFICIENT_CREDIT_LIMIT</div>
+        <p style="font-size:11px; color:var(--text-faint)">Enforces: Atomic headroom reservation with zero phantom debt.</p>
+      </div>
+
+      <div class="cb-card">
+        <h3>🛡️ Zero-Trust Perimeter Gate</h3>
+        <p>Microservices <strong>never</strong> accept un-attested public client traffic; all calls must carry App Check + Bearer tokens.</p>
+        <div class="cb-code">BLOCK: API Gateway validates Play Integrity / DeviceCheck / reCAPTCHA -> 401 APP_CHECK_FAILED</div>
+        <p style="font-size:11px; color:var(--text-faint)">Enforces: Complete isolation of internal VPC and PostgreSQL databases.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATRIX OVERLAY -->
+  <div class="view-overlay" id="overlay-matrix">
+    <div style="max-width:1300px; margin: 0 auto; text-align:center; margin-bottom: 24px;">
+      <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Comprehensive Feature Dependency Matrix</h2>
+      <p style="color:var(--text-muted); font-size:14px;">Detailed technical dependency and consumer mapping across all 35+ platform features.</p>
+    </div>
+
+    <div class="table-container">
+      <table class="matrix-table" id="matrixTable">
+        <thead>
+          <tr>
+            <th>Feature ID</th>
+            <th>Feature Name</th>
+            <th>Bound Microservice</th>
+            <th>Hard Pre-requisites</th>
+            <th>Downstream Consumers</th>
+          </tr>
+        </thead>
+        <tbody id="matrixTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DETAIL SIDEBAR -->
+  <div id="detail-panel">
+    <div class="dp-header">
+      <div>
+        <span class="epic-badge" id="dp-badge">EPIC-01</span>
+        <h3 id="dp-title" style="font-size:18px; font-weight:800; margin-top:6px;">Identity & Auth</h3>
+        <p id="dp-sub" style="font-size:12px; color:var(--text-muted); font-family:var(--font-mono);"></p>
+      </div>
+      <button class="dp-close" onclick="closeDetail()">✕</button>
+    </div>
+
+    <div class="dp-content">
+      <div class="dp-section">
+        <h4>Overview</h4>
+        <p id="dp-desc" style="font-size:13px; line-height:1.6; color:var(--text-muted);"></p>
+      </div>
+
+      <div class="dp-section">
+        <h4>Prerequisites (Must Be Built First)</h4>
+        <div id="dp-prereqs"></div>
+      </div>
+
+      <div class="dp-section">
+        <h4>Dependents (Blocked Until This Is Ready)</h4>
+        <div id="dp-dependents"></div>
+      </div>
+
+      <div class="dp-section">
+        <h4>Constituent Features</h4>
+        <div id="dp-features" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+
+      <div class="dp-section">
+        <h4>Operational Metadata</h4>
+        <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted); display:flex; flex-direction:column; gap:4px;">
+          <div>Service: <span id="dp-service" style="color:var(--text-main)"></span></div>
+          <div>Port: <span id="dp-port" style="color:var(--accent)"></span></div>
+          <div>Database: <span id="dp-db" style="color:var(--text-main)"></span></div>
+          <div>Firestore Mirror: <span id="dp-firestore" style="color:#d97706"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING HAPPY PATH PLAYER HUD -->
+  <div id="happy-path-player">
+    <div class="hp-top-row">
+      <div class="hp-stage-indicator">
+        <span class="hp-badge" id="hpPlayerBadge">Stage 1 of 10</span>
+        <span class="hp-title" id="hpPlayerTitle">Day Zero Bootstrap & Master Geo-Hierarchy</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="hp-btn" onclick="switchView('happy-path')" title="Open detailed storyboard">📋 View Storyboard</button>
+        <button class="hp-btn" onclick="exitHappyPathPlayer()" title="Exit walkthrough" style="padding:4px 10px;">✕</button>
+      </div>
+    </div>
+
+    <div class="hp-progress-track">
+      <div class="hp-progress-fill" id="hpPlayerProgress" style="width: 10%;"></div>
+    </div>
+
+    <div class="hp-narrative" id="hpPlayerNarrative">
+      System seed: India master hierarchy (State-District-Village) geocoded via Google Maps. API Gateway boots zero-trust App Check firewall, and CDC sync engine streams initial config to Firestore.
+    </div>
+
+    <div class="hp-chips" id="hpPlayerChips">
+      <!-- Chips for active epics and features -->
+    </div>
+
+    <div class="hp-controls-row">
+      <div style="font-size:11px; color:var(--text-faint); font-family:var(--font-mono);">
+        Active Nodes: <span id="hpPlayerNodes" style="color:#fbbf24; font-weight:700;">EPIC-10, EPIC-12</span>
+      </div>
+      <div class="hp-btn-group">
+        <button class="hp-btn" onclick="goToHappyPathStep(0)" title="Jump to start">⏮ Start</button>
+        <button class="hp-btn" onclick="prevHappyPathStep()" title="Previous stage">◀ Prev</button>
+        <button class="hp-btn primary" id="hpPlayPauseBtn" onclick="toggleHappyPathAutoplay()">⏸ Pause</button>
+        <button class="hp-btn" onclick="nextHappyPathStep()" title="Next stage">Next ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD ZOOM CONTROLS -->
+  <div class="hud-controls">
+    <button class="hud-btn" onclick="zoom(0.2)" title="Zoom In">+</button>
+    <button class="hud-btn" onclick="fitView()" title="Fit Center">⊙</button>
+    <button class="hud-btn" onclick="zoom(-0.2)" title="Zoom Out">−</button>
+  </div>
+
+  <!-- TOOLTIP -->
+  <div id="edge-tip"></div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // ─── DATA STORE ──────────────────────────────────────────────────────────
+    const EPICS_DATA = [
+      {
+        id: 'EPIC-10',
+        title: 'Platform Config & Geo-Hierarchy',
+        service: 'config-service',
+        port: 4010,
+        db: 'config_db',
+        tier: 0,
+        color: '#64748b',
+        colorRgb: '100, 116, 139',
+        icon: '⚙️',
+        x: 350, y: 80, w: 260, h: 220,
+        desc: 'Master spatial hierarchy (Country-State-District-Village), Google Maps Geocoding & Places APIs, SaaS subscription plans, and statutory GST/TDS tax profiles.',
+        firestore: '/Villages, /SubscriptionPlans',
+        features: [
+          { code: 'FEAT-10.01', name: 'Google Maps Geo-Hierarchy' },
+          { code: 'FEAT-10.02', name: 'Subscription Plans & Tariffs' },
+          { code: 'FEAT-10.03', name: 'Tax Profiles & TDS Rules' },
+        ],
+        prereqs: [],
+        dependents: ['EPIC-01', 'EPIC-03', 'EPIC-02', 'EPIC-09']
+      },
+      {
+        id: 'EPIC-12',
+        title: 'API Gateway & Sync Engine',
+        service: 'gateway & sync-engine',
+        port: '8080 / 4050',
+        db: 'sync_db',
+        tier: 0,
+        color: '#6366f1',
+        colorRgb: '99, 102, 241',
+        icon: '🛡️',
+        x: 850, y: 80, w: 260, h: 220,
+        desc: 'Central perimeter proxy, Firebase App Check attestation (reCAPTCHA, Play Integrity, DeviceCheck), and bidirectional PostgreSQL-Firestore CDC outbox replication.',
+        firestore: '/outbox_mobile/ (Inbound)',
+        features: [
+          { code: 'FEAT-12.01', name: 'API Gateway Routing' },
+          { code: 'FEAT-12.02', name: 'App Check Zero-Trust' },
+          { code: 'FEAT-12.03', name: 'PostgreSQL-Firestore CDC' },
+          { code: 'FEAT-12.04', name: 'Storage Media Sync' },
+        ],
+        prereqs: [],
+        dependents: ['EPIC-01', 'EPIC-13', 'EPIC-03', 'EPIC-05']
+      },
+      {
+        id: 'EPIC-01',
+        title: 'Identity & Role Lifecycle',
+        service: 'identity-service',
+        port: 4001,
+        db: 'identity_db',
+        tier: 1,
+        color: '#8b5cf6',
+        colorRgb: '139, 92, 246',
+        icon: '🪪',
+        x: 400, y: 360, w: 260, h: 230,
+        desc: 'Phone verification, custom claims lifecycle { role, status, officialClient }, progressive buyer elevation to merchant/driver, and platform suspensions.',
+        firestore: '/UserProfiles/{uid}',
+        features: [
+          { code: 'FEAT-01.01', name: 'Phone Auth & Claims Bootstrap' },
+          { code: 'FEAT-01.02', name: 'Supplier Org Provisioning' },
+          { code: 'FEAT-01.03', name: 'Progressive Role Handoff' },
+          { code: 'FEAT-01.04', name: 'Account Suspension Lifecycle' },
+        ],
+        prereqs: ['EPIC-10', 'EPIC-12'],
+        dependents: ['EPIC-13', 'EPIC-03', 'EPIC-08', 'EPIC-05', 'EPIC-02', 'EPIC-06', 'EPIC-11']
+      },
+      {
+        id: 'EPIC-13',
+        title: 'Social Connect & WhatsApp',
+        service: 'social-connect-service',
+        port: 4012,
+        db: 'social_connect_db',
+        tier: 1,
+        color: '#25d366',
+        colorRgb: '37, 211, 102',
+        icon: '💬',
+        x: 850, y: 360, w: 260, h: 230,
+        desc: 'User interaction orchestrator. Dispatches WhatsApp OTPs, order updates, PDF bills & ownership alerts. Checks local DB preferences before dispatch; syncs to Firestore.',
+        firestore: '/NotificationPreferences/{uid}',
+        features: [
+          { code: 'FEAT-13.01', name: 'Notification Preferences' },
+          { code: 'FEAT-13.02', name: 'WhatsApp OTP Orchestration' },
+          { code: 'FEAT-13.03', name: 'Order Lifecycle WhatsApp Alerts' },
+          { code: 'FEAT-13.04', name: 'Bills, Invoices & Ownership Alerts' },
+        ],
+        prereqs: ['EPIC-12', 'EPIC-01'],
+        dependents: ['EPIC-02']
+      },
+      {
+        id: 'EPIC-03',
+        title: 'Gig Logistics & Routing',
+        service: 'gigs-service',
+        port: 4003,
+        db: 'gigs_db',
+        tier: 2,
+        color: '#06b6d4',
+        colorRgb: '6, 182, 212',
+        icon: '🚚',
+        x: 300, y: 650, w: 260, h: 220,
+        desc: 'Driver fleet dispatch, vehicle-keyed Gigs ({vehicleId}_{startDatetime}), Google Maps Distance Matrix waypoint optimization, Play Integrity GPS telemetry.',
+        firestore: '/Gigs/{id}, /DriverLocations',
+        features: [
+          { code: 'FEAT-03.01', name: 'Gig Composition & Schedule' },
+          { code: 'FEAT-03.02', name: 'Live Telemetry & GPS Ping' },
+          { code: 'FEAT-03.03', name: 'Gig Finalization & Settlement' },
+        ],
+        prereqs: ['EPIC-10', 'EPIC-01', 'EPIC-12'],
+        dependents: ['EPIC-04', 'EPIC-02', 'EPIC-07']
+      },
+      {
+        id: 'EPIC-04',
+        title: 'Pamphlet Stock Manifest',
+        service: 'pamphlet-service',
+        port: 4004,
+        db: 'pamphlet_db',
+        tier: 2,
+        color: '#0f766e',
+        colorRgb: '15, 118, 110',
+        icon: '📋',
+        x: 800, y: 650, w: 260, h: 220,
+        desc: 'Dynamic stock manifest tied to vehicle run. Auto-created on composeGig. Warehouse stock loading, driver gate sign-off, and in-transit breakage adjustments.',
+        firestore: '/Pamphlets/{id}',
+        features: [
+          { code: 'FEAT-04.01', name: 'Dynamic Pamphlet Keying' },
+          { code: 'FEAT-04.02', name: 'Warehouse Loading & Gate Seal' },
+          { code: 'FEAT-04.03', name: 'In-Transit Damage Claims' },
+        ],
+        prereqs: ['EPIC-03'],
+        dependents: ['EPIC-02']
+      },
+      {
+        id: 'EPIC-08',
+        title: 'Merchant Credit & Limits',
+        service: 'credit-service',
+        port: 4008,
+        db: 'credit_db',
+        tier: 3,
+        color: '#a855f7',
+        colorRgb: '168, 85, 247',
+        icon: '📊',
+        x: 150, y: 940, w: 250, h: 220,
+        desc: 'Revolving B2B shopkeeper trade credit. Real-time headroom holds during checkout, driver in-person cash repayments, and hourly post-due credit relief.',
+        firestore: '/CreditProfiles/{uid}',
+        features: [
+          { code: 'FEAT-08.01', name: 'Credit Limit Underwriting' },
+          { code: 'FEAT-08.02', name: 'Synchronous Credit Holds' },
+          { code: 'FEAT-08.03', name: 'Repayment & Overdue Relief' },
+        ],
+        prereqs: ['EPIC-01'],
+        dependents: ['EPIC-02', 'EPIC-07', 'EPIC-09']
+      },
+      {
+        id: 'EPIC-05',
+        title: 'Payments & UPI Ingress',
+        service: 'payments-service',
+        port: 4005,
+        db: 'payments_db',
+        tier: 3,
+        color: '#ea580c',
+        colorRgb: '234, 88, 12',
+        icon: '💳',
+        x: 480, y: 940, w: 250, h: 220,
+        desc: 'Native UPI Intent, Dynamic QR generation, Razorpay gateway integration, HMAC raw webhook validation, automated refunds, and GST credit notes.',
+        firestore: '/PaymentIntents/{id}',
+        features: [
+          { code: 'FEAT-05.01', name: 'UPI Intent & Dynamic QR' },
+          { code: 'FEAT-05.02', name: 'HMAC Webhook Ingress' },
+          { code: 'FEAT-05.03', name: 'Automated Refunds & Credit' },
+        ],
+        prereqs: ['EPIC-01', 'EPIC-11', 'EPIC-12'],
+        dependents: ['EPIC-02', 'EPIC-06', 'EPIC-09']
+      },
+      {
+        id: 'EPIC-02',
+        title: 'Orders & Fulfillment',
+        service: 'orders-service',
+        port: 4002,
+        db: 'orders_db',
+        tier: 3,
+        color: '#db2777',
+        colorRgb: '219, 39, 119',
+        icon: '📦',
+        x: 820, y: 940, w: 260, h: 220,
+        desc: 'Buyer cart checkout, B2B merchant wholesale ordering with credit, delivery OTP verification, CoD collection triggers, and exception handling.',
+        firestore: '/Orders/{id}, /MerchantOrders',
+        features: [
+          { code: 'FEAT-02.01', name: 'Buyer Prepaid & CoD Checkout' },
+          { code: 'FEAT-02.02', name: 'Merchant Bulk B2B Ordering' },
+          { code: 'FEAT-02.03', name: 'Delivery Handover & OTP' },
+        ],
+        prereqs: ['EPIC-01', 'EPIC-03', 'EPIC-04', 'EPIC-05', 'EPIC-08', 'EPIC-10', 'EPIC-13'],
+        dependents: ['EPIC-07', 'EPIC-09']
+      },
+      {
+        id: 'EPIC-07',
+        title: 'Cash Management & Custody',
+        service: 'cash-service',
+        port: 4007,
+        db: 'cash_db',
+        tier: 4,
+        color: '#d97706',
+        colorRgb: '217, 119, 6',
+        icon: '🪙',
+        x: 350, y: 1240, w: 260, h: 220,
+        desc: 'Physical currency chain-of-custody, mobile offline collection queues, driver-to-cashier 6-digit OTP settlement, and discrepancy shortfall audits.',
+        firestore: '/CashCustody/{driverId}',
+        features: [
+          { code: 'FEAT-07.01', name: 'CoD Cash Custody Tracking' },
+          { code: 'FEAT-07.02', name: 'Driver-to-Cashier Handover OTP' },
+          { code: 'FEAT-07.03', name: 'Discrepancy Reporting & Audit' },
+        ],
+        prereqs: ['EPIC-02', 'EPIC-03', 'EPIC-08'],
+        dependents: ['EPIC-06', 'EPIC-09']
+      },
+      {
+        id: 'EPIC-06',
+        title: 'Payouts & Disbursements',
+        service: 'payouts-service',
+        port: 4006,
+        db: 'payouts_db',
+        tier: 4,
+        color: '#65a30d',
+        colorRgb: '101, 163, 13',
+        icon: '💸',
+        x: 800, y: 1240, w: 260, h: 220,
+        desc: 'Driver and supplier bank payouts. Beneficiary bank accounts KMS-encrypted at rest. Cloud Tasks queue drain for rate-limited RazorpayX disbursements.',
+        firestore: '/PayoutBeneficiaries, /Payouts',
+        features: [
+          { code: 'FEAT-06.01', name: 'KMS Encrypted Beneficiaries' },
+          { code: 'FEAT-06.02', name: 'Payout Requests & Custody Gate' },
+          { code: 'FEAT-06.03', name: 'Cloud Tasks Bank Transfers' },
+        ],
+        prereqs: ['EPIC-01', 'EPIC-05', 'EPIC-07'],
+        dependents: ['EPIC-09']
+      },
+      {
+        id: 'EPIC-11',
+        title: 'Platform Governance & AML',
+        service: 'governance-service',
+        port: 4011,
+        db: 'governance_db',
+        tier: 5,
+        color: '#e11d48',
+        colorRgb: '225, 29, 72',
+        icon: '🏛️',
+        x: 350, y: 1530, w: 260, h: 220,
+        desc: 'NPCI TPAP circular compliance, VPA registration, Redis sliding-window AML fraud velocity scoring, T+1 dispute SLA tracking, and audit log immutability.',
+        firestore: '/VerifiedVPAs, /AuditLogs',
+        features: [
+          { code: 'FEAT-11.01', name: 'UPI TPAP VPA Governance' },
+          { code: 'FEAT-11.02', name: 'Real-Time AML Velocity' },
+          { code: 'FEAT-11.03', name: 'Dispute SLA & NPCI Filing' },
+        ],
+        prereqs: ['EPIC-01', 'EPIC-05'],
+        dependents: ['EPIC-05']
+      },
+      {
+        id: 'EPIC-09',
+        title: 'Finance & General Ledger',
+        service: 'finance-service',
+        port: 4009,
+        db: 'finance_db',
+        tier: 5,
+        color: '#059669',
+        colorRgb: '5, 150, 105',
+        icon: '📈',
+        x: 800, y: 1530, w: 260, h: 220,
+        desc: 'Double-entry general ledger (debit = credit), nightly 01:00 AM three-way bank reconciliation, Section 194C/194O TDS register, and Vertex AI anomaly detection.',
+        firestore: '/FinanceSummaries/{date}',
+        features: [
+          { code: 'FEAT-09.01', name: 'Double-Entry General Ledger' },
+          { code: 'FEAT-09.02', name: 'Automated Daily Reconciliation' },
+          { code: 'FEAT-09.03', name: 'Statutory TDS Register' },
+        ],
+        prereqs: ['EPIC-02', 'EPIC-05', 'EPIC-06', 'EPIC-07', 'EPIC-08', 'EPIC-10'],
+        dependents: []
+      }
+    ];
+
+    // Build flattened EDGES list from prereqs/dependents
+    const EDGES_DATA = [];
+    EPICS_DATA.forEach(node => {
+      node.prereqs.forEach(preId => {
+        EDGES_DATA.push({ from: preId, to: node.id, label: `${preId} -> ${node.id}` });
+      });
+    });
+
+    // ─── RENDERING GRAPH ─────────────────────────────────────────────────────
+    const container = document.getElementById('canvas-container');
+    const world = document.getElementById('world');
+    const svgEdges = document.getElementById('edges');
+    const nodesContainer = document.getElementById('nodes-container');
+
+    let scale = 0.85;
+    let tx = 80;
+    let ty = 20;
+    let isPanning = false;
+    let startX = 0, startY = 0;
+
+    function renderGraph() {
+      nodesContainer.innerHTML = '';
+      svgEdges.innerHTML = '';
+
+      // Render Nodes
+      EPICS_DATA.forEach(epic => {
+        const card = document.createElement('div');
+        card.className = 'node-card';
+        card.id = `node-${epic.id}`;
+        card.style.left = `${epic.x}px`;
+        card.style.top = `${epic.y}px`;
+        card.style.width = `${epic.w}px`;
+        card.style.setProperty('--node-color', epic.color);
+        card.style.setProperty('--node-rgb', epic.colorRgb);
+
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="epic-badge">${epic.id}</span>
+            <span class="tier-tag">Tier ${epic.tier}</span>
+          </div>
+          <div class="card-title">${epic.icon} ${epic.title}</div>
+          <div class="service-meta">
+            <span class="pill">${epic.service}</span>
+            <span class="pill">:${epic.port}</span>
+          </div>
+          <div class="feat-list">
+            ${epic.features.map(f => `
+              <div class="feat-item" title="${f.name}">
+                <span class="feat-code">${f.code}</span>
+                <span>${f.name}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="card-bottom">
+            <div class="stat-badge"><span>In:</span><strong>${epic.prereqs.length}</strong></div>
+            <div class="stat-badge"><span>Out:</span><strong>${epic.dependents.length}</strong></div>
+            <div class="stat-badge"><span style="color:#d97706">FS:</span><strong>✓</strong></div>
+          </div>
+        `;
+
+        card.onclick = (e) => {
+          e.stopPropagation();
+          selectEpic(epic.id);
+        };
+
+        nodesContainer.appendChild(card);
+      });
+
+      // Render Edges
+      renderSvgEdges();
+      applyTransform();
+    }
+
+    function renderSvgEdges() {
+      svgEdges.innerHTML = '';
+      EDGES_DATA.forEach(edge => {
+        const fromNode = EPICS_DATA.find(n => n.id === edge.from);
+        const toNode = EPICS_DATA.find(n => n.id === edge.to);
+        if (!fromNode || !toNode) return;
+
+        const x1 = fromNode.x + fromNode.w / 2;
+        const y1 = fromNode.y + fromNode.h;
+        const x2 = toNode.x + toNode.w / 2;
+        const y2 = toNode.y;
+
+        const cy1 = y1 + (y2 - y1) * 0.5;
+        const cy2 = y1 + (y2 - y1) * 0.5;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const d = `M ${x1} ${y1} C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${y2}`;
+        path.setAttribute('d', d);
+        path.setAttribute('stroke', 'rgba(255, 255, 255, 0.15)');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('id', `edge-${edge.from}-${edge.to}`);
+        path.setAttribute('data-from', edge.from);
+        path.setAttribute('data-to', edge.to);
+
+        svgEdges.appendChild(path);
+      });
+    }
+
+    // ─── INTERACTION & SELECTION ─────────────────────────────────────────────
+    let selectedEpicId = null;
+
+    function selectEpic(epicId) {
+      selectedEpicId = epicId;
+      const epic = EPICS_DATA.find(n => n.id === epicId);
+      if (!epic) return;
+
+      // Update node highlight states
+      document.querySelectorAll('.node-card').forEach(c => {
+        c.classList.remove('highlight-target', 'highlight-prereq', 'highlight-dependent', 'dimmed');
+      });
+
+      const card = document.getElementById(`node-${epicId}`);
+      if (card) card.classList.add('highlight-target');
+
+      // Highlight prereqs & dependents
+      epic.prereqs.forEach(pre => {
+        const el = document.getElementById(`node-${pre}`);
+        if (el) el.classList.add('highlight-prereq');
+      });
+      epic.dependents.forEach(dep => {
+        const el = document.getElementById(`node-${dep}`);
+        if (el) el.classList.add('highlight-dependent');
+      });
+
+      // Dim non-connected
+      document.querySelectorAll('.node-card').forEach(c => {
+        const id = c.id.replace('node-', '');
+        if (id !== epicId && !epic.prereqs.includes(id) && !epic.dependents.includes(id)) {
+          c.classList.add('dimmed');
+        }
+      });
+
+      // Update edges highlight
+      document.querySelectorAll('svg#edges path').forEach(p => {
+        const from = p.getAttribute('data-from');
+        const to = p.getAttribute('data-to');
+        if (to === epicId) {
+          p.setAttribute('stroke', '#f59e0b');
+          p.setAttribute('stroke-width', '3');
+        } else if (from === epicId) {
+          p.setAttribute('stroke', '#10b981');
+          p.setAttribute('stroke-width', '3');
+        } else {
+          p.setAttribute('stroke', 'rgba(255, 255, 255, 0.04)');
+          p.setAttribute('stroke-width', '1');
+        }
+      });
+
+      // Populate Detail Drawer
+      document.getElementById('dp-badge').textContent = epic.id;
+      document.getElementById('dp-badge').style.borderColor = epic.color;
+      document.getElementById('dp-badge').style.color = epic.color;
+      document.getElementById('dp-title').textContent = `${epic.icon} ${epic.title}`;
+      document.getElementById('dp-sub').textContent = `${epic.service} · :${epic.port} · ${epic.db}`;
+      document.getElementById('dp-desc').textContent = epic.desc;
+      document.getElementById('dp-service').textContent = epic.service;
+      document.getElementById('dp-port').textContent = epic.port;
+      document.getElementById('dp-db').textContent = epic.db;
+      document.getElementById('dp-firestore').textContent = epic.firestore;
+
+      // Prereqs Tags
+      const prereqsDiv = document.getElementById('dp-prereqs');
+      prereqsDiv.innerHTML = epic.prereqs.length
+        ? epic.prereqs.map(p => `<span class="dp-dep-tag prereq" onclick="selectEpic('${p}')">⬆️ ${p}</span>`).join('')
+        : '<span style="color:var(--text-faint); font-size:12px;">None (Foundation Tier 0)</span>';
+
+      // Dependents Tags
+      const dependentsDiv = document.getElementById('dp-dependents');
+      dependentsDiv.innerHTML = epic.dependents.length
+        ? epic.dependents.map(d => `<span class="dp-dep-tag dependent" onclick="selectEpic('${d}')">⬇️ ${d}</span>`).join('')
+        : '<span style="color:var(--text-faint); font-size:12px;">None (Terminal Governance Layer)</span>';
+
+      // Features list
+      const featsDiv = document.getElementById('dp-features');
+      featsDiv.innerHTML = epic.features.map(f => `
+        <div style="font-size:12px; padding:6px 10px; background:rgba(255,255,255,0.03); border-radius:6px; display:flex; align-items:center; gap:8px;">
+          <span style="font-family:var(--font-mono); font-size:11px; color:var(--accent); font-weight:700;">${f.code}</span>
+          <span style="color:var(--text-main); font-weight:600;">${f.name}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('detail-panel').classList.add('open');
+    }
+
+    function closeDetail() {
+      document.getElementById('detail-panel').classList.remove('open');
+      resetHighlight();
+    }
+
+    function resetHighlight() {
+      selectedEpicId = null;
+      document.querySelectorAll('.node-card').forEach(c => {
+        c.classList.remove('highlight-target', 'highlight-prereq', 'highlight-dependent', 'dimmed');
+      });
+      document.querySelectorAll('svg#edges path').forEach(p => {
+        p.setAttribute('stroke', 'rgba(255, 255, 255, 0.15)');
+        p.setAttribute('stroke-width', '2');
+      });
+    }
+
+    // ─── SEARCH & FILTER ─────────────────────────────────────────────────────
+    function handleSearch(query) {
+      if (!query.trim()) {
+        resetHighlight();
+        return;
+      }
+      const q = query.toLowerCase();
+      document.querySelectorAll('.node-card').forEach(c => {
+        const id = c.id.replace('node-', '');
+        const epic = EPICS_DATA.find(e => e.id === id);
+        const match = epic.id.toLowerCase().includes(q)
+          || epic.title.toLowerCase().includes(q)
+          || epic.service.toLowerCase().includes(q)
+          || epic.port.toString().includes(q)
+          || epic.features.some(f => f.code.toLowerCase().includes(q) || f.name.toLowerCase().includes(q));
+
+        if (match) {
+          c.classList.remove('dimmed');
+          c.classList.add('highlight-target');
+        } else {
+          c.classList.add('dimmed');
+          c.classList.remove('highlight-target');
+        }
+      });
+    }
+
+    function filterTier(tierNum) {
+      document.querySelectorAll('.node-card').forEach(c => {
+        const id = c.id.replace('node-', '');
+        const epic = EPICS_DATA.find(e => e.id === id);
+        if (epic.tier === tierNum) {
+          c.classList.remove('dimmed');
+          c.classList.add('highlight-target');
+        } else {
+          c.classList.add('dimmed');
+          c.classList.remove('highlight-target');
+        }
+      });
+    }
+
+    // ─── VIEW SWITCHER ───────────────────────────────────────────────────────
+    function switchView(viewName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.querySelectorAll('.view-overlay').forEach(ov => ov.classList.remove('active'));
+      document.getElementById('canvas-container').style.display = 'none';
+      document.getElementById('tierBar').style.display = 'none';
+
+      if (viewName === 'epic-dag') {
+        document.getElementById('canvas-container').style.display = 'block';
+        document.getElementById('tierBar').style.display = 'flex';
+      } else if (viewName === 'happy-path') {
+        document.getElementById('overlay-happy-path').classList.add('active');
+        renderHappyPathStoryboard();
+      } else if (viewName === 'feature-clusters') {
+        document.getElementById('canvas-container').style.display = 'block';
+        document.getElementById('tierBar').style.display = 'flex';
+        // Feature clusters view focuses graph with zoomed level
+        scale = 0.7;
+        tx = 120; ty = 40;
+        applyTransform();
+      } else if (viewName === 'roadmap') {
+        document.getElementById('overlay-roadmap').classList.add('active');
+      } else if (viewName === 'circuit-breakers') {
+        document.getElementById('overlay-circuit-breakers').classList.add('active');
+      } else if (viewName === 'matrix') {
+        document.getElementById('overlay-matrix').classList.add('active');
+        renderMatrixTable();
+      }
+    }
+
+    // ─── MATRIX TABLE GENERATOR ──────────────────────────────────────────────
+    const MATRIX_DATA = [
+      { id: 'FEAT-10.01', name: 'Geo-Hierarchy & Places Geocoding', svc: 'config-service', prereqs: 'Google Maps Server Keys', consumers: 'FEAT-01.02, FEAT-03.01, FEAT-02.01' },
+      { id: 'FEAT-10.02', name: 'Subscription Plans & Tariffs', svc: 'config-service', prereqs: 'config_db schema', consumers: 'FEAT-01.02' },
+      { id: 'FEAT-10.03', name: 'Tax Profiles & TDS Rules', svc: 'config-service', prereqs: 'config_db schema', consumers: 'FEAT-02.01, FEAT-09.03' },
+      { id: 'FEAT-12.01', name: 'API Gateway Multi-Client Routing', svc: 'gateway', prereqs: 'K8s Ingress, TLS', consumers: 'All Web, Android & iOS Apps' },
+      { id: 'FEAT-12.02', name: 'App Check Zero-Trust Perimeter', svc: 'gateway', prereqs: 'Play Integrity, DeviceCheck', consumers: 'FEAT-03.02, FEAT-02.03' },
+      { id: 'FEAT-12.03', name: 'CDC Sync Engine (PG -> Firestore)', svc: 'sync-engine', prereqs: 'Postgres Outbox, Firestore SDK', consumers: 'Real-Time Mobile/Web Snapshot Reads' },
+      { id: 'FEAT-12.04', name: 'Cloud Storage Media Sync', svc: 'sync-engine', prereqs: 'GCS Bucket, GCP IAM', consumers: 'FEAT-04.03, FEAT-09.03, FEAT-13.04' },
+      { id: 'FEAT-13.01', name: 'Notification Preferences Management', svc: 'social-connect-service', prereqs: 'FEAT-12.03 (Firestore Sync)', consumers: 'FEAT-13.02, FEAT-13.03, FEAT-13.04' },
+      { id: 'FEAT-13.02', name: 'WhatsApp OTP Orchestration', svc: 'social-connect-service', prereqs: 'Meta WhatsApp Cloud API, FEAT-13.01', consumers: 'FEAT-01.01 (Phone Auth Bootstrap)' },
+      { id: 'FEAT-13.03', name: 'Order Lifecycle WhatsApp Alerts', svc: 'social-connect-service', prereqs: 'FEAT-13.01, FEAT-02.01', consumers: 'Rural Buyers, Local Merchants' },
+      { id: 'FEAT-13.04', name: 'Digital Bills & Business Alerts', svc: 'social-connect-service', prereqs: 'FEAT-12.04 (PDF URLs), FEAT-13.01', consumers: 'Merchants, Fleet Suppliers' },
+      { id: 'FEAT-01.01', name: 'Phone Auth & Claims Bootstrap', svc: 'identity-service', prereqs: 'FEAT-12.01, FEAT-13.02', consumers: 'All Authenticated Personas' },
+      { id: 'FEAT-01.02', name: 'Supplier Org Provisioning', svc: 'identity-service', prereqs: 'FEAT-01.01, FEAT-10.01', consumers: 'FEAT-03.01, FEAT-08.01' },
+      { id: 'FEAT-01.03', name: 'Progressive Role Handoff', svc: 'identity-service', prereqs: 'FEAT-01.01', consumers: 'Android Driver Loop, Merchant PWA' },
+      { id: 'FEAT-01.04', name: 'Account Suspension Lifecycle', svc: 'identity-service', prereqs: 'FEAT-01.01, FEAT-11.02', consumers: 'FEAT-07.03 (Discrepancy Lock)' },
+      { id: 'FEAT-03.01', name: 'Gig Composition & Scheduling', svc: 'gigs-service', prereqs: 'FEAT-10.01, FEAT-01.02, Google Maps', consumers: 'FEAT-04.01, FEAT-02.01, FEAT-03.02' },
+      { id: 'FEAT-03.02', name: 'Live GPS Telemetry & Tracking', svc: 'gigs-service', prereqs: 'FEAT-03.01, FEAT-04.02, FEAT-12.02', consumers: 'FEAT-02.03, FEAT-03.03' },
+      { id: 'FEAT-03.03', name: 'Gig Finalization & Route Settlement', svc: 'gigs-service', prereqs: 'FEAT-03.02, FEAT-04.03', consumers: 'FEAT-07.02 (Cash Handover)' },
+      { id: 'FEAT-04.01', name: 'Dynamic Pamphlet Manifest Keying', svc: 'pamphlet-service', prereqs: 'FEAT-03.01', consumers: 'FEAT-04.02, FEAT-02.01, FEAT-02.02' },
+      { id: 'FEAT-04.02', name: 'Warehouse Loading & Gate Seal', svc: 'pamphlet-service', prereqs: 'FEAT-04.01', consumers: 'FEAT-03.02 (Enables vehicle dispatch)' },
+      { id: 'FEAT-04.03', name: 'In-Transit Damage & Shortage Claims', svc: 'pamphlet-service', prereqs: 'FEAT-04.02, FEAT-12.04', consumers: 'FEAT-03.03, FEAT-02.03' },
+      { id: 'FEAT-05.01', name: 'UPI Intent & Dynamic QR Pay-In', svc: 'payments-service', prereqs: 'Razorpay Key, Secret Manager', consumers: 'FEAT-02.01' },
+      { id: 'FEAT-05.02', name: 'HMAC Webhook Ingress Processing', svc: 'payments-service', prereqs: 'FEAT-05.01, Raw Body Parser', consumers: 'FEAT-02.01, FEAT-09.01, FEAT-09.02' },
+      { id: 'FEAT-05.03', name: 'Automated Refunds & Credit Notes', svc: 'payments-service', prereqs: 'FEAT-05.02, FEAT-10.03', consumers: 'FEAT-09.01' },
+      { id: 'FEAT-08.01', name: 'Credit Limit Underwriting', svc: 'credit-service', prereqs: 'FEAT-01.03 (Verified Merchant)', consumers: 'FEAT-08.02' },
+      { id: 'FEAT-08.02', name: 'Synchronous Credit Holds', svc: 'credit-service', prereqs: 'FEAT-08.01', consumers: 'FEAT-02.02 (Merchant Bulk Checkout)' },
+      { id: 'FEAT-08.03', name: 'Credit Repayment & Relief', svc: 'credit-service', prereqs: 'FEAT-08.01, Cloud Scheduler', consumers: 'FEAT-07.02, FEAT-09.01' },
+      { id: 'FEAT-02.01', name: 'Buyer Prepaid & CoD Checkout', svc: 'orders-service', prereqs: 'FEAT-01.01, FEAT-03.01, FEAT-04.01', consumers: 'FEAT-02.03' },
+      { id: 'FEAT-02.02', name: 'Merchant B2B Bulk Checkout', svc: 'orders-service', prereqs: 'FEAT-08.02, FEAT-04.01', consumers: 'FEAT-02.03' },
+      { id: 'FEAT-02.03', name: 'Delivery Handover & Custody POD', svc: 'orders-service', prereqs: 'FEAT-02.01, FEAT-03.02, FEAT-12.02', consumers: 'FEAT-07.01, FEAT-04.02' },
+      { id: 'FEAT-07.01', name: 'Driver Cash Custody Tracking', svc: 'cash-service', prereqs: 'FEAT-02.03, WorkManager', consumers: 'FEAT-07.02' },
+      { id: 'FEAT-07.02', name: 'Driver-to-Cashier Handover OTP', svc: 'cash-service', prereqs: 'FEAT-07.01', consumers: 'FEAT-07.03, FEAT-09.01, FEAT-06.02' },
+      { id: 'FEAT-07.03', name: 'Discrepancy Reporting & Audit', svc: 'cash-service', prereqs: 'FEAT-07.02', consumers: 'FEAT-06.02 (Hard blocking gate)' },
+      { id: 'FEAT-06.01', name: 'Beneficiary KMS Account Encryption', svc: 'payouts-service', prereqs: 'Google Cloud KMS, Penny-Drop', consumers: 'FEAT-06.02' },
+      { id: 'FEAT-06.02', name: 'Payout Requests & Custody Gate', svc: 'payouts-service', prereqs: 'FEAT-06.01, FEAT-07.03 (Must be 0)', consumers: 'FEAT-06.03' },
+      { id: 'FEAT-06.03', name: 'Cloud Tasks Bank Transfers', svc: 'payouts-service', prereqs: 'Cloud Tasks, RazorpayX API', consumers: 'FEAT-09.01, FEAT-09.02, FEAT-13.04' },
+      { id: 'FEAT-09.01', name: 'Double-Entry General Ledger', svc: 'finance-service', prereqs: 'finance_db immutability rules', consumers: 'FEAT-09.02, FEAT-13.04' },
+      { id: 'FEAT-09.02', name: 'Automated Daily Reconciliation', svc: 'finance-service', prereqs: 'FEAT-09.01, FEAT-05.02, FEAT-06.03', consumers: 'Daily Financial Balance Reports' },
+      { id: 'FEAT-09.03', name: 'Statutory TDS Register', svc: 'finance-service', prereqs: 'FEAT-10.03, FEAT-12.04', consumers: 'FEAT-06.02 (Tax Withholding)' },
+      { id: 'FEAT-11.01', name: 'UPI TPAP VPA Governance', svc: 'governance-service', prereqs: 'NPCI Directory, Bank APIs', consumers: 'FEAT-05.01' },
+      { id: 'FEAT-11.02', name: 'Real-Time AML Velocity Checks', svc: 'governance-service', prereqs: 'Redis Sliding-Window', consumers: 'FEAT-05.01, FEAT-01.04' },
+      { id: 'FEAT-11.03', name: '24h Dispute SLA & NPCI Filing', svc: 'governance-service', prereqs: 'governance_db SLA timers', consumers: 'NPCI Compliance Filing' },
+    ];
+
+    function renderMatrixTable() {
+      const tbody = document.getElementById('matrixTbody');
+      tbody.innerHTML = MATRIX_DATA.map(m => `
+        <tr>
+          <td><span class="epic-badge" style="font-size:10px;">${m.id}</span></td>
+          <td style="font-weight:700;">${m.name}</td>
+          <td><span style="font-family:var(--font-mono); color:var(--text-muted);">${m.svc}</span></td>
+          <td style="color:#f59e0b; font-size:11px;">${m.prereqs}</td>
+          <td style="color:#10b981; font-size:11px;">${m.consumers}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ─── PAN & ZOOM ENGINE ───────────────────────────────────────────────────
+    function applyTransform() {
+      world.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    }
+
+    function zoom(delta) {
+      scale = Math.min(Math.max(0.3, scale + delta), 2.2);
+      applyTransform();
+    }
+
+    function fitView() {
+      scale = 0.8;
+      tx = 80;
+      ty = 20;
+      applyTransform();
+      resetHighlight();
+    }
+
+    container.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.node-card')) return;
+      isPanning = true;
+      startX = e.clientX - tx;
+      startY = e.clientY - ty;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      tx = e.clientX - startX;
+      ty = e.clientY - startY;
+      applyTransform();
+    });
+
+    window.addEventListener('mouseup', () => { isPanning = false; });
+
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = -e.deltaY * 0.0012;
+      zoom(zoomFactor);
+    }, { passive: false });
+
+    // ─── MASTER HAPPY PATH (100% COVERAGE) ENGINE ────────────────────────────
+    const HAPPY_PATH_STAGES = [
+      {
+        step: 1,
+        phase: 'Tier 0: Foundation',
+        title: 'Day Zero Bootstrap & Master Geo-Hierarchy',
+        subtitle: 'Spatial master seeding & Zero-Trust Ingress Perimeter',
+        actor: 'Platform Ops / System Admin',
+        epics: ['EPIC-10', 'EPIC-12'],
+        features: ['FEAT-10.01', 'FEAT-10.02', 'FEAT-10.03', 'FEAT-12.01', 'FEAT-12.02', 'FEAT-12.03'],
+        services: ['config-service (:4010)', 'gateway (:8080)', 'sync-engine (:4050)'],
+        narrative: 'Platform admin seeds India territorial master hierarchy (State -> District -> Mandals -> Villages) validated with Google Maps Geocoding API. Subscription tariffs and statutory GST/TDS tax profiles are locked in config_db. The API Gateway initializes Play Integrity and reCAPTCHA Enterprise zero-trust perimeter, while the CDC sync engine establishes outbox streaming to Firestore /Villages.',
+        endpoints: 'POST /api/v1/config/geo/sync · POST /api/v1/config/plans · GET /health',
+        dataMutations: 'config_db: 48,000 villages seeded; sync_db: CDC worker connects to pg_wal; Firestore: /Villages snapshot cache populated.',
+        gateValidation: 'All public endpoints require Firebase App Check token. Un-attested direct traffic to microservices rejected with 401.',
+        camera: { scale: 0.95, tx: 100, ty: 50 }
+      },
+      {
+        step: 2,
+        phase: 'Tier 1: Identity',
+        title: 'Citizen Onboarding, WhatsApp OTP & Role Elevation',
+        subtitle: 'WhatsApp Cloud API authentication & progressive role handoff',
+        actor: 'Rural Citizen / Supplier Admin',
+        epics: ['EPIC-13', 'EPIC-01'],
+        features: ['FEAT-13.01', 'FEAT-13.02', 'FEAT-01.01', 'FEAT-01.02', 'FEAT-01.03'],
+        services: ['social-connect-service (:4012)', 'identity-service (:4001)', 'gateway (:8080)'],
+        narrative: 'A rural citizen enters mobile number +91 98765 43210. social-connect-service verifies notification preferences from local DB and triggers a Meta WhatsApp Cloud API template with an interactive "Tap to Copy" OTP. Citizen validates OTP; identity-service provisions custom claims { role: "buyer" }. Supplier Admin creates organizational tenant and progressively elevates verified users to "merchant" and "driver" with Android app handoff.',
+        endpoints: 'POST /api/v1/social/otp/send · POST /api/v1/auth/verify-otp · POST /api/v1/auth/roles/elevate',
+        dataMutations: 'social_connect_db: OTP session cached (ttl: 300s); identity_db: UserProfile created; Firestore: /UserProfiles/{uid} synced.',
+        gateValidation: 'Custom claims verified on Gateway. User cannot access merchant or driver APIs with base buyer claim.',
+        camera: { scale: 0.95, tx: 100, ty: -200 }
+      },
+      {
+        step: 3,
+        phase: 'Tier 2: Logistics',
+        title: 'Fleet Route Scheduling & Dynamic Vehicle Manifest',
+        subtitle: 'Distance matrix dispatch & physical loading gate seal',
+        actor: 'Supplier Dispatcher & Warehouse Staff',
+        epics: ['EPIC-03', 'EPIC-04'],
+        features: ['FEAT-03.01', 'FEAT-04.01', 'FEAT-04.02'],
+        services: ['gigs-service (:4003)', 'pamphlet-service (:4004)'],
+        narrative: 'Supplier dispatcher composes a delivery gig across 4 village waypoints using Google Maps Distance Matrix. gigs-service creates GIG-2026-1003-01. In synchronous response, pamphlet-service auto-initializes dynamic inventory manifest run V042_20261003_0600. Warehouse loaders stage 200 items into the pickup truck. Driver and dispatcher digitally co-sign gate pass; pamphlet status locks to "sealed".',
+        endpoints: 'POST /api/v1/gigs/compose · POST /api/v1/pamphlet/load-items · POST /api/v1/pamphlet/seal',
+        dataMutations: 'gigs_db: Gig status="scheduled"; pamphlet_db: Pamphlet status="sealed" with 200 SKU batch counts; Firestore: /Pamphlets/{id} mirrored.',
+        gateValidation: 'Vehicle Departure Gate: Driver cannot trigger route start or stream GPS until pamphlet status is "sealed".',
+        camera: { scale: 0.95, tx: 120, ty: -480 }
+      },
+      {
+        step: 4,
+        phase: 'Tier 3: Credit',
+        title: 'Merchant Trade Credit Line Underwriting',
+        subtitle: 'B2B revolving trade credit facility setup',
+        actor: 'Supplier Finance Admin & Kirana Merchant',
+        epics: ['EPIC-08'],
+        features: ['FEAT-08.01'],
+        services: ['credit-service (:4008)', 'sync-engine (:4050)'],
+        narrative: 'Supplier underwrites a verified village kirana store merchant, granting a revolving trade credit facility of ₹50,000 with 14-day settlement terms and 0% interest if cleared on schedule. credit_db creates account ledger with total_limit=50000, available_headroom=50000. CDC engine mirrors /CreditProfiles/{merchantUid} to mobile app for real-time offline visibility.',
+        endpoints: 'POST /api/v1/credit/underwrite · GET /api/v1/credit/limits/:merchantId',
+        dataMutations: 'credit_db: CreditProfile limit=50000, status="active"; Firestore: /CreditProfiles/{merchantUid} headroom=50000.',
+        gateValidation: 'Merchant must possess active identity-service merchant claim. Suspended accounts cannot be granted credit.',
+        camera: { scale: 1.05, tx: 250, ty: -750 }
+      },
+      {
+        step: 5,
+        phase: 'Tier 3: Commerce',
+        title: 'Dual Commerce Ordering & Payment Ingress',
+        subtitle: 'Consumer UPI checkout & wholesale merchant credit hold',
+        actor: 'Rural Buyer & Local Kirana Merchant',
+        epics: ['EPIC-02', 'EPIC-05', 'EPIC-08', 'EPIC-13'],
+        features: ['FEAT-02.01', 'FEAT-05.01', 'FEAT-05.02', 'FEAT-02.02', 'FEAT-08.02', 'FEAT-13.03'],
+        services: ['orders-service (:4002)', 'payments-service (:4005)', 'credit-service (:4008)', 'social-connect-service (:4012)'],
+        narrative: '1. Buyer Journey: Buyer orders groceries (₹850) via PWA. Pays via UPI Intent; Razorpay HMAC raw webhook is validated by payments-service. Order binds to truck manifest V042_20261003_0600. 2. Merchant Journey: Kirana orders 5 flour sacks (₹15,000) on credit. orders-service invokes a synchronous credit hold on credit-service, instantly reserving ₹15,000 headroom (leaving ₹35,000). social-connect-service sends WhatsApp confirmations to both.',
+        endpoints: 'POST /api/v1/orders/buyer · POST /api/v1/payments/razorpay/webhook · POST /api/v1/orders/merchant/bulk · POST /api/v1/credit/hold',
+        dataMutations: 'orders_db: Order status="confirmed"; payments_db: PaymentIntent status="captured"; credit_db: Headroom reduced to 35000; social_connect_db: WhatsApp order logs.',
+        gateValidation: 'Credit Headroom Gate: Credit checkout fails if order value > available headroom. Webhook rejects invalid HMAC signatures.',
+        camera: { scale: 0.9, tx: -100, ty: -750 }
+      },
+      {
+        step: 6,
+        phase: 'Tier 4: Fulfillment & Custody',
+        title: 'Live Route Navigation & Delivery Custody Handover',
+        subtitle: 'Play Integrity telemetry, buyer OTP & CoD cash recording',
+        actor: 'Delivery Driver & Rural Buyer',
+        epics: ['EPIC-03', 'EPIC-02', 'EPIC-07', 'EPIC-04'],
+        features: ['FEAT-03.02', 'FEAT-02.03', 'FEAT-07.01', 'FEAT-04.02'],
+        services: ['gigs-service (:4003)', 'orders-service (:4002)', 'cash-service (:4007)', 'pamphlet-service (:4004)'],
+        narrative: 'Driver starts route navigation. Android app streams Play Integrity-attested GPS telemetry every 15s to gigs-service and /DriverLocations. Driver arrives at buyer waypoint. Buyer inspects package and shares 4-digit OTP; orders-service validates OTP and marks order delivered. Driver collects ₹850 CoD cash; mobile app queues cash into driver cash custody liability ledger; truck pamphlet inventory decrements.',
+        endpoints: 'POST /api/v1/gigs/telemetry · POST /api/v1/orders/handover/otp · POST /api/v1/cash/custody/collect',
+        dataMutations: 'orders_db: Status="delivered"; cash_db: Driver custody ledger +850; pamphlet_db: Items marked "delivered"; Firestore: /CashCustody/{driverId} synced.',
+        gateValidation: 'Driver cannot mark delivery without correct OTP. Device tampering detected by Play Integrity immediately pauses GPS acceptance.',
+        camera: { scale: 0.9, tx: 50, ty: -1050 }
+      },
+      {
+        step: 7,
+        phase: 'Tier 4: Field Credit',
+        title: 'In-Person Credit Repayment Collection',
+        subtitle: 'Field cash collection & immediate merchant headroom relief',
+        actor: 'Delivery Driver & Kirana Merchant',
+        epics: ['EPIC-08', 'EPIC-07'],
+        features: ['FEAT-08.03', 'FEAT-07.01'],
+        services: ['credit-service (:4008)', 'cash-service (:4007)'],
+        narrative: 'Driver unloads 5 flour sacks at kirana store. Merchant takes opportunity to repay ₹10,000 in cash against past outstanding invoices. Driver selects "Accept Credit Repayment" on mobile app and counts physical notes. credit-service records the payment, immediately restoring merchant available headroom from ₹35,000 back to ₹45,000. Driver cash custody balance increments from ₹850 to ₹10,850.',
+        endpoints: 'POST /api/v1/credit/repay/field-cash · POST /api/v1/cash/custody/collect',
+        dataMutations: 'credit_db: Headroom updated to 45000, repayment record posted; cash_db: Driver cash custody total=10850; Firestore: /CreditProfiles updated.',
+        gateValidation: 'Cash collected is pinned to driver ID; cannot exceed maximum daily field cash custody insurance ceiling (₹50,000).',
+        camera: { scale: 1.0, tx: 180, ty: -1050 }
+      },
+      {
+        step: 8,
+        phase: 'Tier 4: Shift Close',
+        title: 'End-of-Shift Finalization & Cash Handover OTP',
+        subtitle: 'Mileage audit, physical cash settlement & zero-discrepancy seal',
+        actor: 'Delivery Driver & Warehouse Cashier',
+        epics: ['EPIC-03', 'EPIC-07'],
+        features: ['FEAT-03.03', 'FEAT-07.02', 'FEAT-07.03'],
+        services: ['gigs-service (:4003)', 'cash-service (:4007)'],
+        narrative: 'Driver returns to logistics depot. gigs-service audits route mileage (62 km driven) and closes gig status to "completed". Driver proceeds to cashier desk to deposit physical cash collection (₹10,850). Cashier counts notes and inputs amount into cash-service POS. Driver mobile generates a 6-digit handover OTP. Cashier verifies OTP; driver custody liability clears to ₹0 with discrepancy=0.',
+        endpoints: 'POST /api/v1/gigs/finalize · POST /api/v1/cash/handover/cashier-otp · POST /api/v1/cash/discrepancies/audit',
+        dataMutations: 'gigs_db: Status="completed"; cash_db: Handover verified, driver liability=0, discrepancies=0; cashier till +10850; Firestore: /CashCustody cleared.',
+        gateValidation: 'Payout Custody Gate prerequisite: Discrepancy count MUST be 0 for driver payout unlock. OTP prevents cashier/driver denial.',
+        camera: { scale: 0.95, tx: 180, ty: -1150 }
+      },
+      {
+        step: 9,
+        phase: 'Tier 4: Payouts',
+        title: 'Driver Earnings Withdrawal & Cloud Tasks Bank Transfer',
+        subtitle: 'KMS account decryption, custody gate verification & IMPS payout',
+        actor: 'Delivery Driver & Automated Cloud Tasks',
+        epics: ['EPIC-06', 'EPIC-07', 'EPIC-13'],
+        features: ['FEAT-06.01', 'FEAT-06.02', 'FEAT-06.03', 'FEAT-13.04'],
+        services: ['payouts-service (:4006)', 'cash-service (:4007)', 'social-connect-service (:4012)'],
+        narrative: 'Driver requests withdrawal of ₹1,800 day earnings. payouts-service evaluates the Payout Custody Gate by querying cash-service; zero discrepancies confirmed. System decrypts driver bank account using Google Cloud KMS, enqueues rate-limited Cloud Tasks worker, and executes IMPS payout via RazorpayX. social-connect-service sends WhatsApp credit receipt with bank UTR.',
+        endpoints: 'POST /api/v1/payouts/request · POST /api/v1/payouts/cloud-task/execute · POST /api/v1/social/send-receipt',
+        dataMutations: 'payouts_db: Payout status="processed", bank_utr="UTR89201948"; social_connect_db: WhatsApp message logged; Driver bank account credited.',
+        gateValidation: 'Hard Circuit Breaker: If cash_service reports unresolved discrepancies > 0, payout requests throw 403 CASH_DISCREPANCY_UNRESOLVED.',
+        camera: { scale: 0.95, tx: -150, ty: -1150 }
+      },
+      {
+        step: 10,
+        phase: 'Tier 5: Governance & Ledger',
+        title: 'Regulatory Compliance, Nightly Reconciliation & Ledger Close',
+        subtitle: 'Double-entry general ledger, 01:00 AM 3-way reconciliation & TDS',
+        actor: 'Platform Finance Controller & Automated Cloud Scheduler',
+        epics: ['EPIC-11', 'EPIC-09'],
+        features: ['FEAT-11.01', 'FEAT-11.02', 'FEAT-11.03', 'FEAT-09.01', 'FEAT-09.02', 'FEAT-09.03'],
+        services: ['governance-service (:4011)', 'finance-service (:4009)'],
+        narrative: 'governance-service audits UPI VPAs against NPCI TPAP registry and evaluates Redis sliding-window AML velocity (all clean). finance-service double-entry engine records balanced debit and credit entries for every transaction leg. At 01:00 AM, Cloud Scheduler triggers automated 3-way reconciliation (Bank Statement vs Razorpay vs Internal Ledger). Zero variance is verified, TDS Section 194C/194O registers are updated, and the fiscal day is officially locked.',
+        endpoints: 'POST /api/v1/governance/aml/scan · POST /api/v1/finance/ledger/entry · POST /api/v1/finance/recon/nightly',
+        dataMutations: 'finance_db: Balanced Journal entries posted; 3-way recon matched ₹0 variance; TDS ledger updated; Firestore: /FinanceSummaries/{date} published.',
+        gateValidation: 'Double-entry mathematical integrity: sum(debit) == sum(credit). Any recon variance triggers high-severity alerts to Finance Ops.',
+        camera: { scale: 0.9, tx: -50, ty: -1400 }
+      }
+    ];
+
+    let currentHappyPathStep = 0;
+    let happyPathTimer = null;
+    let isHappyPathPlaying = false;
+
+    function renderHappyPathStoryboard() {
+      const list = document.getElementById('storyboardList');
+      if (!list) return;
+      list.innerHTML = HAPPY_PATH_STAGES.map(s => `
+        <div class="stage-card">
+          <div class="stage-badge-box">
+            <span class="stage-pill">${s.phase}</span>
+            <span class="stage-num-big">${String(s.step).padStart(2, '0')}</span>
+            <button class="stage-focus-btn" onclick="focusStageInDag(${s.step - 1})">
+              <span>🎯 View in DAG</span>
+            </button>
+          </div>
+          <div class="stage-content">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+              <h3>${s.title}</h3>
+              <span class="stage-actor-tag">👤 ${s.actor}</span>
+            </div>
+            <div style="font-size:12px; color:#fbbf24; font-weight:600;">${s.subtitle}</div>
+            <p class="stage-narrative">${s.narrative}</p>
+
+            <div class="stage-grid-meta">
+              <div class="stage-meta-item">
+                <span class="stage-meta-label">Covered Epics & Services</span>
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:3px;">
+                  ${s.epics.map(e => `<span class="epic-badge" style="font-size:10px;">${e}</span>`).join('')}
+                  ${s.services.map(svc => `<span class="pill" style="font-size:10px;">${svc}</span>`).join('')}
+                </div>
+              </div>
+              <div class="stage-meta-item">
+                <span class="stage-meta-label">Features Exercised</span>
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:3px;">
+                  ${s.features.map(f => `<span class="hp-chip" style="font-size:10px;">${f}</span>`).join('')}
+                </div>
+              </div>
+              <div class="stage-meta-item" style="grid-column: 1 / -1;">
+                <span class="stage-meta-label">API Endpoints & Data Mutations</span>
+                <div class="stage-meta-val" style="color:#94a3b8; margin-top:2px;">${s.endpoints}</div>
+                <div style="font-size:11.5px; color:#cbd5e1; margin-top:4px;">💾 ${s.dataMutations}</div>
+              </div>
+              <div class="stage-meta-item" style="grid-column: 1 / -1; border-top:1px solid rgba(255,255,255,0.05); padding-top:6px;">
+                <span class="stage-meta-label" style="color:#f59e0b;">🛡️ Prerequisite & Operational Gate Assertion</span>
+                <div style="font-size:12px; color:#fde68a; margin-top:2px;">${s.gateValidation}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function startHappyPathWalkthrough() {
+      // Ensure canvas is visible
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const dagTab = document.querySelector('.tab-btn:first-child');
+      if (dagTab) dagTab.classList.add('active');
+
+      document.querySelectorAll('.view-overlay').forEach(ov => ov.classList.remove('active'));
+      document.getElementById('canvas-container').style.display = 'block';
+      document.getElementById('tierBar').style.display = 'flex';
+
+      document.getElementById('happy-path-player').classList.add('active');
+      goToHappyPathStep(0);
+      playHappyPath();
+    }
+
+    function focusStageInDag(stepIdx) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const dagTab = document.querySelector('.tab-btn:first-child');
+      if (dagTab) dagTab.classList.add('active');
+
+      document.querySelectorAll('.view-overlay').forEach(ov => ov.classList.remove('active'));
+      document.getElementById('canvas-container').style.display = 'block';
+      document.getElementById('tierBar').style.display = 'flex';
+
+      document.getElementById('happy-path-player').classList.add('active');
+      goToHappyPathStep(stepIdx);
+      pauseHappyPath();
+    }
+
+    function goToHappyPathStep(stepIdx) {
+      currentHappyPathStep = Math.max(0, Math.min(stepIdx, HAPPY_PATH_STAGES.length - 1));
+      const s = HAPPY_PATH_STAGES[currentHappyPathStep];
+
+      // Update Player UI
+      document.getElementById('hpPlayerBadge').textContent = `Stage ${s.step} of ${HAPPY_PATH_STAGES.length}`;
+      document.getElementById('hpPlayerTitle').textContent = `${s.title}`;
+      document.getElementById('hpPlayerProgress').style.width = `${((currentHappyPathStep + 1) / HAPPY_PATH_STAGES.length) * 100}%`;
+      document.getElementById('hpPlayerNarrative').textContent = s.narrative;
+      document.getElementById('hpPlayerNodes').textContent = s.epics.join(', ');
+
+      const chipsBox = document.getElementById('hpPlayerChips');
+      chipsBox.innerHTML = `
+        <span class="hp-badge" style="background:#0284c7; color:#fff;">${s.phase}</span>
+        ${s.epics.map(e => `<span class="hp-chip" style="border-color:#fbbf24; color:#fbbf24; font-weight:700;">${e}</span>`).join('')}
+        ${s.features.map(f => `<span class="hp-chip">${f}</span>`).join('')}
+        <span class="hp-chip" style="color:#38bdf8;">👤 ${s.actor}</span>
+      `;
+
+      // Update Node Cards in DAG
+      document.querySelectorAll('.node-card').forEach(c => {
+        c.classList.remove('golden-active', 'highlight-target', 'highlight-prereq', 'highlight-dependent', 'dimmed');
+        const id = c.id.replace('node-', '');
+        if (s.epics.includes(id)) {
+          c.classList.add('golden-active');
+        } else {
+          c.classList.add('dimmed');
+        }
+      });
+
+      // Update Edges
+      document.querySelectorAll('svg#edges path').forEach(p => {
+        const from = p.getAttribute('data-from');
+        const to = p.getAttribute('data-to');
+        p.classList.remove('edge-golden');
+        if (s.epics.includes(from) && s.epics.includes(to)) {
+          p.classList.add('edge-golden');
+        } else if (s.epics.includes(to)) {
+          p.setAttribute('stroke', '#f59e0b');
+          p.setAttribute('stroke-width', '2.5');
+        } else {
+          p.setAttribute('stroke', 'rgba(255, 255, 255, 0.03)');
+          p.setAttribute('stroke-width', '1');
+        }
+      });
+
+      // Camera pan/zoom smoothly
+      scale = s.camera.scale;
+      tx = s.camera.tx;
+      ty = s.camera.ty;
+      applyTransform();
+    }
+
+    function nextHappyPathStep() {
+      if (currentHappyPathStep >= HAPPY_PATH_STAGES.length - 1) {
+        goToHappyPathStep(0);
+      } else {
+        goToHappyPathStep(currentHappyPathStep + 1);
+      }
+    }
+
+    function prevHappyPathStep() {
+      if (currentHappyPathStep <= 0) {
+        goToHappyPathStep(HAPPY_PATH_STAGES.length - 1);
+      } else {
+        goToHappyPathStep(currentHappyPathStep - 1);
+      }
+    }
+
+    function playHappyPath() {
+      isHappyPathPlaying = true;
+      const btn = document.getElementById('hpPlayPauseBtn');
+      if (btn) btn.textContent = '⏸ Pause';
+      if (happyPathTimer) clearInterval(happyPathTimer);
+      happyPathTimer = setInterval(() => {
+        nextHappyPathStep();
+      }, 7000);
+    }
+
+    function pauseHappyPath() {
+      isHappyPathPlaying = false;
+      const btn = document.getElementById('hpPlayPauseBtn');
+      if (btn) btn.textContent = '▶ Play';
+      if (happyPathTimer) {
+        clearInterval(happyPathTimer);
+        happyPathTimer = null;
+      }
+    }
+
+    function toggleHappyPathAutoplay() {
+      if (isHappyPathPlaying) {
+        pauseHappyPath();
+      } else {
+        playHappyPath();
+      }
+    }
+
+    function exitHappyPathPlayer() {
+      pauseHappyPath();
+      document.getElementById('happy-path-player').classList.remove('active');
+      resetHighlight();
+      fitView();
+    }
+
+    // Click canvas background to deselect (when not in happy path mode)
+    container.addEventListener('click', (e) => {
+      if (!e.target.closest('.node-card') && !e.target.closest('#happy-path-player')) {
+        closeDetail();
+      }
+    });
+
+    // ─── INIT ────────────────────────────────────────────────────────────────
+    renderGraph();
+    renderHappyPathStoryboard();
+  </script>
+</body>
+</html>

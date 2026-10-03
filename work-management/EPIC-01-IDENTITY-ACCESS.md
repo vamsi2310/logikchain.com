@@ -1,245 +1,196 @@
 # EPIC-01: Identity, Authentication & Role Lifecycle
 
-## Executive Summary
-EPIC-01 governs identity provisioning, Firebase Auth phone verification, custom claims lifecycle, role transitions, official client delegation (PWA vs Android), profile data management, and operational/platform suspension controls.
+## 1. Functional Area Alignment & Microservice Metadata
+- **Epic ID**: `EPIC-01`
+- **Functional Area**: Identity, Access Management & Role Governance
+- **Bound Microservice**: `microservices/services/identity-service`
+- **Container Port**: `4001`
+- **Database**: `identity_db` (PostgreSQL with outbox event streaming)
+- **Primary Runtimes**: Web PWA (`web/index.html`), Android (`logikchain-android`), iOS (`logikchain-ios`), API Gateway
+- **Primary Responsibilities**: User onboarding, Firebase Auth token validation, custom claims lifecycle (`role`, `status`, `officialClient`), role conversions, multi-client routing, user profile metadata, and operational/platform account suspensions.
 
 ---
 
 ## FEAT-01.01: Phone OTP Authentication & Custom Claims Bootstrap
 
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-01`
+### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.01`
-- **Official Runtimes**: Web PWA (`web/index.html`), Android (`logikchain-android`)
-- **Screens**: [SHR-01 Splash](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-01), [SHR-02 Login](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-02), [SHR-04 OTP](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-04)
-- **Functions / APIs**: Firebase Auth SDK, `/v1/users/{userId}` bootstrap trigger
+- **Functional Scope**: Phone number SMS OTP authentication, user registration bootstrap, and custom claims token decoration.
+- **Service Endpoints**: `POST /v1/auth/bootstrap`, `GET /v1/users/me`
+- **UI Screens**: [SHR-01 Splash](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-01), [SHR-02 Login](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-02), [SHR-04 OTP](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-04)
 
-### 2. Business Value & Problem Statement
-Rural users and logistics actors rely on SMS OTP authentication. Self-registration defaults to `role: buyer` with status `unauthorized` until phone verification completes and business profile binds.
+### 2. Derived Use Cases
+#### UC-01.01.A: Rural Phone OTP Login & Role Bootstrapping
+- **Description**: A rural citizen or merchant logs into the mobile app or PWA using their phone number without a password.
+- **Primary Actor**: Unauthenticated Citizen / Merchant / Driver / Supplier.
+- **Secondary Systems**: Firebase Auth (Phone Provider), Telephony Gateway, `identity-service`.
+- **Preconditions**: User has an active SIM card capable of receiving SMS messages.
+- **Nominal Flow**:
+  1. Actor inputs 10-digit mobile number and triggers OTP dispatch.
+  2. Telephony provider sends 6-digit cryptographic OTP.
+  3. Actor enters OTP; client exchanges verification code with Firebase Auth for a JWT ID token.
+  4. Client invokes `identity-service` bootstrap endpoint via the API Gateway.
+  5. `identity-service` checks `identity_db.user_profiles`. If new, it creates a record with default `role: buyer` and `status: approved`.
+  6. `identity-service` sets Firebase Auth custom claims `{ role: 'buyer', status: 'approved', officialClient: 'pwa' }`.
+  7. Client receives refreshed token and routes actor to the Buyer Home Screen.
+- **Alternate / Degraded Flow**:
+  - *Invalid OTP*: Display error with attempts remaining counter (max 3 tries).
+  - *Rate Limited*: Enforce 15-minute exponential backoff after 3 consecutive failures.
+- **Postconditions**: Auth session active; user profile persisted in `identity_db`; outbox event queued for Firestore sync.
 
-### 3. Users in Use Case
-- **Primary Actor**: Any unauthenticated actor (Buyer, Merchant, Driver, Supplier, Support).
-- **Secondary System**: Firebase Auth, SMS Telephony Gateway, Firebase Functions (`beforeUserCreated`/`beforeUserSignedIn`).
+### 3. User Journey Stories
+- **US-01.01.01**: *As an unauthenticated citizen, I want to authenticate using my 10-digit phone number and an SMS OTP, so that I can securely log into Logikchain without needing an email or password.*
+- **US-01.01.02**: *As an authenticated user opening the app, I want the client to inspect my verified custom claims, so that I am automatically directed to my designated workspace (Buyer, Merchant, Driver, Supplier, or Support).*
 
-### 4. End-to-End Use Case Narrative
-1. **Pre-conditions**: User opens PWA or Android app without an active Firebase session.
-2. **Main Flow**:
-   - User inputs 10-digit mobile number and taps "Send OTP".
-   - Telephony gateway transmits 6-digit numeric OTP.
-   - User enters 6-digit code.
-   - Firebase verifies credentials and generates ID token.
-   - Client decodes custom claims `{ role, status, officialClient }`.
-   - Client routes user to target home screen based on claims.
-3. **Alternate Flow**: Invalid OTP entered $\rightarrow$ Error displayed, retry counter decremented, timeout countdown initiated.
-4. **Post-conditions**: Auth record created in Firebase Auth; `UserProfiles/{uid}` doc populated; session cached securely.
-
-### 5. Agile User Stories
-- **US-01.01.01 (Must Have)**: As an unauthenticated user, I want to log in using my mobile phone number and a one-time password (OTP), so that I can securely access the platform without memorizing complex passwords.
-- **US-01.01.02 (Must Have)**: As a returning user, I want the system to inspect my custom claims on startup, so that I am instantly routed to my authorized role experience (Buyer, Merchant, Driver, Supplier, or Support).
-
-### 6. Acceptance Criteria (Gherkin)
-
+#### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Successful phone login and role dispatch
-  Given the user is on screen "SHR-02"
-  When the user enters a valid 10-digit mobile number "+919876543210"
-  And requests an OTP
-  Then the system renders "SHR-04" with a 60-second countdown timer
-  When the user submits the correct 6-digit OTP
-  Then an authenticated session is established
-  And the user is redirected to the role root route matching claims.role
-
-Scenario: Throttled OTP attempts
-  Given the user has failed OTP verification 3 times consecutively on "SHR-04"
-  When the user attempts a 4th submission with an invalid code
-  Then the system displays error "Too many failed attempts. Please wait 15 minutes."
-  And disables the submit action until the backoff timer elapses
+Scenario: Successful phone authentication and claims bootstrap
+  Given an unauthenticated user on screen "SHR-02"
+  When the user submits mobile number "+919876543210" and requests OTP
+  Then screen "SHR-04" displays with a 60-second resend countdown
+  When the user enters valid OTP "482910"
+  Then the session is authenticated
+  And identity-service issues custom claims { role: "buyer", status: "approved" }
+  And the client redirects to the buyer dashboard
 ```
 
-### 7. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/00-auth/phone-login.bru` (Emulator stub: token exchange against local Auth emulator).
-- **UI E2E Test**: `tests/e2e/auth/login-otp.spec.ts` testing `SHR-02` $\rightarrow$ `SHR-04` $\rightarrow$ role navigation.
-- **Unit Tests**: Phone number international format normalizer (`+91`), OTP input masking, 60s countdown timer hook.
-- **Functional Tests**: Firestore Security Rules assertion: unauthenticated tokens cannot read `/UserProfiles/*`.
+### 4. Integration Stories
+- **INT-01.01.01 (Firebase Auth Integration)**: *As the Identity Service, I need to integrate with the Firebase Admin Auth SDK to set and refresh custom user claims (`role`, `status`, `officialClient`) upon user registration and claim modification.*
+- **INT-01.01.02 (Firestore Periodic Sync Integration)**: *As the Identity Service, I need to synchronize `identity_db.user_profiles` to Cloud Firestore collection `/UserProfiles/{uid}` via the periodic sync engine every 2000ms.*
+- **INT-01.01.03 (API Gateway Context Header Integration)**: *As the Identity Service, I need to ingest pre-validated user identity headers (`x-user-uid`, `x-user-role`, `x-client-platform`) injected by the API Gateway after App Check and JWT verification.*
+
+### 5. Independent Support Stories
+- **OPS-01.01.01 (DevOps & Deployment)**: *Implement multi-stage Docker build (`Dockerfile.service`), non-root Alpine runtime, Kubernetes deployment (`03-identity.yaml`), database migration for `identity_db`, and readiness probe `GET /health`.*
+- **DOC-01.01.01 (Contract & Runbook Documentation)**: *Publish OpenAPI 3.0 specification for authentication bootstrap endpoints, token lifecycle sequence diagrams, and claim synchronization failure runbooks.*
+- **TEST-01.01.01 (Automation Test Suite)**: *Implement automated Bruno API collection `tests/bruno/01-identity/bootstrap/`, Vitest unit test suite with $\ge 90\%$ branch coverage, and multi-attempt rate-limiting validation.*
 
 ---
 
-## FEAT-01.02: Supplier Organization Provisioning
+## FEAT-01.02: Regional Supplier Organization Provisioning
 
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-01`
+### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.02`
-- **Official Runtimes**: Support Ops Web Console (`web/x/index.html`), Functions
-- **Screens**: [SPT-02 Supplier Management](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md)
-- **Functions / APIs**: `POST /v1/suppliers` (`createSupplier`)
+- **Functional Scope**: Vetted B2B supplier organization creation, geographical jurisdiction binding, and administrator credentials generation.
+- **Service Endpoints**: `POST /v1/suppliers`, `GET /v1/suppliers/{supplierId}`
+- **UI Screens**: [SPT-02 Supplier Management](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md)
 
-### 2. Business Value & Problem Statement
-Suppliers are regional anchor businesses. They cannot self-register; they must be vetted and provisioned by Support with geographic country bindings and admin accounts.
-
-### 3. Users in Use Case
+### 2. Derived Use Cases
+#### UC-01.02.A: Regional Supplier Onboarding & Credential Generation
+- **Description**: A Platform Support Administrator provisions a vetted regional agricultural or wholesale supplier organization.
 - **Primary Actor**: Support Administrator (`role: support`).
-- **Target Subject**: New Regional Supplier Entity.
+- **Secondary Systems**: `identity-service`, Firebase Auth Admin, `config-service`.
+- **Preconditions**: Support Administrator is authenticated with valid custom claim `role: support`.
+- **Nominal Flow**:
+  1. Support Administrator navigates to `SPT-02` and enters Supplier legal name, GSTIN, business email, phone, and target Country ID.
+  2. Support Administrator submits provisioning payload.
+  3. `identity-service` verifies GSTIN/Phone uniqueness in `identity_db.suppliers`.
+  4. `identity-service` creates supplier organization and admin user record.
+  5. `identity-service` sets Firebase Auth custom claims `{ role: 'supplier', supplierId: 'sup_xxx', status: 'approved' }`.
+  6. Outbox event emitted for Firestore mirror and audit log recording.
+- **Postconditions**: Supplier active; credentials dispatched via secure channel; record mirrored in `/Suppliers/{id}`.
 
-### 4. End-to-End Use Case Narrative
-1. **Pre-conditions**: Support operator is authenticated with `role: support`.
-2. **Main Flow**:
-   - Support operator navigates to `SPT-02` and enters Supplier business name, admin email, phone, and country ID.
-   - Support operator submits the provisioning request.
-   - Cloud Function `createSupplier` validates payload, ensures email/phone uniqueness, creates Supplier doc, creates Auth user with `role: supplier`, sets custom claims, and triggers welcome SMS/email.
-3. **Post-conditions**: `Suppliers/{supplierId}` created; primary contact registered; audit log logged in `/AuditLogs`.
+### 3. User Journey Stories
+- **US-01.02.01**: *As a Support Administrator, I want to register a new verified supplier organization with regional configuration parameters, so that they can manage distribution routes, inventory, and field fleets.*
 
-### 5. Agile User Stories
-- **US-01.02.01 (Must Have)**: As a Support administrator, I want to register a new verified supplier organization with authorized regional parameters, so that they can manage distribution routes, inventory, and field fleets.
-
-### 6. Acceptance Criteria (Gherkin)
-
+#### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Support operator provisions valid supplier
-  Given an authenticated user with custom claim "role: support"
-  When a POST request is sent to "/v1/suppliers" with:
-    | name        | "Andhra Agro Logistics"             |
-    | email       | "ops@andhra-agro.test"              |
-    | phone       | "+919876500001"                     |
-    | countryId   | "country_in"                        |
-  Then the response status is 201 Created
-  And the response body contains "success: true" and a generated "supplierId"
-  And a document is created in "/Suppliers/{supplierId}"
-
-Scenario: Non-support user attempts supplier creation
-  Given an authenticated user with custom claim "role: merchant"
-  When a POST request is sent to "/v1/suppliers"
-  Then the response status is 403 Forbidden
-  And error code is "PERMISSION_DENIED"
+Scenario: Support provisions valid supplier entity
+  Given an authenticated Support user with claim "role: support"
+  When a POST is made to "/v1/suppliers" with valid supplier metadata
+  Then identity-service responds with status 201 Created and generated supplierId
+  And the user record is provisioned with custom claim "role: supplier"
 ```
 
-### 7. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/01-identity/createSupplier/` (`00-setup.bru`, `10-execute.bru`, `90-teardown.bru`).
-- **UI E2E Test**: `tests/e2e/support/supplier-provisioning.spec.ts` on `SPT-02`.
-- **Unit Tests**: Supplier schema validator, GSTIN / phone regex validation.
-- **Functional Tests**: Custom claims assignment verification in Firebase Auth admin SDK mock.
+### 4. Integration Stories
+- **INT-01.02.01 (Config Service Integration)**: *As the Identity Service, I need to query `config-service` (`:4010`) to validate country, state, and district IDs during supplier provisioning.*
+- **INT-01.02.02 (Firestore Sync Integration)**: *As the Identity Service, I need to mirror newly provisioned suppliers to Firestore `/Suppliers/{id}` via outbox sync.*
+
+### 5. Independent Support Stories
+- **OPS-01.02.01 (DevOps & Database Schema)**: *Execute SQL migration adding `suppliers` table with foreign key constraints, unique GSTIN indices, and automated outbox trigger.*
+- **DOC-01.02.01 (OpenAPI Documentation)**: *Document `POST /v1/suppliers` request/response schemas, error taxonomy (`DUPLICATE_GSTIN`), and access policies.*
+- **TEST-01.02.01 (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/01-identity/createSupplier/` with automated cleanup teardown.*
 
 ---
 
-## FEAT-01.03: Progressive Role Conversion & Official Client Handoff
+## FEAT-01.03: Progressive Role Conversion & Multi-Client Handoff
 
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-01`
+### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.03`
-- **Official Runtimes**: Web PWA, Android, Functions
-- **Screens**: [SHR-06 Role Splash](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-06), [SHR-13 Install & Updates](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-13)
-- **Functions / APIs**: `POST /v1/buyers/{buyerId}/role` (`convertBuyerToRole`)
+- **Functional Scope**: Elevating active buyer accounts to merchant or driver roles and coordinating runtime handoff between PWA, Android, and iOS.
+- **Service Endpoints**: `POST /v1/buyers/{buyerId}/role`, `POST /v1/merchants/{merchantId}:disassociate`
+- **UI Screens**: [SHR-06 Role Splash](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-06), [SUP-08 Member Directory](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md)
 
-### 2. Business Value & Problem Statement
-Users start as buyers. When vetted as merchants or drivers, their single Firebase UID is elevated without losing transaction history. If upgraded to `vehicle` (Driver), the official client is Android; the PWA must display handoff instructions rather than executing custody actions.
+### 2. Derived Use Cases
+#### UC-01.03.A: Buyer Elevation to Merchant or Driver
+- **Description**: An existing buyer is vetted and elevated by an authorized supplier to become a local merchant or vehicle driver.
+- **Primary Actor**: Regional Supplier (`role: supplier`).
+- **Target Subject**: Active Buyer (`usr_xxx`).
+- **Nominal Flow**:
+  1. Supplier selects verified buyer on `SUP-08` and designates target role (`merchant` or `vehicle`).
+  2. `identity-service` updates `user_profiles.role` in `identity_db` and refreshes Firebase Auth custom claims.
+  3. If elevated to `vehicle` (driver), `officialClient` is set to `android`.
+  4. On subsequent session launch, PWA displays screen `SHR-06` with deep links to launch the official Android application.
 
-### 3. Users in Use Case
-- **Primary Actor**: Supplier (initiator) or Support Operator.
-- **Target Subject**: Buyer elevating to Merchant or Driver (`vehicle`).
+### 3. User Journey Stories
+- **US-01.03.01**: *As a supplier, I want to convert an existing buyer into an authorized merchant or driver, so that our field logistics network expands with trusted local individuals.*
+- **US-01.03.02**: *As a converted driver using the Web PWA, I want to be presented with an immediate deep link to the Android Play Store, so that I can perform field custody handovers on the official native runtime.*
 
-### 4. End-to-End Use Case Narrative
-1. **Pre-conditions**: Buyer account exists in `approved` status.
-2. **Main Flow**:
-   - Supplier selects buyer on `SUP-08` and invokes `convertBuyerToRole` targeting `merchant` or `vehicle`.
-   - Function checks caller authorization, updates `UserProfiles/{buyerId}.role`, refreshes custom claims, and sets `officialClient`.
-   - Target user receives notification. On next app launch, `SHR-06` displays role change congratulations.
-   - If converted to `vehicle`, `SHR-06` prompts user to install and launch the Android Play Store app.
-3. **Post-conditions**: Custom claim `role` matches new role; PWA acts as read-only handoff for drivers.
-
-### 5. Agile User Stories
-- **US-01.03.01 (Must Have)**: As a supplier, I want to convert an active buyer into an authorized merchant or driver, so that our supply network expands organically from verified community members.
-- **US-01.03.02 (Must Have)**: As a converted driver using the web PWA, I want to see a clear link to launch the Android official app, so that I can perform location tracking and custody handovers reliably.
-
-### 6. Acceptance Criteria (Gherkin)
-
+#### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Supplier upgrades buyer to vehicle driver
-  Given a supplier authenticated with custom claims "role: supplier"
-  When the supplier posts to "/v1/buyers/usr_buyer_123/role" with:
-    | targetRole | "vehicle" |
-  Then the response status is 200 OK
-  And the target user custom claims are updated to "{ role: 'vehicle', officialClient: 'android' }"
-  And on next PWA session, user is shown screen "SHR-06" with Play Store deep-link
+Scenario: Supplier elevates buyer to vehicle driver
+  Given an authenticated supplier with claim "role: supplier"
+  When the supplier posts to "/v1/buyers/usr_123/role" with targetRole "vehicle"
+  Then identity-service updates user custom claims to { role: "vehicle", officialClient: "android" }
+  And the Web PWA locks custody actions and presents the Android deep-link modal
 ```
 
-### 7. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/01-identity/convertBuyerToRole/`.
-- **UI E2E Test**: `tests/e2e/identity/role-handoff.spec.ts` verifying `SHR-06` deep link generation.
-- **Unit Tests**: Claim verification logic, client capability router.
-- **Functional Tests**: Token refresh assertion after claim mutation.
+### 4. Integration Stories
+- **INT-01.03.01 (Firebase Auth Custom Claims Integration)**: *As the Identity Service, I need to invalidate existing JWT claims and assign new role tokens using `admin.auth().setCustomUserClaims()`.*
+- **INT-01.03.02 (Firestore Outbox Sync Integration)**: *As the Identity Service, I need to sync updated role definitions to `/UserProfiles/{id}` for real-time mobile listener triggers.*
+
+### 5. Independent Support Stories
+- **OPS-01.03.01 (DevOps Scripting)**: *Verify zero-downtime database updates during role alterations and validate PostgreSQL indexing on `user_profiles(role, supplier_id)`.*
+- **DOC-01.03.01 (Role Transition Architecture Docs)**: *Document state transition matrix and client capabilities per role in `constitution/`.*
+- **TEST-01.03.01 (Bruno & Unit Tests)**: *Execute role change automation in `tests/bruno/01-identity/convertBuyerToRole/` verifying unauthorized role escalation blocks.*
 
 ---
 
-## FEAT-01.04: User Profile & Multilingual Localization
+## FEAT-01.04: User Suspension & Account Governance Lifecycle
 
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-01`
+### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.04`
-- **Official Runtimes**: Web PWA, Android, Functions
-- **Screens**: [SHR-07 Profile](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-07), [SHR-07.1 Edit Profile](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-07.1), [SHR-11 Audio/Voice Settings](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-11)
-- **Functions / APIs**: `PATCH /v1/users/{userId}` (`updateUserProfile`)
+- **Functional Scope**: Temporary or permanent account suspension, fraud lockdown, and reinstatement workflows.
+- **Service Endpoints**: `POST /v1/users/{userId}/suspension`, `DELETE /v1/users/{userId}/suspension`
+- **UI Screens**: [SPT-03 User Detail](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md), [SHR-05 Account Blocked](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-05)
 
-### 2. Business Value & Problem Statement
-Rural users speak regional languages (e.g., Telugu, Hindi, English). Profile information must support localized strings, voice-assist playback options, and default delivery addresses.
+### 2. Derived Use Cases
+#### UC-01.04.A: Multi-Level Account Suspension & Restoration
+- **Description**: Support or Suppliers suspend accounts for unresolved cash shortfalls or compliance breaches.
+- **Primary Actor**: Support Operator (`role: support`) or Supplier (`role: supplier`).
+- **Nominal Flow**:
+  1. Operator submits suspension payload specifying scope (`operational` or `platform`), reason code, and idempotency key.
+  2. `identity-service` enforces scope permissions (Suppliers can only suspend `operational` scope; Support can suspend `platform` scope).
+  3. `identity-service` updates status to `suspended` in `identity_db` and Firebase Auth claims.
+  4. Active sessions are terminated, and client locks to screen `SHR-05`.
 
-### 3. Acceptance Criteria (Gherkin)
+### 3. User Journey Stories
+- **US-01.04.01**: *As a Support operator, I want to suspend a compromised or non-compliant user account across the entire platform, so that further transactions are blocked immediately.*
+- **US-01.04.02**: *As an operator, I want to restore an account once discrepancies are settled, so that legitimate business activities can resume promptly.*
 
+#### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: User updates locale and profile details
-  Given an authenticated user "usr_101"
-  When user patches "/v1/users/usr_101" with:
-    | name   | "Ramesh Kumar" |
-    | locale | "te-IN"        |
-  Then the response status is 200 OK
-  And "UserProfiles/usr_101" reflects name "Ramesh Kumar" and locale "te-IN"
-  And the UI immediately renders in Telugu
+Scenario: Platform suspension locks client session
+  Given an authenticated Support operator
+  When POST "/v1/users/usr_456/suspension" is executed with scope "platform"
+  Then user profile status is set to "suspended"
+  And all subsequent API calls from "usr_456" return HTTP 403 Forbidden
 ```
 
-### 4. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/01-identity/updateUserProfile/`.
-- **UI E2E Test**: Playwright testing `SHR-07` $\rightarrow$ `SHR-07.1` input and i18n change.
-- **Unit Tests**: Locale string sanitizer, address schema validator.
+### 4. Integration Stories
+- **INT-01.04.01 (Governance Service Integration)**: *As the Identity Service, I need to send suspension telemetry events to `governance-service` (`:4011`) for audit compliance and AML risk scoring.*
+- **INT-01.04.02 (Firebase Token Revocation Integration)**: *As the Identity Service, I need to invoke `admin.auth().revokeRefreshTokens(uid)` to force immediate logout across all active client devices.*
 
----
-
-## FEAT-01.05: User Suspension & Account Governance Lifecycle
-
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-01`
-- **Feature ID**: `FEAT-01.05`
-- **Official Runtimes**: Support Ops Web Console, Functions
-- **Screens**: [SPT-03 User Detail & Governance](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md), [SHR-05 Account Blocked](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-05)
-- **Functions / APIs**: `POST /v1/users/{userId}/suspension` (`suspendUser`), `DELETE /v1/users/{userId}/suspension` (`restoreUser`), `POST /v1/merchants/{merchantId}:disassociate` (`disassociateMerchant`)
-
-### 2. Business Value & Problem Statement
-When fraud, missing cash settlement, or safety issues occur, Support or Suppliers must suspend accounts. Crucially, Suppliers can only impose `operational` scope within their network, while Support can impose `platform` scope.
-
-### 3. Acceptance Criteria (Gherkin)
-
-```gherkin
-Scenario: Support issues platform suspension for unresolved cash shortfall
-  Given an authenticated Support user
-  When the user calls "POST /v1/users/usr_drv_99/suspension" with:
-    | scope                   | "platform"         |
-    | reasonCode              | "cash_not_settled" |
-    | reason                  | "Pending ₹12,000"  |
-    | acknowledgeCustodyPlan  | true               |
-    | idempotencyKey          | "susp_uuid_001"    |
-  Then the response status is 200 OK
-  And user profile status changes to "suspended"
-  And any subsequent API call by "usr_drv_99" returns 403 Account Suspended
-  And the driver UI is locked to screen "SHR-05"
-
-Scenario: Restore suspended user
-  Given a suspended user "usr_drv_99"
-  When Support calls "DELETE /v1/users/usr_drv_99/suspension" with:
-    | restoreNote   | "Full cash settlement cleared" |
-    | idempotencyKey| "rest_uuid_001"                |
-  Then the response status is 200 OK
-  And user profile status returns to "approved"
-```
-
-### 4. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/01-identity/suspendUser/` and `restoreUser/`.
-- **UI E2E Test**: `tests/e2e/support/user-suspension-flow.spec.ts`.
-- **Unit Tests**: Suspension scope validator (Suppliers cannot set `platform`).
-- **Functional Tests**: Firestore Security Rules block write access for users with status `suspended`.
+### 5. Independent Support Stories
+- **OPS-01.04.01 (DevOps & Audit Logging)**: *Configure DB triggers logging suspension state changes into an immutable audit table in `identity_db`.*
+- **DOC-01.04.01 (Compliance Documentation)**: *Publish operational standard operating procedures (SOP) for suspension escalation and restoration criteria.*
+- **TEST-01.04.01 (Automated Test Suite)**: *Implement Bruno test `tests/bruno/01-identity/suspendUser/` verifying supplier permission boundary checks.*

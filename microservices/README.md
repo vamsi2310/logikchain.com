@@ -74,6 +74,7 @@ It provides:
 | **`finance-service`** | `4009` | `finance_db` | Daily ledger reconciliation, period close, TDS challan & register. |
 | **`config-service`** | `4010` | `config_db` | Village hierarchy (Google Maps geocoding), subscription plans, tax profiles. |
 | **`governance-service`**| `4011` | `governance_db`| UPI TPAP compliance, AML fraud velocity checks, dispute SLA tracking, audit logs. |
+| **`social-connect-service`**| `4012` | `social_connect_db`| User interaction orchestrator: WhatsApp OTPs, notifications, bills & ownership alerts, local preference check & Firestore sync. |
 | **`sync-engine`** | `4050` | `sync_db` | Bidirectional synchronization between PostgreSQL and Cloud Firestore / Storage. |
 
 ---

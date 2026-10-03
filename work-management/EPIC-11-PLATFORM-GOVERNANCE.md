@@ -1,180 +1,142 @@
-# EPIC-11: Platform Governance, Master Data Configuration & Ops Console
+# EPIC-11: Platform Governance, Compliance & AML
 
-## Executive Summary
-EPIC-11 establishes foundational governance, master data structures, Google Maps-powered location services (Places Autocomplete & Geocoding API) for geo-spatial hierarchy resolution, crowd-sourced village coverage expansion, device push notifications, platform telemetry/health monitoring, and statutory privacy controls (GDPR / Indian DPDP Act data exports and deletion requests).
+## 1. Functional Area Alignment & Microservice Metadata
+- **Epic ID**: `EPIC-11`
+- **Functional Area**: Platform Governance, NPCI/RBI TPAP Compliance & Anti-Money Laundering (AML)
+- **Bound Microservice**: `microservices/services/governance-service`
+- **Container Port**: `4011`
+- **Database**: `governance_db` (PostgreSQL with outbox event streaming)
+- **Primary Runtimes**: Web Support & Compliance Console (`web/x/`), API Gateway, Scheduled Workers
+- **Primary Responsibilities**: NPCI/RBI Third-Party Application Provider (TPAP) compliance, VPA lifecycle governance, real-time AML fraud velocity guardrails, T+1 dispute SLA tracking, statutory regulatory reporting, and tamper-proof append-only audit logging.
 
 ---
 
-## FEAT-11.01: Location Services via Google Maps
+## FEAT-11.01: UPI TPAP Compliance & VPA Lifecycle Governance
 
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-11`
+### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-11.01`
-- **Official Runtimes**: Support Ops Web Console (`web/x/index.html`), Web PWA (Buyer), Android Native, Functions
-- **Screens**: [SPT-11 Geo & Master Data](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md)
-- **External Integration**: Google Maps Platform — Places Autocomplete API, Geocoding API (server-side via Cloud Functions only; restricted API key)
-- **Functions / APIs**:
-  - `POST /v1/config/location:resolve` (`resolveLocation`) — server-side Geocoding lookup returning country→state→district→village hierarchy
-  - `POST /v1/config/location:autocomplete` (`autocompleteLocation`) — proxied Places Autocomplete for address input UIs
-  - `PUT /v1/config/villages/{villageId}` (`upsertVillage`) — pins a confirmed Google Maps result as an official service village
-  - `PATCH /v1/config/{collection}/{recordId}:deactivate` (`deactivateConfigurationRecord`)
-  - `GET /v1/config/catalog` (`listConfigurationCatalog`)
+- **Functional Scope**: NPCI TPAP guidelines enforcement, Virtual Payment Address (VPA) registration, bank account binding verification, and VPA de-registration.
+- **Service Endpoints**: `POST /v1/governance/vpa/register` (`registerVPA`), `POST /v1/governance/vpa/deregister` (`deregisterVPA`), `GET /v1/governance/vpa/{vpa}/verify` (`verifyVPALinkage`)
+- **UI Screens**: [SPT-13 Compliance Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-13)
 
-### 2. Business Value & Problem Statement
-Previously, support admins had to manually create country, state, and district records via upsert APIs — error-prone and misaligned with real administrative boundaries. By delegating geographic hierarchy resolution to **Google Maps Places Autocomplete** and **Geocoding API** (server-side, Cloud Functions only), Logikchain ensures:
-- Accurate country→state→district hierarchy derived from authoritative geodata.
-- No manual upsert of country/state/district records by support staff.
-- Village records are pinned from confirmed Maps results, with LGD codes overlaid by support.
-- All Maps API calls are server-side to protect restricted API keys (never embedded in APK/PWA).
+### 2. Derived Use Cases
+#### UC-11.01.A: Regulatory VPA Onboarding & Bank Account Linkage Verification
+- **Description**: Merchant or Buyer registers a UPI VPA for platform collections/payouts; service validates linkage compliance with NPCI TPAP circulars.
+- **Primary Actor**: System (via `payments-service` or `identity-service`) and Compliance Officer (`role: support`).
+- **Nominal Flow**:
+  1. Actor submits VPA (e.g. `merchant@okhdfcbank`) for registration.
+  2. `governance-service` validates VPA syntax, PSP handle authorization, and checks against national fraudulent VPA blacklist.
+  3. Service queries PSP verification gateway to ensure device binding and active bank account link.
+  4. Persists VPA in `governance_db.registered_vpas` with status `active`.
+  5. Cryptographic audit event logged in `audit_events`.
+- **Postconditions**: VPA officially certified for TPAP transactions; compliance record established.
 
-### 3. Acceptance Criteria (Gherkin)
+### 3. User Journey Stories
+- **US-11.01.01**: *As a compliance officer, I want all merchant and platform VPAs verified against NPCI TPAP regulations before any transactions occur, so that the platform avoids regulatory penalties or license suspension.*
 
+#### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Buyer inputs delivery address via autocomplete
-  Given an authenticated buyer on Web PWA or Android
-  When buyer types a partial address in the delivery field
-  Then the PWA/Android calls the Functions proxy "POST /v1/config/location:autocomplete"
-  And returns a ranked list of place suggestions from Google Maps Places API
-  And no Maps API key is exposed to the client
-
-Scenario: Support admin resolves and pins a new village
-  Given an authenticated Support administrator
-  When admin submits "POST /v1/config/location:resolve" with a Google place_id
-  Then the function geocodes the place and returns country, state, district, and GPS coordinates
-  And admin confirms and calls "PUT /v1/config/villages/vil_inkollu" with the resolved data and LGD code "592100"
-  Then the village is stored and available via "GET /v1/config/catalog?types[]=villages"
-
-Scenario: Maps API key is never exposed to clients
-  Given any client runtime (Web PWA or Android)
-  When the client requests location autocomplete or geocoding
-  Then the request is routed through Cloud Functions
-  And the Google Maps API key is read from Secret Manager at runtime
-  And the raw key is never present in any APK or PWA bundle
+Scenario: Register compliant VPA
+  Given a valid merchant VPA "krishna_store@icici" with verified device linkage
+  When governance-service processes registration
+  Then VPA is recorded in governance_db in status "active"
+  And an immutable audit event is appended to the compliance log
 ```
 
-### 4. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/11-config/resolveLocation/`, `autocompleteLocation/`, `upsertVillage/`, `deactivateConfigurationRecord/`, `listConfigurationCatalog/`.
-- **UI E2E Test**: `tests/e2e/support/location-services.spec.ts`, `tests/e2e/buyer/address-autocomplete.spec.ts`.
-- **Unit Tests**: Maps API response → hierarchy mapping, Secret Manager key injection, restricted-key header validation.
-- **Security**: Verify Maps restricted API key is sourced from Secret Manager and absent from all client bundles.
+### 4. Integration Stories
+- **INT-11.01.01 (PSP Verification Gateway Integration)**: *As the Governance Service, I need to integrate with authorized PSP TPAP bank verification APIs to confirm VPA ownership and account linkage.*
+- **INT-11.01.02 (Firestore Compliance Sync Integration)**: *As the Governance Service, I need to mirror verified VPA states to Firestore collection `/VerifiedVPAs/{id}`.*
+
+### 5. Independent Support Stories
+- **OPS-11.01.01 (DevOps & Database Schema)**: *Execute PostgreSQL migration for `governance_db.registered_vpas` and configure unique index on `(vpa, status)`.*
+- **DOC-11.01.01 (NPCI TPAP Regulatory Blueprint)**: *Document NPCI procedural guidelines for third-party application providers and VPA lifecycle requirements.*
+- **TEST-11.01.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/11-governance/registerVPA/` testing blacklist rejection rules.*
 
 ---
 
-## FEAT-11.02: Crowd-Sourced Village Expansion Requests
+## FEAT-11.02: Real-Time AML Fraud Detection & Velocity Guardrails
 
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-11`
+### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-11.02`
-- **Official Runtimes**: Web PWA (Buyer), Support Ops Console, Functions
-- **Screens**: [BUY-04.1 Request Delivery Stop](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-04), [SPT-12 Coverage Requests](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md)
-- **Functions / APIs**: `POST /v1/config/village-requests` (`requestVillage`), `POST /v1/config/village-requests/{id}:reject` (`rejectVillageRequest`)
+- **Functional Scope**: Real-time transaction velocity checks, circular transaction ring detection, rapid cash-out prevention, and automated account lockdown.
+- **Service Endpoints**: `POST /v1/governance/aml/check` (`runAMLFraudCheck`), `GET /v1/governance/aml/alerts`
+- **UI Screens**: [SPT-13 Compliance Alerts](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-13)
 
-### 2. Business Value & Problem Statement
-When buyers in underserved villages discover the Logikchain app, they can submit their village details to request logistics coverage. Support reviews density and feasibility before provisioning official village records.
+### 2. Derived Use Cases
+#### UC-11.02.A: High-Velocity Transaction Interception & Risk Scoring
+- **Description**: A user account initiates unusual high-frequency or high-value payment/payout activity; service intercepts and evaluates risk score.
+- **Primary Actor**: System (`payments-service`, `payouts-service`) on behalf of User.
+- **Nominal Flow**:
+  1. `payments-service` or `payouts-service` sends transaction metadata to `runAMLFraudCheck`.
+  2. `governance-service` evaluates rules:
+     - Velocity: More than 5 transactions within 10 minutes.
+     - Single ticket size: Exceeds ₹1,00,000 for rural merchant profile.
+     - Device fingerprint: Rapid switching between geographic cells.
+  3. If risk score $\ge 80$: Returns `REJECT_AND_FREEZE`.
+  4. `governance-service` automatically notifies `identity-service` (`:4001`) to place account in `suspended` status.
+  5. Incident ticket created for Support audit on `SPT-13`.
+- **Postconditions**: Suspicious transaction blocked; account locked; AML investigation ticket opened.
 
-### 3. Acceptance Criteria (Gherkin)
+### 3. User Journey Stories
+- **US-11.02.01**: *As a fraud risk manager, I want high-velocity fraudulent transaction rings automatically intercepted in real time, so that platform financial losses and chargebacks are prevented.*
 
+#### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Buyer requests coverage for new village
-  Given a buyer whose village is not listed in catalog
-  When buyer submits "POST /v1/config/village-requests" with:
-    | name     | "Nagambhotlapalem" |
-    | pincode  | "523157"           |
-    | district | "Prakasam"         |
-    | state    | "Andhra Pradesh"   |
-  Then request status is "pending_review"
-  And Support receives an alert on screen "SPT-12"
+Scenario: High-velocity transactions trigger AML freeze
+  Given user "usr_fraud_01" attempts a 6th transaction within 8 minutes
+  When governance-service evaluates AML rules
+  Then the transaction is rejected with riskScore 95
+  And governance-service invokes identity-service to suspend the user account
 ```
 
-### 4. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/11-config/requestVillage/` and `rejectVillageRequest/`.
-- **UI E2E Test**: `tests/e2e/buyer/request-village.spec.ts`.
+### 4. Integration Stories
+- **INT-11.02.01 (Identity Service Account Freeze Integration)**: *As the Governance Service, I need to call `identity-service` (`:4001`) to automatically suspend user accounts flagged for AML fraud.*
+- **INT-11.02.02 (Payments Service Interceptor Integration)**: *As the Governance Service, I need to provide sub-50ms REST response times to `payments-service` during synchronous pre-transaction fraud scoring.*
+
+### 5. Independent Support Stories
+- **OPS-11.02.01 (DevOps & Redis Sliding-Window Rate Limiter)**: *Deploy Redis cluster supporting atomic sliding-window rate tracking for real-time velocity calculations.*
+- **DOC-11.02.01 (AML Fraud Matrix & Thresholds)**: *Publish formal AML risk policy defining threshold matrices, scoring algorithms, and escalation tiers.*
+- **TEST-11.02.01 (Bruno & Benchmark Test Suite)**: *Build automated test in `tests/bruno/11-governance/amlCheck/` validating boundary thresholds and latency limits.*
 
 ---
 
-## FEAT-11.03: Device Token Management & Push Broadcasts
+## FEAT-11.03: Dispute SLA Tracking & Regulatory Reporting
 
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-11`
+### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-11.03`
-- **Official Runtimes**: Web PWA, Android Native, Functions, FCM
-- **Functions / APIs**: `POST /v1/devices` (`registerDeviceToken`)
+- **Functional Scope**: NPCI-mandated T+1 dispute SLA tracking, customer complaint escalation, audit logging, and automated daily compliance filing.
+- **Service Endpoints**: `POST /v1/governance/disputes` (`trackDisputeSLA`), `POST /v1/governance/disputes/{id}/resolve` (`resolveUPIDispute`), `POST /v1/governance/reporting/npci` (`reportToNPCI`)
+- **UI Screens**: [SPT-14 Dispute Escalation](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-14)
 
-### 2. Acceptance Criteria (Gherkin)
+### 2. Derived Use Cases
+#### UC-11.03.A: Regulatory Dispute SLA Enforcement & NPCI Reporting
+- **Description**: Customer files a UPI transaction complaint; service tracks countdown to comply with NPCI's 24-hour turnaround mandate.
+- **Primary Actor**: Support Dispute Officer (`role: support`).
+- **Nominal Flow**:
+  1. Customer raises dispute via UPI banking app; dispute enters `governance-service`.
+  2. Service assigns dispute reference and starts strict 24-hour SLA countdown timer.
+  3. If dispute approaches 18 hours without resolution: System triggers urgent escalation alert to senior management.
+  4. Dispute officer investigates and posts `resolveUPIDispute` with resolution outcome (Refund, Goods Delivered, Fraud).
+  5. Nightly job `reportToNPCI` aggregates all dispute resolutions into NPCI standardized XML/JSON regulatory report.
+- **Postconditions**: Dispute resolved within statutory timeframe; daily compliance file dispatched to NPCI portal.
 
+### 3. User Journey Stories
+- **US-11.03.01**: *As a support dispute officer, I want a live countdown timer for all open UPI disputes, so that our team never breaches NPCI's statutory 24-hour turnaround requirement.*
+
+#### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Register FCM push token for logged-in user
-  Given an authenticated user on Android
-  When app sends "POST /v1/devices" with:
-    | token    | "fcm_token_sample_123" |
-    | platform | "android"              |
-  Then token is associated with the user profile
-  And system dispatches critical push notifications to this device
+Scenario: Open dispute tracks 24-hour SLA timer
+  Given an incoming UPI dispute "disp_901" received at "10:00:00Z"
+  When governance-service ingests dispute
+  Then dispute SLA expiry is set to exactly 24 hours later "10:00:00Z + 1 day"
+  And status is tracked in governance_db.dispute_sla
 ```
 
-### 3. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/14-ops/registerDeviceToken/`.
-- **Unit Tests**: FCM token structure validation and device platform sanitization.
+### 4. Integration Stories
+- **INT-11.03.01 (Payments Service Dispute Forwarding Integration)**: *As the Governance Service, I need to receive automated dispute webhooks forwarded from `payments-service` (`:4005`).*
+- **INT-11.03.02 (NPCI Regulatory Portal Integration)**: *As the Governance Service, I need to package and securely transmit daily settlement and dispute compliance files to NPCI via SFTP/API.*
 
----
-
-## FEAT-11.04: Platform System Health & Observability
-
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-11`
-- **Feature ID**: `FEAT-11.04`
-- **Official Runtimes**: Support Ops Web Console, Functions
-- **Screens**: [SPT-01 Support Dashboard](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-01)
-- **Functions / APIs**: `GET /v1/ops/health` (`getSystemHealth`)
-
-### 2. Acceptance Criteria (Gherkin)
-
-```gherkin
-Scenario: System health probe validates dependent services
-  When calling "GET /v1/ops/health"
-  Then the response reports:
-    | status        | "healthy" |
-    | firestore     | "connected" |
-    | storage       | "connected" |
-    | secretManager | "accessible" |
-    | responseTimeMs| < 250 |
-```
-
-### 3. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/14-ops/getSystemHealth/`.
-- **Smoke Tests**: CI/CD deployment smoke test target.
-
----
-
-## FEAT-11.05: Privacy, Data Export & Account Deletion (DPDP Act)
-
-### 1. Hierarchy & Metadata
-- **Epic**: `EPIC-11`
-- **Feature ID**: `FEAT-11.05`
-- **Official Runtimes**: Web PWA, Android Native, Support Ops Console, Functions
-- **Screens**: [SHR-15 Terms & Privacy](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-15)
-- **Functions / APIs**: `POST /v1/me/data-export` (`requestMyDataExport`), `POST /v1/me/deletion` (`requestAccountDeletion`)
-
-### 2. Business Value & Problem Statement
-In compliance with the Digital Personal Data Protection (DPDP) Act, users possess the right to export all personal data and request account anonymization or deletion while preserving non-repudiable financial audit ledgers.
-
-### 3. Acceptance Criteria (Gherkin)
-
-```gherkin
-Scenario: User requests data export archive
-  Given an authenticated buyer
-  When user submits "POST /v1/me/data-export"
-  Then a Cloud Task generates an encrypted ZIP archive containing all personal profile, order, and address history
-  And user receives an email/SMS with a secure temporary download link
-
-Scenario: User requests account deletion
-  Given an authenticated user with no active financial debt or open custody liability
-  When user submits "POST /v1/me/deletion" with reason "No longer using service"
-  Then personal identifiers are anonymized
-  And statutory accounting records remain preserved in immutable ledger for compliance
-```
-
-### 4. Developer Test Plan & Mapping
-- **Bruno API Test**: `tests/bruno/14-ops/requestMyDataExport/` and `requestAccountDeletion/`.
-- **UI E2E Test**: `tests/e2e/shared/privacy-data-request.spec.ts`.
-- **Unit Tests**: PII anonymizer masking utility.
+### 5. Independent Support Stories
+- **OPS-11.03.01 (Scheduled Compliance Cron)**: *Configure Cloud Scheduler job triggering `reportToNPCI` daily at `23:30:00 UTC`.*
+- **DOC-11.03.01 (Dispute Resolution SOP)**: *Document NPCI customer grievance redressal mechanism and ombudsman escalation paths.*
+- **TEST-11.03.01 (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/11-governance/trackDispute/` verifying SLA date calculations.*

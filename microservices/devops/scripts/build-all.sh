@@ -19,6 +19,7 @@ SERVICES=(
   "finance-service"
   "config-service"
   "governance-service"
+  "social-connect-service"
 )
 
 echo "Building API Gateway..."

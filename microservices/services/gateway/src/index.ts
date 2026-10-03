@@ -74,6 +74,7 @@ const SERVICE_TARGETS = {
   finance: process.env.FINANCE_SERVICE_URL || 'http://localhost:4009',
   config: process.env.CONFIG_SERVICE_URL || 'http://localhost:4010',
   governance: process.env.GOVERNANCE_SERVICE_URL || 'http://localhost:4011',
+  socialConnect: process.env.SOCIAL_CONNECT_SERVICE_URL || 'http://localhost:4012',
 };
 
 // Helper to construct microservice proxy
@@ -110,6 +111,7 @@ function proxyFor(targetUrl: string, pathPrefix: string) {
 
 // Public or Webhook routes (no Auth required)
 app.use('/api/v1/payments/webhook', proxyFor(SERVICE_TARGETS.payments, '/api/v1/payments'));
+app.use('/api/v1/social/webhook', proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/social'));
 app.use('/api/v1/config/catalog', proxyFor(SERVICE_TARGETS.config, '/api/v1/config'));
 
 // Protected Routes: Require App Check (Web/Android/iOS) + Firebase Auth
@@ -126,6 +128,10 @@ app.use('/api/v1/credit', protectedMiddlewares, proxyFor(SERVICE_TARGETS.credit,
 app.use('/api/v1/finance', protectedMiddlewares, proxyFor(SERVICE_TARGETS.finance, '/api/v1/finance'));
 app.use('/api/v1/config', protectedMiddlewares, proxyFor(SERVICE_TARGETS.config, '/api/v1/config'));
 app.use('/api/v1/governance', protectedMiddlewares, proxyFor(SERVICE_TARGETS.governance, '/api/v1/governance'));
+app.use('/api/v1/social', protectedMiddlewares, proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/social'));
+app.use('/api/v1/interaction', protectedMiddlewares, proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/interaction'));
+app.use('/api/v1/notifications', protectedMiddlewares, proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/notifications'));
+app.use('/api/v1/preferences', protectedMiddlewares, proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/preferences'));
 
 // Fallback 404
 app.use('*', (req, res) => {
