@@ -2282,16 +2282,27 @@ The report was previously a single line reading "Revenue · orders · AOV · top
 │  [ Billing history ]             │
 │  [ Cancel subscription ]         │
 ├──────────────────────────────────┤
-│  Finance tools in Growth         │
+│  Tools & Features in Growth      │
 │  ✔ Payment and payout history    │
 │  ✔ Custom date reports           │
 │  ✔ Merchant ageing               │
+│  ✔ Delegated Support Access      │
 │  ✔ CSV exports  8/10 left        │
 │  ✔ Scheduled reports  1/3 used   │
 │  🔒 Reconciliation workspace      │
 │  🔒 Period close                  │
 │  🔒 GST and TDS packs             │
 │  [ What's in Enterprise ]        │
+├──────────────────────────────────┤
+│  Delegated Support Access        │
+│  ┌────────────────────────────┐  │
+│  │ Status: ACTIVE GRANT       │  │
+│  │ Granted to: Support Ops    │  │
+│  │ Reason: Route optimization │  │
+│  │ Expires in: 21h 45m        │  │
+│  │              [ Revoke ]    │  │
+│  └────────────────────────────┘  │
+│  (Or [ + Grant Support Access ]) │
 ├──────────────────────────────────┤
 │  Reports                         │
 │  [ Run a report ]                │

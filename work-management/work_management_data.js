@@ -358,6 +358,192 @@
             "description": "Implement Bruno test `tests/bruno/01-identity/suspendUser/` verifying supplier permission boundary checks."
           }
         ]
+      },
+      {
+        "id": "FEAT-01.05",
+        "title": "Supplier-Delegated Support Access & Subscription Entitlement Gate",
+        "status": "READY",
+        "scope": "Subscription-plan-gated delegated administration, supplier-initiated support permission grants, time-bound session lifecycles, and gateway permission verification for X-Supplier-Context.",
+        "endpoints": "POST /v1/suppliers/me/delegated-support/grants, GET /v1/suppliers/me/delegated-support/status, DELETE /v1/suppliers/me/delegated-support/grants/{grantId}",
+        "stories": [
+          {
+            "id": "US-01.05.01",
+            "type": "user_journey",
+            "title": "US-01.05.01",
+            "status": "READY",
+            "description": "As a supplier on an eligible subscription plan, I want to grant time-bound administrative access to Logikchain Support from my settings, so that support engineers can configure my delivery circuits and troubleshoot issues without sharing passwords."
+          },
+          {
+            "id": "US-01.05.02",
+            "type": "user_journey",
+            "title": "US-01.05.02",
+            "status": "READY",
+            "description": "As a supplier, I want the delegated support configuration strictly hidden or locked if my subscription tier does not include managed support, so that premium operational services are properly monetized."
+          },
+          {
+            "id": "US-01.05.03",
+            "type": "user_journey",
+            "title": "US-01.05.03",
+            "status": "READY",
+            "description": "As a supplier who granted support access, I want to revoke permission with one click at any time, so that I retain full sovereignty over my business operations."
+          },
+          {
+            "id": "INT-01.05.01",
+            "type": "integration",
+            "title": "Config Service Subscription Entitlement Check",
+            "status": "READY",
+            "description": "As the Identity Service, I need to query config-service (:4010) to verify that the supplier's active subscription plan includes delegated_support_enabled before accepting grant creation."
+          },
+          {
+            "id": "INT-01.05.02",
+            "type": "integration",
+            "title": "API Gateway Grant Verification Middleware",
+            "status": "READY",
+            "description": "As the Identity Service, I need to provide high-performance in-memory grant lookups to the API Gateway to validate X-Supplier-Context headers in sub-5ms."
+          },
+          {
+            "id": "PWA-01.05.01",
+            "type": "pwa",
+            "title": "Web PWA Supplier Delegated Support Panel",
+            "status": "READY",
+            "description": "Build Delegated Support Access grant card on SUP-01 (web/s/) with duration picker, active session countdown timer, and 1-click Revoke button."
+          },
+          {
+            "id": "AND-01.05.01",
+            "type": "android",
+            "title": "Android Native Supplier Delegated Access Sheet",
+            "status": "READY",
+            "description": "Build native Android settings screen in android/ allowing suppliers to grant and revoke support access."
+          },
+          {
+            "id": "IOS-01.05.01",
+            "type": "ios",
+            "title": "iOS Native Supplier Delegated Access View",
+            "status": "READY",
+            "description": "Build native iOS settings view for delegated support management."
+          },
+          {
+            "id": "DOC-01.05.01",
+            "type": "documentation",
+            "title": "Delegated Support Administration SOP",
+            "status": "READY",
+            "description": "Publish operational guide docs/support-sop/delegated_support_administration.md detailing supplier grant verification, session etiquette, and customer consent protocols."
+          },
+          {
+            "id": "OPS-01.05.01",
+            "type": "devops",
+            "title": "PostgreSQL Migration",
+            "status": "READY",
+            "description": "Create table identity_db.supplier_delegated_support_grants with indices on (supplier_id, status, expires_at)."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-01.06",
+        "title": "User Profile Lifecycle, Cloud Media Storage & KYC Onboarding",
+        "status": "READY",
+        "scope": "User profile query/mutation APIs, onboarding wizard, Google Cloud Storage pre-signed URL media handshake, and real-time Firestore outbox replication.",
+        "endpoints": "GET /v1/users/me, GET /v1/users/{userId}, PATCH /v1/users/{userId}, POST /v1/users/{userId}/device-tokens, POST /v1/users/{userId}/avatar/upload-url, POST /v1/users/{userId}/documents/upload-url",
+        "stories": [
+          {
+            "id": "US-01.06.01",
+            "type": "user_journey",
+            "title": "US-01.06.01",
+            "status": "READY",
+            "description": "As a new user logging into Logikchain for the first time, I want a streamlined onboarding wizard to set my name, language, village, and kirana merchant, so that my shopping and delivery experience is immediately customized to my village."
+          },
+          {
+            "id": "US-01.06.02",
+            "type": "user_journey",
+            "title": "US-01.06.02",
+            "status": "READY",
+            "description": "As an authenticated user, I want to view and edit my personal details, address, and notification preferences from the account settings screen, so that my contact information remains accurate."
+          },
+          {
+            "id": "US-01.06.03",
+            "type": "user_journey",
+            "title": "US-01.06.03",
+            "status": "READY",
+            "description": "As a user, driver, or merchant, I want to upload a profile photo or verification document directly to secure cloud storage, so that my profile is recognized across the field delivery network."
+          },
+          {
+            "id": "US-01.06.04",
+            "type": "user_journey",
+            "title": "US-01.06.04",
+            "status": "READY",
+            "description": "As a Support operator, I want to view any user's profile and KYC verification status on SPT-03, so that I can assist with address corrections, language switches, or profile troubleshooting."
+          },
+          {
+            "id": "INT-01.06.01",
+            "type": "integration",
+            "title": "Google Cloud Storage Pre-Signed URL Generator",
+            "status": "READY",
+            "description": "As the Identity Service, I need to integrate with Google Cloud Storage SDK (@google-cloud/storage) to issue cryptographically signed v4 upload URLs with strict MIME type and file size boundaries."
+          },
+          {
+            "id": "INT-01.06.02",
+            "type": "integration",
+            "title": "Firestore Real-Time UserProfile Outbox Replication",
+            "status": "READY",
+            "description": "As the Identity Service, I need to replicate all profile mutations to Cloud Firestore collection /UserProfiles/{uid} via transactional outbox sync within the 2000ms SLA."
+          },
+          {
+            "id": "INT-01.06.03",
+            "type": "integration",
+            "title": "Firebase Auth User Profile Synchronization",
+            "status": "READY",
+            "description": "As the Identity Service, I need to synchronize displayName and photoURL changes to Firebase Auth via admin.auth().updateUser(uid, ...) to keep token attributes aligned."
+          },
+          {
+            "id": "PWA-01.06.01",
+            "type": "pwa",
+            "title": "Web PWA Profile & Setup Wizard",
+            "status": "READY",
+            "description": "Build onboarding wizard (BUY-00 / SetupScreens.tsx), Account Settings view (AccountScreens.tsx), and client-side WebP image cropper/uploader in web/."
+          },
+          {
+            "id": "AND-01.06.01",
+            "type": "android",
+            "title": "Android Native Profile UI & Room DB Cache",
+            "status": "READY",
+            "description": "Build Jetpack Compose Profile Screen with Camera/Gallery photo picker, image compression worker, and Room DB cached_user_profile table in android/."
+          },
+          {
+            "id": "IOS-01.06.01",
+            "type": "ios",
+            "title": "iOS Native Profile View & SwiftData",
+            "status": "READY",
+            "description": "Build SwiftUI Profile View with PhotosPicker, image downsampling, and SwiftData local user caching in ios/."
+          },
+          {
+            "id": "DOC-01.06.01",
+            "type": "documentation",
+            "title": "User Profile API & Media Architecture Spec",
+            "status": "READY",
+            "description": "Publish OpenAPI 3.0 specification for profile queries, mutations, and media handshakes in docs/architecture/user_profile_and_media_specs.md."
+          },
+          {
+            "id": "OPS-01.06.01",
+            "type": "devops",
+            "title": "PostgreSQL User Profiles Indexing & Media Buckets",
+            "status": "READY",
+            "description": "Configure database indices on user_profiles(phone_number, role, status) and set Google Cloud Storage bucket CORS, lifecycle retention, and public CDN caching headers."
+          },
+          {
+            "id": "TEST-01.06.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test collection tests/bruno/01-identity/profileLifecycle/ validating profile updates, signed URL generation, and unauthorized mutation rejection."
+          },
+          {
+            "id": "TEST-01.06.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "READY",
+            "description": "Automated Playwright cloud test on logikchain-test executing full profile onboarding: Phone OTP Login ➔ Onboarding Wizard ➔ Profile Update ➔ Avatar Upload ➔ Real-Time Firestore Listener Verification."
+          }
+        ]
       }
     ]
   },
@@ -903,6 +1089,85 @@
             "title": "Bruno API Automation",
             "status": "READY",
             "description": "Create Bruno automated test `tests/bruno/03-gigs/completeGig/` validating that gigs with open orders cannot be finalized."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-03.04",
+        "title": "Supplier Route Catalog, Freeform Route Authoring, Cloning & Monthly Gig Quota Enforcement",
+        "status": "READY",
+        "scope": "Route catalog on SUP-07, freeform custom route creation and cloning without route caps, subscription monthly gig execution limits (monthlyGigLimit), interactive waypoint editor on SUP-07.1, and gig-dependency delete blocker.",
+        "endpoints": "POST /v1/routes/{routeId}/clone",
+        "stories": [
+          {
+            "id": "US-03.04.01",
+            "type": "user_journey",
+            "title": "US-03.04.01",
+            "status": "READY",
+            "description": "As a regional supplier, I want to create custom routes freely or clone existing corridors without being constrained by route-count quotas, so that my logistics team can map any necessary village delivery circuits."
+          },
+          {
+            "id": "US-03.04.02",
+            "type": "user_journey",
+            "title": "US-03.04.02",
+            "status": "READY",
+            "description": "As a regional supplier, I want clear visibility into my monthly gig allowance and usage across all my routes, so that I can manage my delivery schedule within my subscription plan tier."
+          },
+          {
+            "id": "US-03.04.03",
+            "type": "user_journey",
+            "title": "US-03.04.03",
+            "status": "READY",
+            "description": "As a regional supplier, I want the system to warn and block deletion of any route that has upcoming scheduled gigs, so that drivers in transit are never disrupted by accidental route removals."
+          },
+          {
+            "id": "INT-03.04.01",
+            "type": "integration",
+            "title": "Subscription Monthly Gig Quota Gate",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to evaluate the supplier's current monthly gig execution count against their active subscription monthlyGigLimit in config_db.subscription_plans before accepting composeGig."
+          },
+          {
+            "id": "INT-03.04.02",
+            "type": "integration",
+            "title": "Google Maps Distance Matrix Routing Integration",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to call Google Maps Distance Matrix to compute turnarounds and kilometer lengths when suppliers reorder or edit custom route stops."
+          },
+          {
+            "id": "PWA-03.04.01",
+            "type": "pwa",
+            "title": "Web PWA Route Catalog & Interactive Builder",
+            "status": "READY",
+            "description": "Build segmented Pre-configured vs My Custom tabs on SUP-07, 1-click Clone action, interactive drag-and-drop waypoint editor on SUP-07.1, and gig-dependency delete blocker in web/s/."
+          },
+          {
+            "id": "AND-03.04.01",
+            "type": "android",
+            "title": "Android Native Route Catalog & Stop Inspector",
+            "status": "READY",
+            "description": "Build native Android route catalog and stop inspection cards for supplier management app."
+          },
+          {
+            "id": "IOS-03.04.01",
+            "type": "ios",
+            "title": "iOS Native Route Catalog & Stop Inspector",
+            "status": "READY",
+            "description": "Build native iOS route catalog and stop inspection view for supplier management app."
+          },
+          {
+            "id": "DOC-03.04.01",
+            "type": "documentation",
+            "title": "Supplier Route Playbook & Monthly Gig Quota Guide",
+            "status": "READY",
+            "description": "Publish operational documentation explaining standard corridor benefits, route authoring and cloning workflows, and subscription monthly gig quota rules in docs/playbooks/supplier_route_management.md."
+          },
+          {
+            "id": "TEST-03.04.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create automated Bruno test tests/bruno/03-gigs/routeGovernance/ validating route cloning without route caps, 403 rejection on exceeding monthly gig limit, and 409 rejection on deleting routes in use."
           }
         ]
       }
@@ -2730,6 +2995,99 @@
             "title": "Bruno API Automation",
             "status": "READY",
             "description": "Create automated Bruno test `tests/bruno/10-config/upsertTaxProfile/` validating percentage bounds."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-10.07",
+        "title": "Master Route Corridors, Supplier Route Oversight & Unified Deletion Policy",
+        "status": "READY",
+        "scope": "Support master corridors authoring, full Support visibility and editability of supplier custom routes, and unified route deletion protection blocked while referenced by active or scheduled gigs.",
+        "endpoints": "POST /v1/config/master-routes",
+        "stories": [
+          {
+            "id": "US-10.07.01",
+            "type": "user_journey",
+            "title": "US-10.07.01",
+            "status": "READY",
+            "description": "As a platform support operator, I want to author and publish standard master corridors tied to regional hubs, so that newly onboarded suppliers can immediately dispatch gigs without manual route mapping."
+          },
+          {
+            "id": "US-10.07.02",
+            "type": "user_journey",
+            "title": "US-10.07.02",
+            "status": "READY",
+            "description": "As a platform support operator, I want to view and edit custom routes created by any supplier from the Support console, so that I can assist suppliers with logistics troubleshooting, road adjustments, and coordinates corrections."
+          },
+          {
+            "id": "US-10.07.03",
+            "type": "user_journey",
+            "title": "US-10.07.03",
+            "status": "READY",
+            "description": "As a platform compliance and operations officer, I want any route deletion (standard corridor or supplier custom route) blocked while referenced by active or scheduled gigs, so that drivers in the field never have their active delivery circuit deleted underneath them."
+          },
+          {
+            "id": "INT-10.07.01",
+            "type": "integration",
+            "title": "Google Maps Distance Matrix Corridor Calculation",
+            "status": "READY",
+            "description": "As the Config Service, I need to integrate with Google Maps Distance Matrix to compute turnarounds and kilometer lengths for multi-stop master corridors."
+          },
+          {
+            "id": "INT-10.07.02",
+            "type": "integration",
+            "title": "Gigs Service Active Reference Check Integration",
+            "status": "READY",
+            "description": "As the Config Service, I need to query gigs-service (:4003) prior to deleting any route to verify that zero active or scheduled gigs reference the route ID."
+          },
+          {
+            "id": "INT-10.07.03",
+            "type": "integration",
+            "title": "Firestore Real-Time Route Catalog Mirror",
+            "status": "READY",
+            "description": "As the Config Service, I need to mirror all active master corridors and supplier custom routes to Cloud Firestore collection /Routes/{routeId}."
+          },
+          {
+            "id": "PWA-10.07.01",
+            "type": "pwa",
+            "title": "Web PWA Support Route Console",
+            "status": "READY",
+            "description": "Build route management console on Support Web PWA (web/x/config/routes / SPT-09.4) with master corridor authoring, supplier filter dropdown to view/edit custom routes, and gig-dependency delete blocker."
+          },
+          {
+            "id": "AND-10.07.01",
+            "type": "android",
+            "title": "Android Support Proxy Route Viewer",
+            "status": "READY",
+            "description": "Implement route list and stop inspector in Support Android app with supplier filter."
+          },
+          {
+            "id": "IOS-10.07.01",
+            "type": "ios",
+            "title": "iOS Support Route Viewer",
+            "status": "READY",
+            "description": "Implement route list and stop sequence viewer in Support iOS app."
+          },
+          {
+            "id": "DOC-10.07.01",
+            "type": "documentation",
+            "title": "Master Corridor Design & Deletion Policy SOP",
+            "status": "READY",
+            "description": "Publish operational guide documenting master corridor authoring standards, merchant density criteria, supplier custom route editing protocols, and the unified zero-referencing-gigs deletion rule."
+          },
+          {
+            "id": "OPS-10.07.01",
+            "type": "devops",
+            "title": "PostgreSQL Master Routes Migration",
+            "status": "READY",
+            "description": "Create database table config_db.master_routes supporting route_type ('standard_corridor', 'supplier_custom'), supplier_id, cloned_from_route_id, and GIST/spatial indexes."
+          },
+          {
+            "id": "TEST-10.07.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "READY",
+            "description": "Create Bruno automated test tests/bruno/10-config/routes/ verifying master route creation, cross-supplier editing by Support, and 409 rejection on deleting routes in use by gigs."
           }
         ]
       }

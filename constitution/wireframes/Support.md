@@ -55,6 +55,7 @@ The tabs are now **Ops · Users · Config · Search**. Hubs and villages move in
 | `SPT-09` | Hubs |
 | `SPT-09.1` | Hub detail and villages |
 | `SPT-09.2` | Village editor |
+| `SPT-09.3` | Bulk geo ingestion & superimposition |
 | `SPT-10` | Subscription plans |
 | `SPT-11` | Plan tariffs |
 | `SPT-12` | Offers |
@@ -113,6 +114,10 @@ The landing screen was a hub list, which told Support nothing about what was bro
 ┌──────────────────────────────────┐
 │  Ops           🔊   🔔    [👤]      │
 │  21-08-2026 · 11:42 AM IST       │
+├──────────────────────────────────┤
+│  Proxy Context (Delegated Grants)│
+│  [ sup_krishna (Grant: 21h left)▾]│
+│  🔒 Financial mutations disabled │
 ├──────────────────────────────────┤
 │  Needs attention                 │
 │  ┌────────────────────────────┐  │
@@ -1019,6 +1024,63 @@ The village record carries `lgdCode`, `pincode`, `panchayat`, `mandal` and `loca
 ```
 
 **Actions:** Save calls `upsertVillage`. A duplicate name plus pincode in another hub is rejected with `ALREADY_EXISTS`, naming the existing hub. Delete is blocked while any buyer, merchant or route references the village.
+
+### SPT-09.3 Bulk geo ingestion & superimposition
+
+Allows Support to upload official postal CSV and boundary GeoJSON files, inspect dry-run diffs, interpolate missing centroids, and promote updates to production PostGIS and Firestore read-models.
+
+**Data**
+
+| Shown | Source |
+| ----- | ------ |
+| Staging Job Status | `REST GET /v1/config/geo/staging/latest` |
+| Record Diff Counts | `local` parsed / backend validation engine |
+| Missing Coordinate Fallbacks | `local` centroid interpolation calculator |
+
+| Control | On click |
+| ------- | -------- |
+| Choose CSV | `local file picker` (`.csv`) |
+| Choose GeoJSON | `local file picker` (`.geojson`) |
+| Run Validation & Diff | `POST /v1/config/geo/staging/validate` |
+| Promote to PostGIS | `POST /v1/config/geo/staging/promote` |
+
+```
+┌──────────────────────────────────┐
+│  Config · Bulk Geo Ingestion     │
+├──────────────────────────────────┤
+│  Upload Postal Master Datasets   │
+│                                  │
+│  Post Office Master CSV          │
+│  ┌────────────────────────────┐  │
+│  │ 📄 all_india_PO_list.csv   │  │
+│  │ 176,946 rows · 18,593 pins │  │
+│  │ [ Browse CSV ]             │  │
+│  └────────────────────────────┘  │
+│                                  │
+│  Pincode Boundary GeoJSON        │
+│  ┌────────────────────────────┐  │
+│  │ 🗺 india_pincodes.geojson   │  │
+│  │ 19,312 polygons · 86.1 MB  │  │
+│  │ [ Browse GeoJSON ]         │  │
+│  └────────────────────────────┘  │
+├──────────────────────────────────┤
+│  Staging Validation & Diff       │
+│  ┌────────────────────────────┐  │
+│  │ Status: READY FOR PROMOTION│  │
+│  │ • 18,406 Pincodes matched  │  │
+│  │ • 69,218 Centroids filled  │  │
+│  │   via polygon interpolation│  │
+│  │ • 12 New pincodes detected │  │
+│  │ • 0 Geometry errors        │  │
+│  └────────────────────────────┘  │
+│  (x) Auto-generate Firestore     │
+│      denormalized read-models    │
+├──────────────────────────────────┤
+│  [ Run Dry-Run ] [ Promote SQL ] │
+└──────────────────────────────────┘
+```
+
+**Actions:** `Promote SQL` triggers the PostGIS batch migration, populates `config_db.pincodes` and `config_db.post_offices`, and dispatches Firestore 500-doc batch writes.
 
 ### SPT-10 Subscription plans
 

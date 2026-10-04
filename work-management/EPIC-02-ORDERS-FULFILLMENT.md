@@ -12,128 +12,92 @@
 
 ---
 
-## FEAT-02.01: Buyer E-Commerce & Group Purchase Ordering
+## FEAT-02.01: Buyer E-Commerce & In-Transit Dynamic Ordering
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.01`
 - **Feature Status**: [READY]
-- **Functional Scope**: Rural consumer cart checkout, village group-buying aggregation (demand pooling with threshold-triggered bulk pricing), pricing tiers, and prepaid/CoD order creation.
-- **Bound Microservice**: `orders-service` (`:4002`) — also reads `config-service` (`:4010`) for pricing tiers and `social-connect-service` (`:4012`) for group session WhatsApp alerts.
+- **Functional Scope**: Rural consumer cart checkout, village merchant hub delivery (PUDO), village serviceability check (requires registered merchant), dynamic order capture from in-transit truck pamphlet stock, and prepaid/CoD order creation. *(Group-buying demand pooling is PARKED for a future phase).*
+- **Bound Microservice**: `orders-service` (`:4002`) — also reads `config-service` (`:4010`) for village serviceability and `pamphlet-service` (`:4004`) for live truck inventory.
 - **Service Endpoints**:
-  - `POST /v1/orders` (`placeOrder`) — individual order
+  - `POST /v1/orders` (`placeOrder`) — individual pre-order or dynamic in-transit pamphlet order
   - `GET /v1/orders/{orderId}` — order status
-  - `POST /v1/orders/group-sessions` (`createGroupSession`) — open a village group-buy window
-  - `POST /v1/orders/group-sessions/{sessionId}/join` (`joinGroupSession`) — buyer joins existing session
-  - `GET /v1/orders/group-sessions/{sessionId}` (`getGroupSession`) — live session progress
-  - `POST /v1/orders/group-sessions/{sessionId}/lock` (`lockGroupSession`) — supplier locks session at threshold
-- **UI Screens**: [BUY-03 Catalog](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-03), [BUY-04 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-04), [BUY-05 Order Tracking](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05), [SUP-08 Group Session Dashboard](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-08)
-- **DB Schema Additions** (`orders_db`):
-  - `group_buy_sessions` — `{ sessionId, villageId, gigId, skuId, targetQty, currentQty, lockedPrice, status: open|locked|expired, expiresAt }`
-  - `group_buy_members` — `{ sessionId, buyerId, orderId, qty, joinedAt }`
+  - `GET /v1/orders/serviceability/{villageId}` — check village serviceability (active merchant check)
+- **UI Screens**: [BUY-03 Catalog](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-03), [BUY-04 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-04), [BUY-05 Order Tracking](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05), [MER-03 Village Drop Hub](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-03)
 
 ### 2. Derived Use Cases
-#### UC-02.01.A: Rural Buyer Order Placement (Individual — Prepaid & CoD)
-- **Description**: A village citizen places an individual order for essentials or agricultural supplies for home delivery via the upcoming scheduled village gig.
-- **Primary Actor**: Village Buyer (`role: buyer`).
-- **Secondary Systems**: `orders-service`, `payments-service` (`:4005`), `gigs-service` (`:4003`), `pamphlet-service` (`:4004`).
-- **Preconditions**: Buyer is authenticated and has selected items from an active village catalog.
-- **Nominal Flow**:
-  1. Buyer adds items to cart and navigates to checkout screen `BUY-04`.
-  2. Buyer selects payment mode: `upi_intent` (Prepaid) or `cod` (Cash on Delivery).
-  3. Client generates a UUID `idempotencyKey` and invokes `POST /v1/orders`.
-  4. `orders-service` verifies stock availability against the active gig pamphlet and locks items.
-  5. If `upi_intent`, `orders-service` requests payment intent from `payments-service` (`:4005`).
-  6. `orders-service` persists order in `orders_db.orders` in status `pending_payment` or `placed` (for CoD).
-  7. Outbox event emitted for Cloud Firestore synchronization.
-- **Alternate / Degraded Flow**:
-  - *Network Interruption during checkout*: Client retries with same `idempotencyKey`; `orders-service` returns existing order record without double-debiting.
-- **Postconditions**: Order created in `orders_db`; outbox event queued for Firestore mirror; buyer routed to tracking screen `BUY-05`.
 
-#### UC-02.01.B: Village Group-Buying Aggregation (Demand Pooling & Threshold Pricing)
-- **Description**: A supplier opens a time-boxed group-buy session for a specific SKU in a village. Multiple buyers join the session individually. When the collective quantity reaches the supplier-defined threshold, all members receive the locked bulk price — even if they ordered before the threshold was crossed. If the session expires before hitting the threshold, orders revert to standard pricing.
-- **Primary Actor**: Regional Supplier (`role: supplier`) opens the session; Village Buyers (`role: buyer`) join.
-- **Secondary Systems**: `orders-service` (`:4002`), `config-service` (`:4010`) for tier pricing, `social-connect-service` (`:4012`) for WhatsApp alerts, `pamphlet-service` (`:4004`) for manifest reservation.
+#### UC-02.01.A: Rural Buyer Order Placement, Fulfillment Choice & In-App Payment Flexibility
+- **Description**: A village citizen places an order for essentials or agricultural supplies from a supplier's catalog (or from in-transit truck pamphlet stock). A village is serviceable if and only if there is at least one registered active merchant in that village. The buyer chooses between:
+  1. **Merchant Pickup (Default)**: Free/standard pickup from the village merchant's kirana store (village PUDO hub).
+  2. **Village Home Delivery (Optional)**: If the village merchant has enabled home delivery, the buyer can opt for doorstep delivery within the village at the merchant's configured delivery fee.
+- **Primary Actor**: Village Buyer (`role: buyer`).
+- **Secondary Systems**: `orders-service`, `payments-service` (`:4005`), `gigs-service` (`:4003`), `pamphlet-service` (`:4004`), `config-service` (`:4010`).
 - **Preconditions**:
-  - A scheduled gig (`gigId`) exists for the target village.
-  - The SKU has a supplier-defined `bulkPriceThreshold` and `bulkPrice` configured in `config-service`.
-  - The session `expiresAt` is set before the gig departure time.
+  - Target village is verified as serviceable (`config-service` confirms $\ge 1$ active registered merchant in `config_db.villages`).
+  - Buyer is authenticated and has selected goods from either supplier catalog or live rolling pamphlet stock.
 - **Nominal Flow**:
-  1. Supplier opens session via `POST /v1/orders/group-sessions` with `{ villageId, gigId, skuId, targetQty: 50, lockedBulkPrice: 70, expiresAt }` on `SUP-08`.
-  2. `orders-service` creates `group_buy_sessions` record with `status: open` and `currentQty: 0`.
-  3. `social-connect-service` broadcasts WhatsApp template to all buyers in the village: *"Group offer: Rice 50kg @ ₹70/kg — join before [time]. Current: 0/50 kg"*.
-  4. Buyer A opens catalog `BUY-03`, sees the live group session banner with progress bar.
-  5. Buyer A joins: `POST /v1/orders/group-sessions/{sessionId}/join` with `{ qty: 10, paymentMode: "cod" }`.
-  6. `orders-service` inserts `group_buy_members` row; increments `currentQty` to 10; creates provisional order record at standard price.
-  7. WhatsApp update sent to all current members: *"Group offer: 10/50 kg filled. 40 kg remaining!"*
-  8. Steps 4–7 repeat as Buyers B, C, D, E join with quantities 8, 12, 15, 5 kg.
-  9. At `currentQty = 50`, threshold crossed: `orders-service` atomically updates all provisional orders to `lockedBulkPrice: ₹70/kg` and emits `group_session_locked` event.
-  10. `social-connect-service` sends WhatsApp confirmation to all members: *"🎉 Group offer locked! Your rice order is confirmed @ ₹70/kg"*.
-  11. Supplier sees session `status: locked` on `SUP-08` dashboard; pamphlet manifest updated.
-- **Alternate / Degraded Flow**:
-  - *Session expires before threshold*: Cloud Scheduler calls `POST /v1/orders/group-sessions/{sessionId}/lock` with `force: false`; `orders-service` marks session `expired`; all provisional orders convert to standard price; members receive WhatsApp notification of the price revision.
-  - *Buyer joins expired session*: `orders-service` returns `GROUP_SESSION_EXPIRED` error; client redirects buyer to individual checkout at standard price.
-  - *Supplier manually locks early*: Supplier can lock a session above 80% threshold fill via `SUP-08` if sufficient demand is confirmed.
-- **Postconditions**: All `group_buy_members` orders confirmed; `group_buy_sessions.status = locked`; pamphlet stock reserved; double-entry journal entries posted via `finance-service` at locked price.
+  1. Buyer opens catalog screen `BUY-03`. The app verifies village serviceability: if no registered merchant exists, screen shows *"Service coming soon — No registered village merchant"*.
+  2. Buyer adds items to cart and navigates to `BUY-04`.
+  3. Buyer chooses fulfillment mode:
+     - `merchant_pickup`: Free pickup at the registered village merchant shop.
+     - `merchant_home_delivery`: Enabled only if the merchant has turned on home delivery; displays merchant's delivery fee (e.g. ₹20) and configured delivery days.
+  4. Buyer selects initial payment mode: `upi_intent` (Prepaid) or `cod` (Cash on Collection/Delivery).
+  5. Client submits `POST /v1/orders` with unique `idempotencyKey`, `fulfillmentMode`, and `merchantId`.
+  6. `orders-service` checks stock:
+     - *If pre-order*: Reserves warehouse allocation.
+     - *If ordered from in-transit truck*: Atomically decrements the vehicle's live **Pamphlet Stock** via `pamphlet-service` (`:4004`), converting that stock into an assigned order line before the truck arrives at the village.
+  7. If `upi_intent`, `orders-service` requests payment intent from `payments-service` (`:4005`).
+  8. `orders-service` persists order in `orders_db.orders` in status `placed` (or `pending_payment`), tagged with `merchantId` and `fulfillmentMode`.
+  9. Outbox event emitted for Cloud Firestore synchronization.
+- **Alternate / In-App Payment Transition Flow**:
+  - *Pay Online Before Collection*: If the order was created as `cod`, the buyer can at any time before final package collection/handover open `BUY-05` and tap **"Pay Online via UPI"**. Upon successful payment via `payments-service`, the order is marked `paid_online`. The platform collects the funds (to settle with the supplier later) and clears the cash collection requirement from the merchant.
+- **Postconditions**: Order created in `orders_db` with `deliveryHub: merchantId`; stock reserved or converted from truck pamphlet; buyer tracks package on `BUY-05`.
+
+#### UC-02.01.B: [PARKED - FUTURE PHASE] Village Group-Buying Aggregation
+- **Status**: `[PARKED - FUTURE ENHANCEMENT]`
+- **Reason**: Group-buying demand pooling and collective threshold pricing introduces excessive operational complexity for MVP launch. Preserved as an architectural design reference for Phase 2.
 
 ### 3. User Journey Stories
 
-#### Individual Ordering (UC-02.01.A)
-- **US-02.01.01 [READY]**: *As a rural buyer, I want to place an individual order choosing either UPI or Cash on Delivery, so that I can purchase essential supplies regardless of my immediate digital bank balance.*
-- **US-02.01.02 [READY]**: *As a rural buyer, I want real-time status tracking of my order on my phone, so that I know exactly when the delivery vehicle will arrive in my village.*
-
-#### Group-Buying (UC-02.01.B) — All Personas
-- **US-02.01.03 [READY] (Buyer)**: *As a rural buyer, I want to see active group-buy sessions for my village on the catalog screen, so that I can join a shared bulk order and receive a lower price that I could not access individually.*
-- **US-02.01.04 [READY] (Buyer)**: *As a rural buyer who joined a group session, I want to receive a WhatsApp notification when the price threshold is crossed and my order is locked in at the bulk price, so that I have clear confirmation without needing to re-open the app.*
-- **US-02.01.05 [READY] (Supplier)**: *As a regional supplier, I want to open a time-boxed group-buy session for a SKU in a specific village, so that I can drive predictable bulk demand that justifies loading the full pallet quantity onto the delivery vehicle.*
-- **US-02.01.06 [READY] (Supplier)**: *As a regional supplier, I want a live dashboard showing how many kilograms have been committed across all buyers in an active group session, so that I can decide whether to extend the window or lock the session early.*
-- **US-02.01.07 [READY] (Driver)**: *As a delivery driver, I want the vehicle manifest to automatically reflect the total locked group-buy quantity as a single consolidated line item, so that I load the correct total pallet weight without counting individual buyer orders.*
-- **US-02.01.08 [READY] (Merchant)**: *As a village kirana merchant, I want to be notified when a group-buy session for staples opens in my village, so that I can join it alongside other buyers and reduce my personal procurement cost for in-store resale stock.*
-- **US-02.01.09 [READY] (Support)**: *As a platform support operator, I want to view all active and expired group-buy sessions across all villages with threshold fill rates, so that I can identify underperforming sessions and alert the relevant supplier.*
+#### Individual & In-Transit Ordering (UC-02.01.A)
+- **US-02.01.01 [READY]**: *As a rural buyer, I want to choose between collecting my parcel from the village merchant shop or opting for village home delivery at the merchant's fee, so that I can choose the convenience level that fits my day.*
+- **US-02.01.02 [READY]**: *As a rural buyer with a CoD order, I want to pay online via UPI in my app anytime before picking up the parcel, so that I don't have to carry exact cash change to the merchant's store.*
+- **US-02.01.03 [READY]**: *As a rural buyer, I want to browse the live stock currently carried on the delivery truck en-route to my village, so that I can buy items on-the-fly and have them dropped off at my village merchant on the truck's arrival.*
+- **US-02.01.04 [READY]**: *As the platform, I need to verify that a village has an active registered merchant before allowing orders to be placed, so that packages are never dispatched to a village without an authorized pickup/PUDO location.*
+- **US-02.01.05 [PARKED - FUTURE PHASE]**: *As a rural buyer, I want to participate in village group-buying sessions. [Parked for Phase 2]*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Buyer places individual CoD order successfully
-  Given an authenticated buyer in village "vil_ap_01"
-  When the buyer submits "POST /v1/orders" with paymentMode "cod" and items list
-  Then orders-service creates the order with status "placed"
-  And records the idempotencyKey in orders_db
-  And returns orderId with estimated delivery window
+Scenario: Buyer places order for pickup at village merchant
+  Given an authenticated buyer in village "vil_ap_01" with active merchant "mer_kirana_01"
+  When the buyer submits "POST /v1/orders" with paymentMode "cod"
+  Then orders-service creates the order with deliveryHub "mer_kirana_01"
+  And order status is "placed" with pickup address matching merchant location
 
-Scenario: Group-buy session reaches threshold and locks bulk price
-  Given an open group session "gs_001" for SKU "rice_25kg" in village "vil_ap_01"
-  And targetQty is 50 and lockedBulkPrice is 70
-  When 5 buyers join with total qty 50
-  Then orders-service atomically updates all member orders to price 70
-  And group_buy_sessions status transitions to "locked"
-  And social-connect-service sends WhatsApp confirmation to all 5 members
-  And pamphlet-service reserves 50 units on the active gig manifest
-
-Scenario: Group-buy session expires before threshold
-  Given an open group session "gs_002" with currentQty 30 and targetQty 50
-  When the session expiresAt timestamp is reached
-  Then orders-service marks session status "expired"
-  And all 3 member orders are updated to standard price
-  And social-connect-service sends WhatsApp price-revision notification to all members
+Scenario: In-transit order converts truck pamphlet stock dynamically
+  Given a truck en-route with 20 units of cooking oil in pamphlet stock
+  When a buyer in the upcoming village orders 2 units of cooking oil
+  Then pamphlet-service decrements live pamphlet stock to 18 units
+  And orders-service creates order #ORD-882 assigned to that truck for merchant drop-off
 ```
 
 ### 4. Integration Stories
 - **INT-02.01.01 [READY] (Payments Service Integration)**: *As the Orders Service, I need to synchronously call `payments-service` (`:4005`) to create a Payment Intent when a buyer selects digital prepaid checkout.*
-- **INT-02.01.02 [READY] (Gigs Service Integration)**: *As the Orders Service, I need to query `gigs-service` (`:4003`) to associate the order with the active scheduled delivery vehicle gig servicing the buyer's village.*
-- **INT-02.01.03 [READY] (Pamphlet Service Integration)**: *As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to reserve and link items to the gig's dynamic inventory manifest, including consolidated group-buy quantities as a single manifest line.*
-- **INT-02.01.04 [READY] (Firestore Periodic Sync Integration)**: *As the Orders Service, I need to mirror all order state changes and group session progress to Cloud Firestore collections `/Orders/{orderId}` and `/GroupBuySessions/{sessionId}` every 2000ms.*
-- **INT-02.01.05 [READY] (Social Connect — Group Session WhatsApp Alerts)**: *As the Orders Service, I need to call `social-connect-service` (`:4012`) to dispatch WhatsApp template messages to village buyers when a group session opens, when progress milestones (50%, 80%, 100%) are reached, when the session locks, and when it expires.*
-- **INT-02.01.06 [READY] (Config Service — Bulk Pricing Tier Lookup)**: *As the Orders Service, I need to call `config-service` (`:4010`) to fetch the SKU's `bulkPriceThreshold` and `lockedBulkPrice` when evaluating group session lock eligibility.*
-- **INT-02.01.07 [READY] (Cloud Scheduler — Session Expiry Job)**: *As the Orders Service, I need a Cloud Scheduler job (`orders-group-session-expiry`) firing every 5 minutes to check for expired open sessions and trigger the expiry flow atomically via a PostgreSQL transaction.*
+- **INT-02.01.02 [READY] (Gigs Service Integration)**: *As the Orders Service, I need to query `gigs-service` (`:4003`) to link orders to the active delivery gig serving the destination village merchant.*
+- **INT-02.01.03 [READY] (Pamphlet Service In-Transit Stock Deduction Integration)**: *As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to atomically decrement rolling vehicle pamphlet stock when an in-transit order is placed.*
+- **INT-02.01.04 [READY] (Firestore Periodic Sync Integration)**: *As the Orders Service, I need to mirror all order state changes to Cloud Firestore collection `/Orders/{orderId}` every 2000ms.*
+- **INT-02.01.05 [PARKED - FUTURE PHASE] (Group Session Alerts)**: *[Parked for Phase 2]*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-02.01.01 [READY] (Web PWA — Individual & Group Checkout)**: *Implement Catalog browsing (`BUY-03`) with live group session banner and progress bar, multi-item Cart & Group Session Join (`BUY-04`), UPI Intent / CoD payment selection, and Order Tracking (`BUY-05`) with service worker offline caching in `web/`.*
-- **PWA-02.01.02 [READY] (Web PWA — Supplier Group Session Dashboard)**: *Implement `SUP-08` group session management console on `web/s/` allowing suppliers to create sessions, monitor live fill rates with real-time Firestore listener, and lock sessions manually.*
-- **AND-02.01.01 [READY] (Android Native — Buyer Catalog & Group Join)**: *Implement Jetpack Compose buyer catalog with offline Room cache, group session banner with live qty counter via Firestore snapshot listener, UPI Intent app chooser, and group session join flow in `android/`.*
-- **IOS-02.01.01 [READY] (iOS Native — Buyer Catalog & Group Join)**: *Implement SwiftUI catalog with group session widget, Apple Pay / UPI fallback checkout, group join confirmation sheet, and CoreData offline catalog caching in `ios/`.*
+- **PWA-02.01.01 [READY] (Web PWA — Buyer Catalog & Merchant Hub Pickup)**: *Implement Catalog browsing (`BUY-03`), live truck pamphlet stock view, merchant pickup point display, and checkout (`BUY-04`) with UPI Intent / CoD in `web/`.*
+- **AND-02.01.01 [READY] (Android Native — Buyer Catalog UI & Cart Layout)**: *Implement Jetpack Compose screens for catalog browsing (`BUY-03`), category filter tabs, product detail modal, and cart bottom-sheet with merchant hub pickup selector in `android/`.*
+- **AND-02.01.02 [READY] (Android Native — Room DB Offline Catalog & Cart Cache)**: *Implement Room DB entities (`ProductEntity`, `CartItemEntity`), DAOs, and repository layer for offline catalog reading and cart persistence during network drops.*
+- **AND-02.01.03 [READY] (Android Native — UPI Intent Chooser & Real-Time Sync)**: *Implement Android OS Intent launcher for UPI app chooser (GPay, PhonePe, Paytm), checkout network client with idempotency headers, and live truck stock counter via Firestore snapshot listener.*
+- **IOS-02.01.01 [READY] (iOS Native — Buyer Catalog)**: *Implement SwiftUI catalog with merchant hub selector, live stock widget, and offline catalog cache in `ios/`.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-02.01.PWA [READY] (PWA Cloud E2E Test — Individual Checkout)**: *Automated Playwright test validating end-to-end buyer checkout (Prepaid UPI Intent and CoD), idempotency token handling, and tracking screen update against `orders-service` on `logikchain-test`.*
-- **TEST-02.01.GRP.PWA [READY] (PWA Cloud E2E Test — Group-Buy Flow)**: *Automated Playwright test simulating 5 concurrent buyer sessions joining a group session, asserting threshold crossing triggers atomic price update, Firestore session doc transitions to `locked`, and WhatsApp mock receives 5 confirmation payloads.*
+- **TEST-02.01.PWA [READY] (PWA Cloud E2E Test — Individual & In-Transit Checkout)**: *Automated Playwright test validating end-to-end buyer checkout with merchant hub pickup, in-transit stock deduction, and tracking screen update against `orders-service` on `logikchain-test`.*
 
 ### 7. Independent Support Stories
 - **OPS-02.01.01 [READY] (DevOps & Containerization)**: *Maintain multi-stage Docker build, configure Kubernetes deployment (`03-orders.yaml`) with horizontal pod autoscaler (HPA), apply PostgreSQL migration scripts for `orders_db` including new `group_buy_sessions` and `group_buy_members` tables with `villageId + skuId + status` composite index.*
@@ -261,42 +225,71 @@ Scenario: Merchant places bulk order on credit
 
 ---
 
-## FEAT-02.03: Order Custody Transitions & Delivery Handover
+## FEAT-02.03: Order Custody Transitions, Merchant Hub Handover & Partial Delivery
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.03`
 - **Feature Status**: [READY]
-- **Functional Scope**: Field delivery confirmation, buyer OTP / signature verification, cash collection linkage, and custody handover.
-- **Service Endpoints**: `POST /v1/orders/{orderId}/delivered` (`markOrderDelivered`), `POST /v1/orders/{orderId}/resume`
-- **UI Screens**: [VEH-05 Delivery Handover](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-05), [BUY-06 Order Details](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-06)
+- **Functional Scope**: Field delivery confirmation at village merchant location (PUDO), buyer collection OTP verification, partial delivery line-item rejection, doorstep invoice adjustment, cash custody linkage, and return inventory logging.
+- **Service Endpoints**:
+  - `POST /v1/orders/{orderId}/delivered` (`markOrderDelivered`)
+  - `POST /v1/orders/{orderId}/partial-delivery` (`recordPartialDelivery`)
+  - `POST /v1/orders/{orderId}/buyer-pickup` (`confirmBuyerPickupFromMerchant`)
+- **UI Screens**: [VEH-05 Delivery Handover](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-05), [BUY-06 Order Details](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-06), [MER-03 Village Drop Hub](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-03)
 
 ### 2. Derived Use Cases
-#### UC-02.03.A: Driver Field Delivery & CoD Cash Capture
-- **Description**: Delivery driver reaches village drop point, delivers packages to buyer, verifies 4-digit handover OTP, and collects cash for CoD orders.
-- **Primary Actor**: Vehicle Driver (`role: driver`).
+
+#### UC-02.03.A: Driver-to-Merchant Drop Hub Delivery & Buyer OTP Collection
+- **Description**: Delivery driver arrives at the registered Village Merchant shop. Driver unloads merchant restocking orders and buyer pre-packaged parcels. If the buyer is present, buyer provides their 4-digit OTP; if buyer is not present, merchant accepts custody of buyer parcels into their shop, and buyer later collects from the merchant using their OTP.
+- **Primary Actor**: Vehicle Driver (`role: driver`), Village Merchant (`role: merchant`), Village Buyer (`role: buyer`).
 - **Secondary Systems**: `orders-service`, `cash-service`, Android Play Integrity.
-- **Preconditions**: Order is in status `dispatched` assigned to the active gig.
+- **Preconditions**: Orders are in status `dispatched` assigned to the active gig servicing the merchant's village.
 - **Nominal Flow**:
-  1. Driver verifies package contents with buyer on screen `VEH-05`.
-  2. Driver requests buyer's 4-digit handover OTP.
-  3. If CoD, driver enters collected cash amount.
-  4. Android client submits `markOrderDelivered` with Play Integrity App Check token.
-  5. `orders-service` validates OTP; updates order status to `delivered` in `orders_db`.
-  6. If CoD, `orders-service` notifies `cash-service` (`:4007`) to record driver cash custody.
-  7. Outbox event emitted; push notification dispatched to buyer.
-- **Postconditions**: Order state transitions to `delivered`; cash custody recorded in `cash_db`; stock removed from vehicle pamphlet.
+  1. Driver arrives at the registered merchant shop and opens `VEH-05`.
+  2. Driver scans/confirms parcels dropped at merchant shop.
+  3. For buyer parcels collected on-the-spot: Driver/Merchant verifies buyer's 4-digit OTP.
+  4. If CoD, collected cash is recorded.
+  5. Android client submits `markOrderDelivered` with Play Integrity App Check token.
+  6. `orders-service` validates OTP; updates order status to `delivered` in `orders_db`.
+  7. If CoD, `orders-service` notifies `cash-service` (`:4007`) to record cash custody.
+  8. Outbox event emitted; buyer notified of successful delivery/collection.
+- **Postconditions**: Order marked `delivered`; cash custody recorded; stock discharged from vehicle pamphlet.
+
+#### UC-02.03.C: Partial Delivery Acceptance & Line-Item Rejection at Merchant Drop Point
+- **Description**: During inspection at the merchant location, a merchant or buyer identifies damaged goods or rejects specific items from an order (e.g. 1 carton of oil damaged in transit). Driver records rejected line items, the order total is dynamically recalculated on the spot, and the remaining valid items are delivered.
+- **Primary Actor**: Vehicle Driver (`role: driver`), Village Merchant (`role: merchant`), or Village Buyer (`role: buyer`).
+- **Secondary Systems**: `orders-service`, `cash-service`, `credit-service`, `pamphlet-service`.
+- **Preconditions**: Order is being delivered at merchant shop and contains multiple line items or units.
+- **Nominal Flow**:
+  1. Recipient inspects goods on screen `VEH-05` and points out damaged or rejected units.
+  2. Driver marks specific line items as rejected with reason code (`DAMAGED_IN_TRANSIT`, `SHORT_SHIPPED`, `REJECTED_BY_CUSTOMER`).
+  3. `orders-service` recalculates payable amount:
+     - *If CoD*: Driver collects adjusted cash amount (e.g., ₹13,500 instead of ₹15,000).
+     - *If Merchant Credit*: `orders-service` notifies `credit-service` (`:4008`) to release the ₹1,500 unused credit hold back to merchant headroom immediately.
+     - *If Prepaid UPI*: `orders-service` enqueues an automated partial refund via `payments-service` (`:4005`).
+  4. Driver confirms handover with OTP; `orders-service` marks order as `partially_delivered`.
+  5. Rejected units are logged to `pamphlet_db.return_items` on the vehicle's return manifest for warehouse restaging.
+- **Postconditions**: Order state transitions to `partially_delivered`; invoice balance adjusted; credit hold released or cash collection reduced; return goods manifested.
 
 ### 3. User Journey Stories
-- **US-02.03.01 [READY]**: *As a delivery driver, I want to verify delivery using a customer OTP and record cash collection on my Android app, so that proof-of-delivery is legally and operationally undeniable.*
-- **US-02.03.02 [READY]**: *As a rural buyer, I want to give the OTP to the driver only after inspecting my goods, so that I am assured of receiving the correct items.*
+- **US-02.03.01 [READY]**: *As a delivery driver, I want to drop all village packages at the registered merchant shop and verify handovers via OTP, so that proof-of-delivery is legally and operationally undeniable.*
+- **US-02.03.02 [READY]**: *As a rural buyer, I want to collect my package from my village merchant shop at my convenience using a 4-digit OTP, so that I don't have to wait by the roadside for a delivery truck.*
+- **US-02.03.03 [READY]**: *As a merchant or buyer inspecting a delivery, I want to reject damaged or broken items on the spot and pay only for accepted goods, so that I am never forced to pay for damaged stock.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Driver completes delivery handover with OTP
-  Given an order in status "dispatched" with verification OTP "7391"
-  When the driver submits OTP "7391" and collected cash ₹850 via Android app
+Scenario: Driver completes delivery handover at merchant shop
+  Given an order in status "dispatched" for merchant drop point "mer_kirana_01"
+  When the driver verifies handover OTP "7391" and collected cash ₹850
   Then orders-service transitions status to "delivered"
-  And invokes cash-service to record ₹850 custody under the driver's vehicle ID
+  And invokes cash-service to record ₹850 custody under driver balance
+
+Scenario: Partial delivery acceptance with line-item rejection
+  Given an order with 10 bags of fertilizer (₹10,000) and 2 cartons of oil (₹5,000) on credit
+  When merchant rejects 1 carton of oil due to "DAMAGED_IN_TRANSIT"
+  Then orders-service transitions order to "partially_delivered" with bill total ₹12,500
+  And credit-service releases ₹2,500 credit hold back to merchant headroom immediately
+  And pamphlet-service logs 1 carton of oil to the vehicle return manifest
 ```
 
 ### 4. Integration Stories
@@ -306,7 +299,9 @@ Scenario: Driver completes delivery handover with OTP
 
 ### 5. Multi-Client Implementation Stories
 - **PWA-02.03.01 [READY] (Web PWA Client)**: *Implement Buyer Order Details (`BUY-06`) showing the secure 4-digit handover OTP and live delivery status badge.*
-- **AND-02.03.01 [READY] (Android Native Client)**: *Implement Driver Delivery Handover (`VEH-05`) with OTP verification pad, cash received denomination counter, and background Play Integrity attestation.*
+- **AND-02.03.01 [READY] (Android Native — Delivery Handover UI Layout)**: *Implement Jetpack Compose driver delivery handover screen (`VEH-05`) with 4-digit OTP input pad, line-item rejection checkboxes, and cash denomination counter.*
+- **AND-02.03.02 [READY] (Android Native — Room DB Offline Handover & Rejection Store)**: *Implement local Room database entities (`DeliveryHandoverEntity`, `RejectedItemEntity`) and DAOs to store completed handovers and line-item rejection proofs during cellular dead zones.*
+- **AND-02.03.03 [READY] (Android Native — Hardware Scanner & Play Integrity Attestation)**: *Integrate Bluetooth barcode scanner SDK, camera ML Kit barcode scanner fallback, and Google Play Integrity App Check attestation token generation on delivery submission.*
 - **IOS-02.03.01 [READY] (iOS Native Client)**: *Implement Buyer Order Details with dynamic OTP display card and offline cache.*
 
 ### 6. PWA Cloud Testing Story
@@ -344,3 +339,78 @@ Scenario: Driver completes delivery handover with OTP
   - [ ] Buyer PWA displays correct 4-digit OTP generated by test microservices.
   - [ ] Android client submits completed delivery and registers cash custody.
   - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+
+---
+
+## FEAT-02.04: Order Deliverables, Customer Return Policy & RTO Protocol
+
+### 1. Feature Metadata & Hierarchy
+- **Feature ID**: `FEAT-02.04`
+- **Feature Status**: [READY]
+- **Functional Scope**: Formal order deliverable specifications, village merchant PUDO 72-hour retention window, doorstep line-item rejection policy, non-returnable categories, automated Return-to-Origin (RTO) execution, and buyer refund triggers.
+- **Service Endpoints**:
+  - `POST /v1/orders/{orderId}/returns/initiate` (`initiateOrderReturn`)
+  - `POST /v1/orders/{orderId}/rto/trigger` (`triggerOrderRTO`)
+  - `GET /v1/orders/policies/deliverables` (`getOrderDeliverablePolicy`)
+- **UI Screens**: [BUY-06 Order Details](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-06), [MER-03 Village Drop Hub](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-03), [VEH-05 Delivery Handover](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-05), [SPT-14 Dispute Escalation](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-14)
+
+### 2. Derived Use Cases
+
+#### UC-02.04.A: Order Deliverable Verification & Doorstep Line-Item Rejection Policy
+- **Description**: Defines contractual deliverable standards for orders. Buyers and merchants inspect packaging integrity upon arrival at the village merchant shop. The recipient can reject defective, leaking, or damaged items on the spot before OTP signoff. Non-returnable categories (e.g. perishable agricultural seeds with broken seals) are enforced.
+- **Primary Actor**: Village Buyer (`role: buyer`) or Village Merchant (`role: merchant`).
+- **Nominal Flow**:
+  1. Recipient opens order details and inspects delivered packages at the merchant shop.
+  2. If an item is damaged or expired, recipient marks the unit rejected on screen `VEH-05` / `MER-03`.
+  3. System validates if the SKU is return-eligible (perishables rejected at factory level are non-returnable post-handover).
+  4. For valid rejections, `orders-service` adjusts payable balance (or initiates UPI refund if prepaid).
+  5. The accepted portion is released via 4-digit OTP.
+- **Postconditions**: Order marked `partially_delivered`; rejected units manifested for reverse logistics; invoice adjusted.
+
+#### UC-02.04.B: 72-Hour Merchant Retention & Automated Return-to-Origin (RTO)
+- **Description**: Packages dropped at a village merchant shop must be collected within a 72-hour retention window. If uncollected after 72 hours, the system marks the package as `rto_pending` and dispatches it back to the supplier on the next visiting logistics circuit.
+- **Primary Actor**: System (Cloud Scheduler Cron) & Logistics Driver (`role: driver`).
+- **Nominal Flow**:
+  1. Parcel arrives at merchant shop (`status: dropped_at_merchant`). A 72-hour countdown begins.
+  2. Buyer receives daily automated reminders via WhatsApp and push notification.
+  3. At T+72 hours without buyer OTP collection:
+     - `orders-service` transitions status to `rto_initiated`.
+     - Parcel is automatically assigned to the reverse manifest of the next scheduled gig servicing the village.
+     - Driver arrives on next circuit, scans the uncollected parcel barcode, and signs it out from the merchant.
+     - Buyer's prepaid payment is refunded minus standard reverse transit fee; supplier inventory is restaged.
+- **Postconditions**: Merchant shop uncluttered; parcel returned to supplier; outbox event emitted for finance reversal.
+
+### 3. User Journey Stories
+- **US-02.04.01 [READY]**: *As a rural buyer, I want clear contractual policies on order deliverables, holding windows (72 hours at my village shop), and return rights displayed before I place an order, so that I understand my pickup deadlines and guarantees.*
+- **US-02.04.02 [READY]**: *As a village merchant, I want packages uncollected after 72 hours automatically flagged for RTO and collected by the next visiting truck, so that my shop storage space is protected from abandoned parcels.*
+- **US-02.04.03 [READY]**: *As a supplier, I want non-returnable categories (such as opened agrochemicals and perishables) strictly enforced by the system, so that fraudulent returns are prevented after goods leave physical custody.*
+
+#### Acceptance Criteria (Gherkin)
+```gherkin
+Scenario: Parcel reaches 72-hour retention limit at merchant shop
+  Given a parcel delivered to merchant "mer_01" at "2026-10-01T10:00:00Z"
+  When current time reaches "2026-10-04T10:00:01Z" without buyer OTP verification
+  Then orders-service updates status to "rto_initiated"
+  And queues parcel on the next visiting gig circuit reverse manifest
+  And sends WhatsApp notification to buyer advising of RTO return
+
+Scenario: Doorstep rejection of non-returnable perishable item
+  Given an order containing sealed hybrid tomato seeds flagged "non_returnable"
+  When buyer attempts to reject the item after opening the packaging seal
+  Then orders-service rejects the return request with code "CATEGORY_NON_RETURNABLE"
+  And prompts buyer to file a manufacturer defect warranty claim instead
+```
+
+### 4. Integration Stories
+- **INT-02.04.01 [READY] (Reverse Logistics Manifest Integration)**: *As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to add RTO parcels to the visiting truck's reverse cargo manifest upon driver check-in.*
+- **INT-02.04.02 [READY] (Automated Refund & Credit Note Integration)**: *As the Orders Service, I need to call `payments-service` (`:4005`) and `finance-service` (`:4009`) to issue credit notes and trigger UPI reversals when RTO parcels arrive back at the supplier warehouse.*
+
+### 5. Multi-Client Implementation Stories
+- **PWA-02.04.01 [READY] (Web PWA Return & Policy Viewer)**: *Implement Order Return Policy drawer on `web/b/` (`BUY-06`) and Merchant RTO clearance dashboard on `web/m/` (`MER-03`).*
+- **AND-02.04.01 [READY] (Android Native RTO & Return Scan)**: *Implement RTO package scan and merchant handover signoff in `android/` (`VEH-05`, `MER-03`).*
+- **IOS-02.04.01 [READY] (iOS Native Return & Policy Viewer)**: *Implement Buyer return request flow and policy viewer on iOS.*
+
+### 6. Independent Support Stories
+- **DOC-02.04.01 [READY] (Order Deliverables, Return & RTO Policy)**: *Publish formal compliance documents `docs/compliance/order_deliverables_and_sla_policy.md`, `docs/compliance/customer_return_and_refund_policy.md`, and `docs/compliance/unclaimed_parcel_rto_policy.md`.*
+- **OPS-02.04.01 [READY] (RTO Scheduler Cron)**: *Configure Cloud Scheduler cron job invoking `/v1/orders/rto/check-expired` every 6 hours.*
+

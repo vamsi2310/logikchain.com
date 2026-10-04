@@ -48,20 +48,20 @@ The table below reflects the canonical status of all 13 platform Epics and their
 
 | Epic ID | Title | Functional Service | Port | Epic Status | Features | Total Stories | Multi-Client Scope | Cloud Test Project |
 | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| **`EPIC-10`** | Master Platform Configuration | `config-service` | `:4010` | **`[IN_PROGRESS]`** | 3 | 30 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-12`** | API Gateway & CDC Sync Engine | `gateway` / `sync-engine` | `:8080 / :4050` | **`[IN_PROGRESS]`** | 4 | 42 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-10`** | Master Platform Configuration | `config-service` | `:4010` | **`[IN_PROGRESS]`** | 7 | 42 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-12`** | API Gateway & CDC Sync Engine | `gateway` / `sync-engine` | `:8080 / :4050` | **`[IN_PROGRESS]`** | 4 | 43 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-13`** | Social Connect & Orchestrator | `social-connect-service` | `:4012` | **`[IN_PROGRESS]`** | 4 | 44 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-01`** | Identity, Roles & Auth | `identity-service` | `:4001` | **`[IN_PROGRESS]`** | 4 | 44 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-03`** | Gig Logistics & Fleet Dispatch | `gigs-service` | `:4003` | **`[READY]`** | 3 | 32 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-01`** | Identity, Roles & Auth | `identity-service` | `:4001` | **`[IN_PROGRESS]`** | 6 | 56 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-03`** | Gig Logistics & Fleet Dispatch | `gigs-service` | `:4003` | **`[READY]`** | 4 | 42 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-04`** | Dynamic Pamphlet Manifest | `pamphlet-service` | `:4004` | **`[READY]`** | 3 | 30 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-08`** | Merchant Trade Credit & Limits| `credit-service` | `:4008` | **`[READY]`** | 3 | 31 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-08`** | Merchant Trade Credit & Limits| `credit-service` | `:4008` | **`[READY]`** | 4 | 33 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-05`** | Payments & UPI Ingress | `payments-service` | `:4005` | **`[READY]`** | 3 | 33 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-02`** | Orders & Delivery Handover | `orders-service` | `:4002` | **`[READY]`** | 3 | 35 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-07`** | Cash Custody & Rural CoD | `cash-service` | `:4007` | **`[READY]`** | 3 | 33 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-06`** | Payouts & Cloud Tasks Bank | `payouts-service` | `:4006` | **`[READY]`** | 3 | 34 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-11`** | Platform Governance & AML | `governance-service` | `:4011` | **`[READY]`** | 3 | 30 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-02`** | Orders & Delivery Handover | `orders-service` | `:4002` | **`[READY]`** | 4 | 42 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-07`** | Cash Custody & Rural CoD | `cash-service` | `:4007` | **`[READY]`** | 3 | 35 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-06`** | Payouts & Cloud Tasks Bank | `payouts-service` | `:4006` | **`[READY]`** | 4 | 36 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-11`** | Platform Governance & AML | `governance-service` | `:4011` | **`[READY]`** | 4 | 34 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-09`** | General Ledger & Tax Accounting| `finance-service` | `:4009` | **`[READY]`** | 3 | 31 | Web PWA, Android, iOS | `logikchain-test` |
-| **TOTALS** | **13 Platform Epics** | **13 Microservices** | — | — | **41** | **419** | **100% 3-Tier Client Scope** | **Cloud Run & Firebase Hosting** |
+| **TOTALS** | **13 Platform Epics** | **13 Microservices** | — | — | **50** | **479** | **100% 3-Tier Client Scope** | **Cloud Run & Firebase Hosting** |
 
 ---
 
@@ -160,6 +160,10 @@ graph LR
     classDef feat fill:#0f172a,stroke:#38bdf8,stroke-width:1px,color:#f8fafc;
 
     FEAT1001["FEAT-10.01<br/>Google Maps Geo-Hierarchy"]:::feat
+    FEAT1002["FEAT-10.02<br/>Subscription Plans & Tariffs"]:::feat
+    FEAT1004["FEAT-10.04<br/>Support Proxy Switcher"]:::feat
+    FEAT1005["FEAT-10.05<br/>Bulk Geo Superimpose ETL"]:::feat
+    FEAT1007["FEAT-10.07<br/>Master Corridors & Routes"]:::feat
     FEAT1201["FEAT-12.01<br/>API Gateway Routing"]:::feat
     FEAT1202["FEAT-12.02<br/>App Check Firewall"]:::feat
     FEAT1203["FEAT-12.03<br/>PostgreSQL-Firestore CDC"]:::feat
@@ -171,6 +175,8 @@ graph LR
     FEAT0102["FEAT-01.02<br/>Supplier Org Provisioning"]:::feat
     FEAT0103["FEAT-01.03<br/>Progressive Role Conversion"]:::feat
     FEAT0104["FEAT-01.04<br/>User Suspension Lifecycle"]:::feat
+    FEAT0105["FEAT-01.05<br/>Supplier Support Delegation"]:::feat
+    FEAT0106["FEAT-01.06<br/>Profile Lifecycle & Media"]:::feat
 
     FEAT0101 --> FEAT1201
     FEAT0101 --> FEAT1302
@@ -179,12 +185,28 @@ graph LR
     FEAT0103 --> FEAT0101
     FEAT0104 --> FEAT0101
 
+    FEAT0105 --> FEAT0102
+    FEAT0105 --> FEAT1002
+    FEAT1004 --> FEAT0105
+    FEAT1201 --> FEAT0105
+    FEAT1005 --> FEAT1001
+    FEAT1007 --> FEAT1001
+
+    FEAT0106 --> FEAT0101
+    FEAT0106 --> FEAT1001
+    FEAT0106 --> FEAT1203
+    FEAT0106 --> FEAT1204
+
     FEAT1302 --> FEAT1301
     FEAT1301 --> FEAT1203
 ```
 
 - **`FEAT-01.01` (Phone Auth Bootstrap)** relies on **`FEAT-13.02` (WhatsApp OTP)** for rural code delivery and **`FEAT-12.01` (API Gateway)** for client routing.
 - **`FEAT-01.02` (Supplier Provisioning)** requires **`FEAT-10.01` (Geo-Hierarchy)** to establish country and district operating boundaries.
+- **`FEAT-01.05` (Supplier Support Delegation & Subscription Gate)** allows suppliers to grant timebound (max 4h), revocable access to support operators. Depends on **`FEAT-10.02` (Subscription Plans)** for the `delegated_support_enabled` entitlement check, **`FEAT-10.04` (Support Proxy Switcher)** for contextual session switching, and **`FEAT-12.01` (API Gateway)** for strictly blocking proxy mutations to financial endpoints (`/v1/payouts/*`, `/v1/banking/*`).
+- **`FEAT-01.06` (User Profile Lifecycle & Cloud Media Storage)** manages user onboarding (`BUY-00`), profile queries (`GET /v1/users/me`), mutations (`PATCH /v1/users/{userId}`), and pre-signed Cloud Storage avatar uploads. Relies on **`FEAT-10.01`** for village geo-binding, **`FEAT-12.03`** for real-time Firestore `/UserProfiles/{uid}` replication, and **`FEAT-12.04`** for cloud storage media handshake.
+- **`FEAT-10.05` (Bulk Geo Superimpose ETL)** merges 176k Post Offices CSV + 19k GeoJSON boundaries, feeding PostGIS and Firestore master registries for **`FEAT-10.01`**.
+- **`FEAT-10.07` (Master Route Corridors & Route Governance)** provides standard platform corridors (`supplierId: "GLOBAL"`) and universal Support oversight over supplier custom routes.
 - **`FEAT-13.01` (Preferences)** synchronizes with Firestore via **`FEAT-12.03` (CDC Sync Engine)**.
 
 ---
@@ -196,9 +218,12 @@ graph TD
     classDef feat fill:#0f172a,stroke:#06b6d4,stroke-width:1px,color:#f8fafc;
 
     FEAT1001["FEAT-10.01<br/>Geo-Hierarchy & Places"]
+    FEAT1002["FEAT-10.02<br/>Subscription Plans & Tariffs"]
+    FEAT1007["FEAT-10.07<br/>Master Route Corridors"]
     FEAT0102["FEAT-01.02<br/>Supplier Organization"]
     FEAT0103["FEAT-01.03<br/>Driver Role Elevation"]
 
+    FEAT0304["FEAT-03.04<br/>Route Catalog & Gig Quotas"]:::feat
     FEAT0301["FEAT-03.01<br/>Gig Composition & Schedule"]:::feat
     FEAT0302["FEAT-03.02<br/>Live Telemetry & GPS Ping"]:::feat
     FEAT0303["FEAT-03.03<br/>Gig Finalization & Audit"]:::feat
@@ -207,7 +232,10 @@ graph TD
     FEAT0402["FEAT-04.02<br/>Warehouse Loading & Gate Seal"]:::feat
     FEAT0403["FEAT-04.03<br/>In-Transit Damage Claims"]:::feat
 
+    FEAT0304 --> FEAT1007
+    FEAT0301 --> FEAT0304
     FEAT0301 --> FEAT1001
+    FEAT0301 --> FEAT1002
     FEAT0301 --> FEAT0102
     FEAT0301 --> FEAT0103
 
@@ -226,6 +254,7 @@ graph TD
 - **`FEAT-03.01` (Gig Composition)** invokes **`FEAT-04.01` (Pamphlet Initialization)** on creation to bind the deterministic `{vehicleId}_{startDatetime}` manifest.
 - **`FEAT-03.02` (Live Gig Telemetry)** cannot commence until **`FEAT-04.02` (Warehouse Loading & Driver Sign-off)** seals the vehicle manifest.
 - **`FEAT-03.03` (Gig Finalization)** audits all un-discharged stock via **`FEAT-04.03` (Damage Adjustments)** before marking the run complete.
+- **`FEAT-03.04` (Route Catalog & Monthly Gig Quotas)** empowers all suppliers to browse standard corridors (`FEAT-10.07`) or freely author/clone custom routes with zero route-count quotas. Enforces subscription monthly gig quotas (`monthlyGigLimit` / `maxGigsPerMonth`) during gig scheduling (`FEAT-03.01`) and guards route deletion against in-use active gigs.
 
 ---
 
@@ -331,23 +360,30 @@ graph TD
 | Feature ID | Feature Name | Status | Multi-Client Deliverables | Hard Pre-requisites | Primary Downstream Consumers |
 | :--- | :--- | :---: | :--- | :--- | :--- |
 | **`FEAT-10.01`** | Geo-Hierarchy & Geocoding | `[IN_PROGRESS]` | PWA-10.01.01, AND-10.01.01, IOS-10.01.01, TEST-10.01.PWA | Google Maps API restricted keys | `FEAT-01.02`, `FEAT-03.01`, `FEAT-02.01` |
-| **`FEAT-10.02`** | Subscription Plans & Tariffs | `[READY]` | PWA-10.02.01, AND-10.02.01, IOS-10.02.01, TEST-10.02.PWA | DB migrations (`config_db`) | `FEAT-01.02` |
+| **`FEAT-10.02`** | Subscription Plans & Tariffs | `[READY]` | PWA-10.02.01, AND-10.02.01, IOS-10.02.01, TEST-10.02.PWA | DB migrations (`config_db`) | `FEAT-01.02`, `FEAT-01.05`, `FEAT-03.04` |
 | **`FEAT-10.03`** | Tax Profiles & TDS Rules | `[READY]` | PWA-10.03.01, AND-10.03.01, IOS-10.03.01, TEST-10.03.PWA | DB migrations (`config_db`) | `FEAT-02.01`, `FEAT-09.03` |
+| **`FEAT-10.04`** | Support Proxy Pattern & Context Switcher | `[READY]` | PWA-10.04.01, AND-10.04.01, IOS-10.04.01, TEST-10.04.PWA | `FEAT-01.05`, `FEAT-12.01` | Support Operations (`SPT-01`) |
+| **`FEAT-10.05`** | Bulk Geo ETL & Superimposition Engine | `[READY]` | PWA-10.05.01, CLI-10.05.01, TEST-10.05.CLI | `scripts/geo_superimpose.py`, PostGIS | `FEAT-10.01`, Support Operations (`SPT-09.3`) |
+| **`FEAT-10.06`** | Village Delivery & PUDO Agreement | `[READY]` | PWA-10.06.01, AND-10.06.01, IOS-10.06.01, TEST-10.06.PWA | `FEAT-10.01`, `FEAT-01.03` | Kirana Merchants (`MER-08`), Suppliers (`SUP-12`) |
+| **`FEAT-10.07`** | Master Corridors & Route Governance | `[READY]` | PWA-10.07.01, AND-10.07.01, IOS-10.07.01, TEST-10.07.PWA | `FEAT-10.01`, `FEAT-03.01` | Regional Suppliers (`SUP-07`, `SUP-02`), Support (`SPT-09.4`) |
 | **`FEAT-12.01`** | API Gateway Multi-Client Routing | `[IN_PROGRESS]` | PWA-12.01.01, AND-12.01.01, IOS-12.01.01, TEST-12.01.PWA | Kubernetes Cluster Ingress, DNS | All Client Frontends (PWA, Android, iOS) |
 | **`FEAT-12.02`** | App Check Zero-Trust Perimeter | `[IN_PROGRESS]` | PWA-12.02.01, AND-12.02.01, IOS-12.02.01, TEST-12.02.PWA | Play Integrity, DeviceCheck keys | `FEAT-03.02`, `FEAT-02.03` |
 | **`FEAT-12.03`** | CDC Sync Engine (PG $\rightarrow$ Firestore)| `[READY]` | PWA-12.03.01, AND-12.03.01, IOS-12.03.01, TEST-12.03.PWA | PostgreSQL Outbox tables, Firestore Admin SDK | Mobile & Web Offline Viewers |
-| **`FEAT-12.04`** | Cloud Storage Media Sync | `[READY]` | PWA-12.04.01, AND-12.04.01, IOS-12.04.01, TEST-12.04.PWA | Firebase Cloud Storage bucket, GCP IAM | `FEAT-04.03`, `FEAT-09.03`, `FEAT-13.04` |
+| **`FEAT-12.04`** | Cloud Storage Media Sync | `[READY]` | PWA-12.04.01, AND-12.04.01, IOS-12.04.01, TEST-12.04.PWA | Firebase Cloud Storage bucket, GCP IAM | `FEAT-04.03`, `FEAT-09.03`, `FEAT-13.04`, `FEAT-01.06` |
 | **`FEAT-13.01`** | Notification Preferences | `[IN_PROGRESS]` | PWA-13.01.01, AND-13.01.01, IOS-13.01.01, TEST-13.01.PWA | `FEAT-12.03` (Firestore Sync) | `FEAT-13.02`, `FEAT-13.03`, `FEAT-13.04` |
 | **`FEAT-13.02`** | WhatsApp OTP Orchestration | `[IN_PROGRESS]` | PWA-13.02.01, AND-13.02.01, IOS-13.02.01, TEST-13.02.PWA | Meta WhatsApp Cloud API credentials | `FEAT-01.01` (Auth Bootstrap) |
 | **`FEAT-13.03`** | Order Lifecycle WhatsApp Alerts | `[READY]` | PWA-13.03.01, AND-13.03.01, IOS-13.03.01, TEST-13.03.PWA | `FEAT-13.01` (Preferences) | Buyers, Merchants |
 | **`FEAT-13.04`** | Digital Bills & Business Alerts | `[READY]` | PWA-13.04.01, AND-13.04.01, IOS-13.04.01, TEST-13.04.PWA | `FEAT-12.04` (Storage PDF), `FEAT-13.01` | Merchants, Fleet Suppliers |
 | **`FEAT-01.01`** | Phone Auth & Claims Bootstrap | `[IN_PROGRESS]` | PWA-01.01.01, AND-01.01.01, IOS-01.01.01, TEST-01.01.PWA | `FEAT-12.01`, `FEAT-13.02` | All User Roles |
-| **`FEAT-01.02`** | Supplier Org Provisioning | `[READY]` | PWA-01.02.01, AND-01.02.01, IOS-01.02.01, TEST-01.02.PWA | `FEAT-01.01`, `FEAT-10.01` | `FEAT-03.01`, `FEAT-08.01` |
+| **`FEAT-01.02`** | Supplier Org Provisioning | `[READY]` | PWA-01.02.01, AND-01.02.01, IOS-01.02.01, TEST-01.02.PWA | `FEAT-01.01`, `FEAT-10.01` | `FEAT-03.01`, `FEAT-08.01`, `FEAT-01.05` |
 | **`FEAT-01.03`** | Role Conversion & Handoff | `[READY]` | PWA-01.03.01, AND-01.03.01, IOS-01.03.01, TEST-01.03.PWA | `FEAT-01.01` | Android Driver Loop, Merchant Portal |
 | **`FEAT-01.04`** | Suspension & Account Lockdown | `[READY]` | PWA-01.04.01, AND-01.04.01, IOS-01.04.01, TEST-01.04.PWA | `FEAT-01.01` | `FEAT-07.03` |
+| **`FEAT-01.05`** | Supplier Support Delegation | `[READY]` | PWA-01.05.01, AND-01.05.01, IOS-01.05.01, TEST-01.05.PWA | `FEAT-01.02`, `FEAT-10.02`, `FEAT-12.01` | `FEAT-10.04` (Support Proxy), `FEAT-11.02` (Proxy Audit Trail) |
+| **`FEAT-01.06`** | User Profile Lifecycle & Media | `[READY]` | PWA-01.06.01, AND-01.06.01, IOS-01.06.01, TEST-01.06.PWA | `FEAT-01.01`, `FEAT-10.01`, `FEAT-12.03` | All Frontends, Kirana Merchants (`MER-01`), Support (`SPT-03`) |
 | **`FEAT-03.01`** | Gig Composition & Schedule | `[READY]` | PWA-03.01.01, AND-03.01.01, IOS-03.01.01, TEST-03.01.PWA | `FEAT-10.01`, `FEAT-01.02`, `FEAT-01.03` | `FEAT-04.01`, `FEAT-02.01`, `FEAT-03.02` |
 | **`FEAT-03.02`** | Live Telemetry & GPS Tracking | `[READY]` | PWA-03.02.01, AND-03.02.01, IOS-03.02.01, TEST-03.02.PWA | `FEAT-03.01`, `FEAT-04.02`, `FEAT-12.02` | `FEAT-02.03`, `FEAT-03.03` |
 | **`FEAT-03.03`** | Gig Finalization & Settlement | `[READY]` | PWA-03.03.01, AND-03.03.01, IOS-03.03.01, TEST-03.03.PWA | `FEAT-03.02`, `FEAT-04.03` | `FEAT-07.02` |
+| **`FEAT-03.04`** | Route Catalog & Monthly Gig Quota | `[READY]` | PWA-03.04.01, AND-03.04.01, IOS-03.04.01, TEST-03.04.PWA | `FEAT-10.07`, `FEAT-10.02`, `FEAT-03.01` | Regional Suppliers (`SUP-07`, `SUP-07.1`, `SUP-02`) |
 | **`FEAT-04.01`** | Dynamic Gig Pamphlet Keying | `[READY]` | PWA-04.01.01, AND-04.01.01, IOS-04.01.01, TEST-04.01.PWA | `FEAT-03.01` | `FEAT-04.02`, `FEAT-02.01`, `FEAT-02.02` |
 | **`FEAT-04.02`** | Warehouse Loading & Sealing | `[READY]` | PWA-04.02.01, AND-04.02.01, IOS-04.02.01, TEST-04.02.PWA | `FEAT-04.01` | `FEAT-03.02` (Enables departure) |
 | **`FEAT-04.03`** | In-Transit Stock Adjustments | `[READY]` | PWA-04.02.01, AND-04.02.01, IOS-04.02.01, TEST-04.02.PWA | `FEAT-04.02`, `FEAT-12.04` | `FEAT-03.03`, `FEAT-02.03` |
@@ -465,7 +501,9 @@ sequenceDiagram
     Note over Support,GW: STAGE 1: Day Zero Bootstrap & Master Geo-Hierarchy (EPIC-10, EPIC-12)
     Support->>GW: POST /api/v1/config/geo/sync (Seed States, Districts, Villages)
     GW->>CFG: Validate App Check & Save Geo-Hierarchy
-    CFG-->>GW: Master Spatial Data Active (Firestore Mirror /Villages)
+    Support->>GW: POST /api/v1/config/routes/corridors (Define Standard Regional Corridors)
+    GW->>CFG: Save Master Corridors (supplierId = GLOBAL)
+    CFG-->>GW: Master Spatial Data Active (Firestore Mirror /Villages & /Routes)
 
     %% Stage 2: Onboarding & WhatsApp OTP
     Note over Buyer,IDN: STAGE 2: Citizen Onboarding, WhatsApp OTP & Role Elevation (EPIC-13, EPIC-01)
@@ -478,7 +516,9 @@ sequenceDiagram
 
     %% Stage 3: Fleet Route Scheduling & Manifest
     Note over Supplier,PAM: STAGE 3: Fleet Route Scheduling & Dynamic Vehicle Manifest (EPIC-03, EPIC-04)
-    Supplier->>GIG: POST /api/v1/gigs/compose (4 Villages via Google Maps Matrix)
+    Supplier->>GIG: GET /api/v1/routes (Browse master corridors & custom routes)
+    Supplier->>GIG: POST /api/v1/routes (Author or clone custom route - zero route quotas)
+    Supplier->>GIG: POST /api/v1/gigs/compose (Validate Monthly Gig Quota & Schedule 4 Villages)
     GIG->>PAM: POST /api/v1/pamphlet/init (Run: V042_20261003_0600)
     Supplier->>PAM: POST /api/v1/pamphlet/seal (Loading complete, co-signed by Driver)
     PAM-->>GIG: Status = 'sealed' (Vehicle Departure Gate Cleared)
@@ -543,9 +583,9 @@ sequenceDiagram
 
 | Stage | Name | Epics Covered | Features Exercised | Actors Involved | Microservices & Ports | Critical Gate Checked | Success State |
 | :---: | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **01** | **Day Zero Bootstrap & Geo-Hierarchy** | `EPIC-10`, `EPIC-12` | `FEAT-10.01`, `FEAT-10.02`, `FEAT-10.03`, `FEAT-12.01`, `FEAT-12.02`, `FEAT-12.03` | **Support** | `config-service` (:4010), `gateway` (:8080), `sync-engine` (:4050) | **Zero-Trust Perimeter Gate**: All public traffic carries valid App Check | 48,000 Indian villages seeded, tax rules locked, CDC engine streaming to `/Villages` |
+| **01** | **Day Zero Bootstrap & Geo-Hierarchy** | `EPIC-10`, `EPIC-12` | `FEAT-10.01`, `FEAT-10.02`, `FEAT-10.03`, `FEAT-10.07`, `FEAT-12.01`, `FEAT-12.02`, `FEAT-12.03` | **Support** | `config-service` (:4010), `gateway` (:8080), `sync-engine` (:4050) | **Zero-Trust Perimeter Gate**: All public traffic carries valid App Check | 48,000 Indian villages seeded, standard corridors established, CDC engine streaming to `/Villages` and `/Routes` |
 | **02** | **Citizen Onboarding & Role Elevation** | `EPIC-13`, `EPIC-01` | `FEAT-13.01`, `FEAT-13.02`, `FEAT-01.01`, `FEAT-01.02`, `FEAT-01.03` | **Buyer** (self-registers), **Supplier** (provisions org), **Support** (elevates roles) | `social-connect-service` (:4012), `identity-service` (:4001) | Custom claims enforcement on Gateway | WhatsApp OTP verified, `role: buyer` assigned, progressive promotion to merchant and driver |
-| **03** | **Fleet Route Scheduling & Manifest** | `EPIC-03`, `EPIC-04` | `FEAT-03.01`, `FEAT-04.01`, `FEAT-04.02` | **Supplier** (schedules gig & seals manifest), **Driver** (co-signs loading) | `gigs-service` (:4003), `pamphlet-service` (:4004) | **Vehicle Departure Gate**: Cannot navigate without `status: sealed` | Gig scheduled across 4 villages, truck loaded with 200 items, gate seal digitally confirmed |
+| **03** | **Fleet Route Scheduling & Manifest** | `EPIC-03`, `EPIC-04`, `EPIC-10` | `FEAT-03.01`, `FEAT-03.04`, `FEAT-04.01`, `FEAT-04.02`, `FEAT-10.07` | **Supplier** (authors/clones route, schedules gig & seals manifest), **Driver** (co-signs loading) | `gigs-service` (:4003), `pamphlet-service` (:4004), `config-service` (:4010) | **Monthly Gig Quota & Departure Gate**: Gig creation blocked if `monthlyGigLimit` exhausted; departure blocked until manifest `status: sealed` | Freeform route selected/cloned without route quotas; monthly gig quota verified; truck loaded with 200 items; gate seal digitally confirmed |
 | **04** | **Merchant Trade Credit Underwriting** | `EPIC-08` | `FEAT-08.01` | **Supplier** (underwrites limit), **Merchant** (applies for credit) | `credit-service` (:4008), `sync-engine` (:4050) | Merchant identity verification & status active | ₹50,000 credit limit assigned, 14-day terms, mirrored to `/CreditProfiles/{uid}` |
 | **05** | **Dual Commerce Ordering & Payments** | `EPIC-02`, `EPIC-05`, `EPIC-08`, `EPIC-13` | `FEAT-02.01`, `FEAT-05.01`, `FEAT-05.02`, `FEAT-02.02`, `FEAT-08.02`, `FEAT-13.03` | **Buyer** (prepaid order), **Merchant** (bulk credit order) | `orders-service` (:4002), `payments-service` (:4005), `credit-service` (:4008), `social-connect-service` (:4012) | **Credit Headroom Gate**: Order blocked if amount > available headroom | Buyer ₹850 UPI order confirmed; Merchant ₹15,000 credit hold reserved; WhatsApp notifications sent |
 | **06** | **Live Route Navigation & Handover** | `EPIC-03`, `EPIC-02`, `EPIC-07`, `EPIC-04` | `FEAT-03.02`, `FEAT-02.03`, `FEAT-07.01`, `FEAT-04.02` | **Driver** (navigates & delivers), **Buyer** (receives order, provides OTP) | `gigs-service` (:4003), `orders-service` (:4002), `cash-service` (:4007), `pamphlet-service` (:4004) | Play Integrity GPS verification & 4-digit buyer OTP | Order delivered, pamphlet stock decremented, ₹850 CoD cash collected into driver custody |

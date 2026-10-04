@@ -22,24 +22,25 @@
 - **UI Screens**: [VEH-05 Cash Collect](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-05), [VEH-08 Cash Custody](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-08)
 
 ### 2. Derived Use Cases
-#### UC-07.01.A: Rural Doorstep Cash-on-Delivery Collection & Custody Accumulation
-- **Description**: Delivery driver delivers packages to a rural home, collects cash, and the mobile app records cash custody into driver balance.
+#### UC-07.01.A: Village Merchant Hub Cash-on-Delivery Collection & Custody Accumulation
+- **Description**: Delivery driver drops orders at the registered Village Merchant shop, collects cash for CoD parcels (or adjusted cash for partial deliveries), and the mobile app records cash custody into driver balance.
 - **Primary Actor**: Vehicle Driver (`role: driver`).
 - **Secondary Systems**: `orders-service`, `cash-service`, Android Room Database / WorkManager.
-- **Preconditions**: Order is in status `dispatched` with payment mode `cod`.
+- **Preconditions**: Order is in status `dispatched` with payment mode `cod` routed to the destination merchant shop.
 - **Nominal Flow**:
-  1. Driver collects physical currency (e.g. ₹850) from buyer upon delivery.
-  2. Driver confirms cash collected on screen `VEH-05`.
-  3. Android client enqueues cash collection in local Room database with UUID `idempotencyKey` and `capturedAt` timestamp.
-  4. WorkManager syncs record to `POST /v1/cash/collections`.
-  5. `cash-service` increments driver's active custody balance in `cash_db.driver_custody`.
-  6. Outbox event emitted; driver wallet screen `VEH-08` reflects updated accumulated cash balance.
+  1. Driver delivers parcels at the village merchant shop and opens `VEH-05`.
+  2. Driver collects physical currency (e.g. ₹850 full, or ₹550 adjusted after partial delivery line-item rejection).
+  3. Driver confirms cash collected on screen `VEH-05`.
+  4. Android client enqueues cash collection in local Room database with UUID `idempotencyKey`, `orderId`, and `capturedAt` timestamp.
+  5. WorkManager syncs record to `POST /v1/cash/collections`.
+  6. `cash-service` increments driver's active custody balance in `cash_db.driver_custody`.
+  7. Outbox event emitted; driver wallet screen `VEH-08` reflects updated accumulated cash balance.
 - **Alternate / Degraded Flow**:
-  - *No Cellular Connectivity*: Android client persists record locally; accumulates offline custody counter; syncs automatically once connectivity returns.
+  - *No Cellular Connectivity*: Android client persists record locally in Room DB; accumulates offline custody counter; syncs automatically once connectivity returns.
 - **Postconditions**: Driver custody balance incremented; order marked cash-collected; physical liability established.
 
 ### 3. User Journey Stories
-- **US-07.01.01 [READY]**: *As a rural delivery driver, I want my mobile app to reliably record cash collections even when there is no mobile network in the village, so that my collected cash tally remains accurate.*
+- **US-07.01.01 [READY]**: *As a rural delivery driver, I want my mobile app to reliably record cash collections at village merchant shops even when there is no mobile network, so that my collected cash tally remains accurate.*
 - **US-07.01.02 [READY]**: *As a supplier, I want real-time visibility into the exact physical cash currently held by each driver on the road, so that operational financial risk is monitored continuously.*
 
 #### Acceptance Criteria (Gherkin)
@@ -58,9 +59,10 @@ Scenario: Driver collects cash offline and syncs
 - **INT-07.01.02 [READY] (Mobile Offline WorkManager Integration)**: *As the Cash Service, I need to accept batch-queued offline cash events from Android WorkManager, ensuring duplicate events with identical `idempotencyKey` are safely deduplicated.*
 - **INT-07.01.03 [READY] (Firestore Periodic Sync Integration)**: *As the Cash Service, I need to synchronize driver custody balances to Firestore collection `/CashCustody/{driverId}` every 2000ms.*
 
-### 5. Multi-Client Implementation Stories
 - **PWA-07.01.01 [READY] (Web PWA Cash Custody Monitor)**: *Build real-time driver cash custody monitor on Supplier and Support PWA in `web/` with live aggregate collection tallies and filterable route audit views.*
-- **AND-07.01.01 [READY] (Android Native CoD Cash Collection)**: *Implement driver native Android cash collection UI (`VEH-05`, `VEH-08`) in `android/` with Room DB offline queuing, WorkManager sync, and tamper-resistant cash tally.*
+- **AND-07.01.01 [READY] (Android Native — Cash Collection & Wallet UI Layout)**: *Implement driver native Android cash collection UI (`VEH-05`) and custody wallet screen (`VEH-08`) in Jetpack Compose with physical currency denomination counter, offline indicators, and active balance card.*
+- **AND-07.01.02 [READY] (Android Native — Room DB Offline Cash Ledger Store)**: *Implement Room DB entities (`CashCollectionEntity`), DAOs, and repository to store collected currency offline with UUID idempotency keys, order linkages, and tamper-resistant local balance computation.*
+- **AND-07.01.03 [READY] (Android Native — WorkManager Background Outbox Sync)**: *Implement Android WorkManager background sync worker with exponential backoff to flush queued cash transactions to `POST /v1/cash/collections` when cellular connectivity resumes.*
 - **IOS-07.01.01 [READY] (iOS Native CoD Cash Collection)**: *Implement driver native iOS cash collection UI (`VEH-05`, `VEH-08`) in `ios/` with CoreData offline store and background sync.*
 
 ### 6. PWA Cloud Testing Story
@@ -212,6 +214,7 @@ Scenario: Successful cash handover via 6-digit OTP
 
 ### 3. User Journey Stories
 - **US-07.03.01 [READY]**: *As a cashier encountering a cash discrepancy, I want to record the exact shortage and upload notes, so that the discrepancy is escalated to Support without delaying the driver's next trip.*
+- **US-07.03.02 [READY]**: *As a platform risk manager, I want clear contractual policies governing counterfeit note attribution, driver cash-in-transit limits (₹50,000 max), and third-party cash insurance claims for highway robbery, so that legal and financial liabilities are clearly defined.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -220,6 +223,12 @@ Scenario: Cashier records cash shortfall
   When cashier submits discrepancy of ₹500 with reason "cash_shortfall"
   Then cash-service creates discrepancy ticket in status "under_review"
   And locks driver payout capability until resolved
+
+Scenario: Driver reports counterfeit currency detected at cashier
+  Given a driver turning in collected CoD notes
+  When cashier detects a suspected ₹500 counterfeit bill with UV scanner
+  Then cash-service logs serial number, attaches photo proof, and files RBI Form Impound
+  And allocates shortage to driver temporary deposit pending police/bank FIR verification
 ```
 
 ### 4. Integration Stories
@@ -236,7 +245,7 @@ Scenario: Cashier records cash shortfall
 
 ### 7. Independent Support Stories
 - **OPS-07.03.01 [READY] (DevOps & Reporting Queries)**: *Create SQL views in `cash_db` tracking driver shortage frequency and cumulative loss ratios.*
-- **DOC-07.03.01 [READY] (Discrepancy Resolution Protocol)**: *Publish guidelines for distinguishing accidental shortages from systemic theft.*
+- **DOC-07.03.01 [READY] (Cash Custody & Counterfeit Currency Policy)**: *Publish formal compliance document `docs/compliance/cash_custody_and_counterfeit_policy.md` defining physical currency handling, RBI counterfeit note reporting guidelines, shortage thresholds, and transit theft indemnification.*
 - **TEST-07.03.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/07-cash/raiseDiscrepancy/` validating payout lock triggers.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)

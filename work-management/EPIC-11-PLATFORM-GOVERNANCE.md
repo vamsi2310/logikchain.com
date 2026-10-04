@@ -118,6 +118,7 @@ Scenario: Register compliant VPA
 
 ### 3. User Journey Stories
 - **US-11.02.01 [READY]**: *As a fraud risk manager, I want high-velocity fraudulent transaction rings automatically intercepted in real time, so that platform financial losses and chargebacks are prevented.*
+- **US-11.02.02 [READY]**: *As a platform compliance auditor, I want every API request executed by Support under `X-Supplier-Context` immutably logged with the operator ID, target supplier ID, grant ID, payload hash, and IP address, so that unauthorized actions or operational errors are undeniably attributable.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -126,11 +127,18 @@ Scenario: High-velocity transactions trigger AML freeze
   When governance-service evaluates AML rules
   Then the transaction is rejected with riskScore 95
   And governance-service invokes identity-service to suspend the user account
+
+Scenario: Support proxy action recorded in immutable audit log
+  Given a Support operator "sup_op_04" executing action under grant "grnt_88" for supplier "sup_01"
+  When operator modifies delivery route via proxy API
+  Then governance-service writes record to governance_db.proxy_audit_trail
+  And includes operatorUid, targetSupplierId, grantId, payloadHash, and clientIp
 ```
 
 ### 4. Integration Stories
 - **INT-11.02.01 [READY] (Identity Service Account Freeze Integration)**: *As the Governance Service, I need to call `identity-service` (`:4001`) to automatically suspend user accounts flagged for AML fraud.*
 - **INT-11.02.02 [READY] (Payments Service Interceptor Integration)**: *As the Governance Service, I need to provide sub-50ms REST response times to `payments-service` during synchronous pre-transaction fraud scoring.*
+- **INT-11.02.03 [READY] (Support Proxy Audit Ingestion Integration)**: *As the Governance Service, I need to receive and record proxy action telemetry in `governance_db.proxy_audit_trail` asynchronously from the API Gateway.*
 
 ### 5. Multi-Client Implementation Stories
 - **PWA-11.02.01 [READY] (Web PWA AML Alert & Incident Console)**: *Build real-time AML alert stream on Support Web PWA (`web/x/` on `SPT-13`) with transaction velocity graphs and 1-click unfreeze controls.*
@@ -252,3 +260,76 @@ Scenario: Open dispute tracks 24-hour SLA timer
   - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
   - [ ] Android & iOS builds compile and connect to `logikchain-test`.
   - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+
+---
+
+## FEAT-11.04: Platform Terms of Service, Legal Policies & Versioned Consent Engine
+
+### 1. Feature Metadata & Hierarchy
+- **Feature ID**: `FEAT-11.04`
+- **Feature Status**: [READY]
+- **Functional Scope**: Multi-role legal contracts (Buyer Terms of Sale, Merchant PUDO Agreement, Supplier Master Agreement, Driver Logistics Agreement), versioned clickwrap consent capture, cryptographic audit logging, mandatory policy update re-consent workflows, and statutory disclosures under the Consumer Protection (E-Commerce) Rules 2020.
+- **Service Endpoints**:
+  - `POST /v1/governance/policies/consent` (`recordPolicyConsent`)
+  - `GET /v1/governance/policies/active` (`getActivePlatformPolicies`)
+  - `GET /v1/governance/policies/{policyId}/versions/{version}` (`getPolicyVersionDocument`)
+- **UI Screens**: [SHR-02 Login](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-02), [BUY-05 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05), [MER-04 Restock](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-04), [SPT-13 Compliance Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-13)
+
+### 2. Derived Use Cases
+
+#### UC-11.04.A: Multi-Role Versioned Clickwrap Policy Consent & Audit Trail
+- **Description**: Users across all four commercial roles (Buyer, Merchant, Driver, Supplier) must explicitly consent to role-specific terms and conditions, order deliverable rules, return policies, and privacy terms prior to onboarding or transacting. Consent is cryptographically recorded in `governance_db.policy_consents`.
+- **Primary Actor**: Any platform user (`buyer`, `merchant`, `driver`, `supplier`).
+- **Nominal Flow**:
+  1. User initiates registration on `SHR-02` or checkout on `BUY-05`.
+  2. UI displays mandatory clickwrap checkbox with links to in-app policy modals.
+  3. User checks agreement box and submits action.
+  4. Client attaches `policyVersionHash` and invokes `POST /v1/governance/policies/consent`.
+  5. `governance-service` logs immutable audit record with `{ userId, role, policyId, policyVersion, consentedAt, ipAddress, userAgent, clientRuntime }`.
+  6. Service returns validation token allowing transaction to proceed.
+- **Postconditions**: User consent established and legally provable; audit entry recorded.
+
+#### UC-11.04.B: Mandatory Policy Update Re-Consent Gate
+- **Description**: When platform legal terms or operational policies (such as transit damage liability or return windows) are updated with a new major/minor version, users are gated on their next app session until the revised terms are reviewed and accepted.
+- **Primary Actor**: System & Authenticated User.
+- **Nominal Flow**:
+  1. Legal/Support publishes updated policy version (e.g. `POL-RETURNS-v2.1`).
+  2. On next user app launch, `identity-service` calls `governance-service` during `/auth/bootstrap`.
+  3. System detects user has only consented to `v1.0`.
+  4. App presents non-dismissible Policy Update Sheet highlighting changed clauses.
+  5. User accepts new terms; consent recorded; normal app dashboard unlocked.
+- **Postconditions**: Full user base re-baselined to active legal terms without breaking session state.
+
+### 3. User Journey Stories
+- **US-11.04.01 [READY]**: *As an unauthenticated citizen or merchant signing up, I want clear, accessible clickwrap links to the platform Terms of Service, Privacy Policy, and Return Policy, so that I can provide informed consent before account creation.*
+- **US-11.04.02 [READY]**: *As a compliance auditor, I want every user consent event recorded immutably with timestamp, user ID, IP address, client runtime, and policy version hash, so that legal enforceability is guaranteed in case of dispute.*
+- **US-11.04.03 [READY]**: *As a platform administrator updating legal terms (e.g. delivery fee or liability revisions), I want existing users prompted with a re-consent modal on their next app launch, so that updated contractual obligations are legally binding.*
+
+#### Acceptance Criteria (Gherkin)
+```gherkin
+Scenario: Buyer accepts terms at order checkout
+  Given an authenticated buyer placing order on "BUY-05"
+  When buyer checks "I accept Order Deliverables & Return Policy v2.0"
+  Then governance-service records consent in governance_db.policy_consents
+  And orders-service allows checkout submission to complete
+
+Scenario: Outdated user session intercepted by policy re-consent gate
+  Given a merchant with recorded consent for "POL-MER-v1.0"
+  When legal team publishes "POL-MER-v2.0"
+  Then next merchant app launch triggers modal "Review Updated Partner Terms"
+  And blocks order creation until user taps "Accept Updated Terms"
+```
+
+### 4. Integration Stories
+- **INT-11.04.01 [READY] (Identity Service Consent Gate Integration)**: *As the Governance Service, I need to provide a consent status check API to `identity-service` (`:4001`) during claims bootstrap to inject an `unacceptedPolicies` claim if legal terms are outstanding.*
+- **INT-11.04.02 [READY] (Firestore Policy Mirror Integration)**: *As the Governance Service, I need to mirror active policy texts and version hashes to Firestore collection `/PlatformPolicies/{id}` for zero-latency client reading.*
+
+### 5. Multi-Client Implementation Stories
+- **PWA-11.04.01 [READY] (Web PWA Clickwrap & Policy Modal)**: *Build responsive Policy Viewer Drawer and Clickwrap components on PWA across `web/b/`, `web/m/`, `web/s/`, and `web/x/`.*
+- **AND-11.04.01 [READY] (Android Native Policy Sheet & Offline Reader)**: *Build Jetpack Compose legal terms viewer bottom-sheet in `android/` with cached policy markdown rendering.*
+- **IOS-11.04.01 [READY] (iOS Native Policy Sheet & Offline Reader)**: *Build SwiftUI legal terms sheet in `ios/` with markdown formatting.*
+
+### 6. Independent Support Stories
+- **DOC-11.04.01 [READY] (Master Legal Policy Catalog)**: *Publish formal documents `docs/compliance/platform_terms_of_service.md`, `docs/compliance/privacy_data_protection_policy.md`, and `docs/compliance/intermediary_guidelines_disclosure.md`.*
+- **OPS-11.04.01 [READY] (PostgreSQL Migration)**: *Execute PostgreSQL migration for `governance_db.policy_consents` and `governance_db.platform_policies`.*
+

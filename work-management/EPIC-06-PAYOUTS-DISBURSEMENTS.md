@@ -263,3 +263,64 @@ Scenario: Cloud Task executes bank payout transfer
   - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
   - [ ] Android & iOS builds compile and connect to `logikchain-test`.
   - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+
+---
+
+## FEAT-06.04: Supplier Funds Tracking, Merchant Commission & Driver Allocation Governance Console
+
+### 1. Feature Metadata & Hierarchy
+- **Feature ID**: `FEAT-06.04`
+- **Feature Status**: `[READY]`
+- **Functional Scope**: End-to-end supplier funds tracking, platform escrow visibility, fund allocation breakdown (merchant handling commissions, driver trip compensation, platform take-rate), supplier bank withdrawal authorization, and Support financial monitoring dashboard.
+- **Service Endpoints**:
+  - `GET /v1/payouts/suppliers/{supplierId}/funds-summary` (`getSupplierFundsSummary`)
+  - `GET /v1/payouts/admin/suppliers-financial-monitor` (`listAllSuppliersFinancialOverview`)
+  - `POST /v1/payouts/suppliers/{supplierId}/disburse` (`executeSupplierBankDisbursement`)
+- **UI Screens**: [SUP-11 Supplier Financial Overview](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-11), [SPT-12 Supplier Financial Monitor](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-12)
+
+### 2. Derived Use Cases
+
+#### UC-06.04.A: Support Financial Monitoring & Multi-Channel Fund Allocation
+- **Description**: Support operators view, monitor, and audit the complete flow of a supplier's money through the platform. Money originating from online buyer prepaid orders (Razorpay UPI) and remitted CoD cash is tracked in a dedicated supplier escrow ledger, categorized into distinct allocation pools:
+  1. **Merchant Allocations**: Accrued PUDO parcel handling commissions (tiered by volume) and village home delivery fees.
+  2. **Driver Allocations**: Trip incentives, fuel allowances, and delivery remuneration.
+  3. **Supplier Net Available Balance**: Cleared funds accessible by the supplier for payout directly into their verified bank account.
+- **Primary Actor**: Support Administrator (`role: support`) and Regional Supplier (`role: supplier`).
+- **Secondary Systems**: `payouts-service`, `finance-service` (`:4009`), `cash-service` (`:4007`), Cloud Firestore.
+- **Nominal Flow**:
+  1. Support opens `SPT-12` (or Supplier opens `SUP-11`).
+  2. `payouts-service` fetches live ledger summary from `finance-service`:
+     - Gross Inflow: ₹1,50,000 (prepaid digital + remitted CoD).
+     - Allocated to Merchants (PUDO commissions & home delivery fees): ₹8,500.
+     - Allocated to Drivers (trip mileage & gig completion): ₹12,000.
+     - Platform SaaS / Transaction Fees: ₹4,500.
+     - Net Available for Supplier Bank Payout: ₹1,25,000.
+  3. Supplier requests bank payout of ₹1,00,000.
+  4. System verifies zero outstanding merchant or driver payout liens.
+  5. Payout is approved and enqueued in Cloud Tasks for bank transfer.
+- **Postconditions**: Funds disbursed; full audit trail visible to Support; merchant and driver allocations preserved in escrow.
+
+### 3. User Journey Stories
+- **US-06.04.01 [READY]**: *As a Support operator, I want a comprehensive financial monitoring dashboard to view and track each supplier's gross inflow, merchant commission obligations, driver pay allocations, and bank withdrawal history, so that platform financial integrity is maintained.*
+- **US-06.04.02 [READY]**: *As a regional supplier, I want transparent real-time tracking of my revenue, showing exact deductions for merchant pickup fees and driver payouts, so that I can manage my cash flow and withdraw net earnings to my bank account with confidence.*
+
+#### Acceptance Criteria (Gherkin)
+```gherkin
+Scenario: Support audits supplier money and fund allocations
+  Given supplier "sup_01" with gross platform collections ₹1,00,000
+  When Support opens screen "SPT-12" for "sup_01"
+  Then the dashboard displays explicit breakdown:
+    | Category                | Amount   |
+    | Merchant Commissions    | ₹6,000   |
+    | Driver Gig Pay          | ₹9,000   |
+    | Platform Service Fee    | ₹3,000   |
+    | Net Available to Bank   | ₹82,000  |
+  And allows Support to audit transaction history and bank settlement status
+```
+
+### 4. Integration Stories
+- **INT-06.04.01 [READY] (Finance Service Real-Time Ledger Summary Integration)**: *As the Payouts Service, I need to call `finance-service` (`:4009`) to compute immutable account balances across Merchant Clearing, Driver Clearing, and Supplier Equity accounts.*
+- **INT-06.04.02 [READY] (Firestore Supplier Balance Sync)**: *As the Payouts Service, I need to synchronize supplier financial balances to Firestore collection `/SupplierFinancials/{supplierId}` every 2000ms.*
+
+### 5. Multi-Client Implementation Stories
+- **PWA-06.04.01 [READY] (Web PWA Supplier Financial Monitor & Support Console)**: *Build `SUP-11` (Supplier Financial Overview) and `SPT-12` (Support Supplier Financial Monitor) in `web/` with visual allocation progress rings, payout ledger tables, and bank disbursement triggers.*

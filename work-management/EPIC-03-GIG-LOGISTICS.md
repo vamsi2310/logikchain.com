@@ -8,7 +8,7 @@
 - **Container Port**: `4003`
 - **Database**: `gigs_db` (PostgreSQL with outbox event streaming)
 - **Primary Runtimes**: Android Native (`logikchain-android` - Official Driver Runtime), Web PWA (`web/s/` Supplier), iOS (`logikchain-ios`)
-- **Primary Responsibilities**: Driver fleet dispatch scheduling, vehicle-keyed Gigs (`{vehicleId}_{startDatetime}`), real-time GPS telemetry, Play Integrity enforcement, route optimization via Google Maps, and end-of-day gig finalization.
+- **Primary Responsibilities**: Driver fleet dispatch scheduling, surrogate-keyed Gigs (`gig_{id}`) with mutable vehicle/driver bindings, mid-route breakdown vehicle reassignments, real-time GPS telemetry, Play Integrity enforcement, route optimization via Google Maps, and end-of-day gig finalization.
 
 ---
 
@@ -17,42 +17,54 @@
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.01`
 - **Feature Status**: [READY]
-- **Functional Scope**: Route assembly, multi-stop village sequencing, vehicle assignment, and composite Gig initialization.
-- **Service Endpoints**: `POST /v1/gigs` (`composeGig`), `GET /v1/gigs/{gigId}`
+- **Functional Scope**: Route assembly, multi-stop village merchant sequencing, vehicle assignment, surrogate gig ID creation, and mid-route vehicle/driver reassignment.
+- **Service Endpoints**: `POST /v1/gigs` (`composeGig`), `GET /v1/gigs/{gigId}`, `PATCH /v1/gigs/{gigId}/reassign-vehicle`, `PATCH /v1/gigs/{gigId}/reassign-driver`
 - **UI Screens**: [SUP-02 Gig Scheduler](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-02), [SUP-03 Route Planner](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-03)
 
 ### 2. Derived Use Cases
-#### UC-03.01.A: Supplier Route Planning & Driver Dispatch
-- **Description**: A regional supplier configures a multi-village delivery circuit, binds it to a vehicle, and schedules departure.
-- **Primary Actor**: Regional Supplier (`role: supplier`).
-- **Secondary Systems**: `gigs-service`, Google Maps Distance Matrix API, `pamphlet-service`.
-- **Preconditions**: Driver and vehicle are registered and active in `identity_db`.
+#### UC-03.01.A: Supplier Route Planning & Driver Dispatch (Merchant Hub Anchored)
+- **Description**: A regional supplier configures a multi-village delivery circuit where every stop is anchored to a registered Village Merchant location. The gig is assigned a surrogate `gigId`, allowing vehicles and drivers to be reassigned mid-route without breaking order or inventory relationships.
+- **Primary Actor**: Regional Supplier (`role: supplier`) or Support Operator (`role: support`) acting as proxy with `X-Supplier-Context` header.
+- **Secondary Systems**: `gigs-service`, Google Maps Distance Matrix API, `pamphlet-service`, `config-service`.
+- **Preconditions**:
+  - Target villages have at least one registered active Merchant in `config_db.villages`.
+  - Driver and vehicle are registered and active in `identity_db`.
 - **Nominal Flow**:
-  1. Supplier selects targeted rural villages and delivery order backlog on `SUP-03`.
-  2. `gigs-service` queries Google Maps Distance Matrix to compute optimal waypoint sequencing, mileage, and estimated transit times.
-  3. Supplier reviews optimized sequence and clicks "Publish Gig".
-  4. `gigs-service` creates Gig record keyed by `{vehicleId}_{startDatetime}` in `gigs_db.gigs`.
-  5. `gigs-service` triggers `pamphlet-service` (`:4004`) to instantiate the matching dynamic stock manifest.
+  1. Supplier selects targeted rural villages on `SUP-03`. System verifies each village has a registered merchant hub.
+  2. `gigs-service` queries Google Maps Distance Matrix to compute optimal waypoint sequencing between merchant locations, mileage, and estimated transit times.
+  3. Supplier reviews route, assigns vehicle and driver, and clicks "Publish Gig".
+  4. `gigs-service` generates an immutable surrogate `gigId` (e.g. `gig_01J8F9Q2...`) and persists the gig with mutable attributes `vehicleId`, `driverId`, and `scheduledDeparture` in `gigs_db.gigs`.
+  5. `gigs-service` triggers `pamphlet-service` (`:4004`) to initialize the matching dynamic stock manifest (`pamphletId` linked to `gigId`).
   6. Outbox event emitted for Firestore mirror and driver push notification.
+- **Alternate / Degraded Flow**:
+  - *Vehicle Breakdown Mid-Route*: If the assigned truck suffers a mechanical failure, the Supplier or Support operator invokes `PATCH /v1/gigs/{gigId}/reassign-vehicle` with `newVehicleId`. The surrogate `gigId` remains unchanged; all associated customer orders, in-transit pamphlet stock, and warehouse manifests remain valid and intact.
 - **Postconditions**: Gig created with status `scheduled`; driver notified on Android app; matching pamphlet initialized.
 
 ### 3. User Journey Stories
-- **US-03.01.01 [READY]**: *As a supplier logistics manager, I want to automatically optimize waypoints across multiple villages, so that our delivery vehicles minimize fuel consumption and transit delays.*
-- **US-03.01.02 [READY]**: *As a delivery driver, I want to receive my daily scheduled route with village stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch.*
+- **US-03.01.01 [READY]**: *As a supplier logistics manager (or Support operator acting as proxy), I want to automatically optimize waypoints across registered merchant locations, so that our delivery vehicles minimize fuel consumption and transit delays.*
+- **US-03.01.02 [READY]**: *As a delivery driver, I want to receive my daily scheduled route with merchant stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch.*
+- **US-03.01.03 [READY]**: *As a Support operator or Supplier manager, I want to reassign a broken-down vehicle to a replacement truck without altering the underlying gig ID or canceling customer orders, so that rural deliveries can proceed with minimal disruption.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
 Scenario: Supplier composes gig with automated route metrics
   Given a supplier planning a delivery run for vehicle "veh_truck_08"
   When supplier posts to "/v1/gigs" with stops ["vil_ap_01", "vil_ap_02", "vil_ap_03"]
-  Then gigs-service creates gig with ID "veh_truck_08_20261004T060000Z"
+  Then gigs-service creates gig with surrogate ID matching "gig_*"
+  And binds vehicleId "veh_truck_08" as a mutable operational attribute
   And calculates estimated transit time and distance via Google Maps API
   And automatically calls pamphlet-service to initialize the vehicle pamphlet
+
+Scenario: Mid-route vehicle reassignment maintains gig continuity
+  Given an active gig "gig_9981" assigned to vehicle "veh_truck_08"
+  When vehicle "veh_truck_08" suffers breakdown and operator reassigns to "veh_truck_09"
+  Then gigs-service updates vehicleId to "veh_truck_09"
+  And the gig ID remains "gig_9981" with all orders and pamphlet items intact
 ```
 
 ### 4. Integration Stories
 - **INT-03.01.01 [READY] (Google Maps Distance Matrix Integration)**: *As the Gigs Service, I need to integrate with Google Maps Distance Matrix and Routes API to compute road distances, optimal waypoint ordering, and travel durations.*
-- **INT-03.01.02 [READY] (Pamphlet Service Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest for the vehicle run.*
+- **INT-03.01.02 [READY] (Pamphlet Service Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest (`pamphletId` bound to `gigId`).*
 - **INT-03.01.03 [READY] (Firestore Periodic Sync Integration)**: *As the Gigs Service, I need to synchronize all gig state changes to Cloud Firestore collection `/Gigs/{gigId}` every 2000ms.*
 
 ### 5. Multi-Client Implementation Stories
@@ -65,8 +77,8 @@ Scenario: Supplier composes gig with automated route metrics
 
 ### 7. Independent Support Stories
 - **OPS-03.01.01 [READY] (DevOps & Database Migrations)**: *Deploy `gigs-service` container on Kubernetes (`03-gigs.yaml`), configure database migrations for `gigs_db`, and establish secret bindings for Google Maps API keys.*
-- **DOC-03.01.01 [READY] (Route Computation & Gig Specs)**: *Document the deterministic `{vehicleId}_{startDatetime}` gig ID generation rule and Google Maps API quota policies in `microservices/` docs.*
-- **TEST-03.01.01 [READY] (Bruno API Automation)**: *Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying composite key generation and waypoint persistence.*
+- **DOC-03.01.01 [READY] (Route Computation & Surrogate Gig Specs)**: *Document surrogate `gig_{id}` generation, mutable vehicle/driver reassignments, and Google Maps API quota policies in `microservices/` docs.*
+- **TEST-03.01.01 [READY] (Bruno API Automation)**: *Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying surrogate key generation and vehicle reassignment.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -138,7 +150,9 @@ Scenario: Driver starts gig with Play Integrity token
 
 ### 5. Multi-Client Implementation Stories
 - **PWA-03.02.01 [READY] (Web PWA Client)**: *Implement Buyer Live Tracking map (`BUY-05`) with smooth vehicle pin animation reacting to Firestore `/DriverLocations` stream.*
-- **AND-03.02.01 [READY] (Android Native Client)**: *Implement Driver Active Gig navigation screen (`VEH-02`) with Foreground Service background GPS pinging, Play Integrity attestation, and offline waypoint caching.*
+- **AND-03.02.01 [READY] (Android Native — Driver Navigation UI Layout)**: *Implement Jetpack Compose active navigation screen (`VEH-02`) with waypoint sequence cards, turn-by-turn banner, and gig status control buttons.*
+- **AND-03.02.02 [READY] (Android Native — Foreground GPS Location Service)**: *Build Android Foreground Service with continuous background GPS pinging (30s interval), battery optimization whitelist request, and Google Play Integrity token attestation.*
+- **AND-03.02.03 [READY] (Android Native — Room DB Offline Waypoint & Telemetry Cache)**: *Implement local Room database entities and DAOs for caching route waypoints and queueing GPS telemetry points during cellular dead zones.*
 - **IOS-03.02.01 [READY] (iOS Native Client)**: *Implement Buyer Live Tracking map using MapKit with real-time Firestore vehicle coordinate binding.*
 
 ### 6. PWA Cloud Testing Story
@@ -256,3 +270,97 @@ Scenario: Driver completes gig after all deliveries finished
   - [ ] PWA Supplier dashboard displays updated completion metrics in real-time.
   - [ ] Android client finalizes route and routes driver to cashier OTP screen.
   - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+
+---
+
+## FEAT-03.04: Supplier Route Catalog, Freeform Route Authoring, Cloning & Monthly Gig Quota Enforcement
+
+### 1. Feature Metadata & Hierarchy
+- **Feature ID**: `FEAT-03.04`
+- **Feature Status**: `[READY]`
+- **Functional Scope**: Route catalog presentation on `SUP-07`, universal ability for all suppliers to author custom routes from scratch or clone existing corridors/custom routes (`cloneRoute`), zero route-count caps (no separate or combined route quotas), enforcement of subscription **monthly gig execution limits** (`monthlyGigLimit` / `maxGigsPerMonth`) during gig scheduling on any route, interactive route builder on `SUP-07.1`, and deletion protection while referenced by active or upcoming gigs.
+- **Service Endpoints**:
+  - `POST /v1/routes/{routeId}/clone` (`cloneRoute` on `gigs-service`)
+  - `GET /v1/routes` (supports `supplierId` filtering)
+  - `POST /v1/routes` (`upsertSupplierRoute` on `gigs-service`)
+  - `DELETE /v1/routes/{routeId}` (`deleteSupplierRoute` - blocked with 409 if in use by gigs)
+  - `POST /v1/gigs` (`composeGig` - enforces subscription `monthlyGigLimit`)
+- **UI Screens**: [SUP-07 Routes Catalog](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-07), [SUP-07.1 Route Builder](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-07.1), [SUP-02 Gig Scheduler](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-02)
+
+### 2. Derived Use Cases
+
+#### UC-03.04.A: Standard Corridor Adoption & Freeform Route Creation / Cloning
+- **Description**: Suppliers discover Support pre-configured corridors for their regional hub and can schedule gigs immediately. Additionally, all suppliers have full ability to author custom routes from scratch or clone existing routes (corridors or custom circuits) into their private catalog to modify waypoints, transit times, and delivery sequences. There is no route-count cap or separate quota for standard vs. custom routes.
+- **Primary Actor**: Regional Supplier (`role: supplier`).
+- **Secondary Systems**: `gigs-service` (`:4003`), `config-service` (`:4010`), Cloud Firestore.
+- **Nominal Flow**:
+  1. Supplier opens `SUP-07` and browses verified corridors and custom routes.
+  2. Supplier can either:
+     - Click "Use in Gig ➔" to schedule a delivery run directly on a corridor.
+     - Click "[ + New Route ]" to author a completely custom circuit from scratch.
+     - Click "[ Clone Route ]" on any corridor or custom route to fork it into a new custom draft (`Copy of ...`).
+  3. On cloning/creation, `gigs-service` persists the route in `gigs_db.routes` (with `clonedFromRouteId` pointer if cloned) without imposing any route-count limits.
+  4. In Route Builder (`SUP-07.1`), supplier sequences village waypoints, reorders stops via drag-and-drop, and calls Maps Distance Matrix to recalculate transit durations.
+  5. Route saved; immediately available in supplier's catalog and visible/editable by Support.
+- **Postconditions**: Route saved in database; visible to supplier and Support; zero route-count quota consumed.
+
+#### UC-03.04.B: Subscription Monthly Gig Quota Enforcement & Route Deletion Protection
+- **Description**: The subscription plan controls how many **gigs per month** a supplier can operate (`monthlyGigLimit`), alongside fleet vehicle limits (`maxVehicles`). When a supplier schedules a gig on *any* route (standard corridor or custom route), `gigs-service` checks that the supplier's completed/scheduled gig count for the current billing cycle is within their monthly gig quota. Furthermore, deletion of any route is blocked as long as any active or scheduled gigs reference it.
+- **Primary Actor**: Regional Supplier (`role: supplier`).
+- **Secondary Systems**: `gigs-service` (`:4003`), `identity-service` (`:4001`), `config-service` (`:4010`).
+- **Nominal Flow**:
+  1. Supplier configures a gig on `SUP-02` on any selected route (standard or custom).
+  2. Upon "Publish Gig", `gigs-service` queries `identity-service` / `config-service` for active subscription plan tier:
+     - Checks active gigs executed in current monthly billing cycle against plan `monthlyGigLimit` (e.g. Starter: 50, Growth: 200, Enterprise: unlimited).
+     - If monthly gig limit is reached: rejects request with `403 PLAN_LIMIT_EXCEEDED` ("Monthly gig limit of 200 reached. Please upgrade subscription plan.").
+     - If quota available: gig is created in `gigs_db.gigs` with status `scheduled`.
+  3. When an operator or supplier attempts to delete any route:
+     - `gigs-service` verifies whether any active or scheduled gigs reference the `routeId`.
+     - If referencing gigs exist: deletion is blocked with `409 Conflict` (`ROUTE_IN_USE_BY_GIGS`).
+     - If no referencing gigs exist: route is deleted / archived.
+- **Postconditions**: Monthly gig volume governed by subscription tier; field deliveries safeguarded against route deletion.
+
+### 3. User Journey Stories
+- **US-03.04.01 [READY]**: *As a regional supplier, I want to create custom routes freely or clone existing corridors without being constrained by route-count quotas, so that my logistics team can map any necessary village delivery circuits.*
+- **US-03.04.02 [READY]**: *As a regional supplier, I want clear visibility into my monthly gig allowance and usage across all my routes, so that I can manage my delivery schedule within my subscription plan tier.*
+- **US-03.04.03 [READY]**: *As a regional supplier, I want the system to warn and block deletion of any route that has active or scheduled gigs, so that drivers in transit are never disrupted by accidental route removals.*
+
+#### Acceptance Criteria (Gherkin)
+```gherkin
+Scenario: Supplier clones any route freely without route-count restrictions
+  Given a supplier "sup_01" subscribed to "Growth" plan
+  When supplier requests to clone standard corridor "rte_prakasam_north"
+  Then gigs-service creates a new custom route with supplierId "sup_01" and clonedFromRouteId "rte_prakasam_north"
+  And route creation succeeds without checking or enforcing any route-count limit
+  And supplier is redirected to SUP-07.1 in edit mode
+
+Scenario: Supplier blocked from scheduling gig when monthly gig limit reached
+  Given a supplier "sup_02" on "Starter" plan with monthlyGigLimit 50
+  And supplier has already scheduled or executed 50 gigs in the current billing cycle
+  When supplier attempts to dispatch a new gig on any route (standard or custom)
+  Then gigs-service rejects the request with 403 Forbidden and error "PLAN_LIMIT_EXCEEDED"
+  And client displays upgrade modal prompting selection of Growth plan
+
+Scenario: Supplier cannot delete route referenced by upcoming gigs
+  Given a route "rte_custom_01" referenced by 1 scheduled gig
+  When supplier clicks Delete Route on screen "SUP-07.1"
+  Then gigs-service rejects deletion with 409 Conflict and error "ROUTE_IN_USE_BY_GIGS"
+  And client alerts user to cancel or reassign scheduled gigs first
+```
+
+### 4. Integration Stories
+- **INT-03.04.01 [READY] (Subscription Monthly Gig Quota Gate)**: *As the Gigs Service, I need to evaluate the supplier's current monthly gig execution count against their active subscription `monthlyGigLimit` in `config_db.subscription_plans` before accepting `composeGig`.*
+- **INT-03.04.02 [READY] (Google Maps Distance Matrix Routing Integration)**: *As the Gigs Service, I need to call Google Maps Distance Matrix to compute turnarounds and kilometer lengths when suppliers reorder or edit custom route stops.*
+- **INT-03.04.03 [READY] (Active Gig Route Reference Validation)**: *As the Gigs Service, I need to verify that zero active (`in_progress`) or upcoming (`scheduled`) gigs reference a route before processing any route deletion.*
+
+### 5. Multi-Client Implementation Stories
+- **PWA-03.04.01 [READY] (Web PWA Route Catalog & Builder)**: *Build route catalog on `SUP-07` with 1-click clone and new route creation, interactive drag-and-drop waypoint editor on `SUP-07.1`, monthly gig quota consumption bar on `SUP-02`, and gig-dependency delete blocker in `web/s/`.*
+- **AND-03.04.01 [READY] (Android Native Route Catalog & Stop Inspector)**: *Build native Android route catalog and stop inspection cards for supplier management app.*
+- **IOS-03.04.01 [READY] (iOS Native Route Catalog & Stop Inspector)**: *Build native iOS route catalog and stop inspection view for supplier management app.*
+
+### 6. Independent Support Stories
+- **DOC-03.04.01 [READY] (Supplier Route Playbook & Monthly Gig Quota Guide)**: *Publish operational documentation explaining standard corridor benefits, route authoring and cloning workflows, and subscription monthly gig quota rules in `docs/playbooks/supplier_route_management.md`.*
+- **OPS-03.04.01 [READY] (Gigs Service Route Schema Migration)**: *Create migration for `gigs_db.routes` and configure monthly gig aggregation query index in `gigs_db.gigs`.*
+- **TEST-03.04.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/03-gigs/routeGovernance/` validating route cloning without route caps, 403 rejection on exceeding monthly gig limit, and 409 rejection on deleting routes in use.*
+
+

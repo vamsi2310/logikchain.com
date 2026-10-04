@@ -56,6 +56,7 @@ Scenario: Gateway injects validated identity headers to downstream service
 ### 4. Integration Stories
 - **INT-12.01.01 [IN_PROGRESS] (Internal VPC Service Dispatch Integration)**: *As the API Gateway, I need to maintain dynamic DNS service discovery to route incoming path prefixes (`/v1/orders/*`, `/v1/gigs/*`, etc.) to their respective microservices across the Kubernetes cluster.*
 - **INT-12.01.02 [READY] (Redis Rate Limiting Integration)**: *As the API Gateway, I need to integrate with a Redis cluster to enforce a strict 300 requests/minute sliding-window rate limit per client IP and user UID.*
+- **INT-12.01.03 [READY] (Gateway Proxy Grant Verification & Financial Mutation Blacklist)**: *As the API Gateway, I need to intercept all requests carrying `X-Supplier-Context`, verify the active delegated support grant and subscription entitlement against `identity-service`, and strictly reject any mutating requests targeting financial endpoints (`/v1/payouts/*`, `/v1/banking/*`) with `403 Forbidden` (`FINANCIAL_MUTATION_PROXY_BLOCKED`).*
 
 ### 5. Multi-Client Implementation Stories
 - **PWA-12.01.01 [IN_PROGRESS] (Web PWA Gateway HTTP Client & Header Interceptor)**: *Implement centralized HTTP client in `web/` with automatic Bearer token injection, retry on network drops, and global 401 handling.*

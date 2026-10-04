@@ -8,61 +8,76 @@
 - **Container Port**: `4004`
 - **Database**: `pamphlet_db` (PostgreSQL with outbox event streaming)
 - **Primary Runtimes**: Android Native (`logikchain-android`), Web PWA (`web/s/` Supplier Warehouse), API Gateway
-- **Primary Responsibilities**: Dynamic stock manifest lifecycle per Gig, vehicle-keyed manifests (`{vehicleId}_{startDatetime}`), warehouse physical stock loading/unloading, real-time stock item adjustments, in-transit breakage logging, and order item linkage.
+- **Primary Responsibilities**: Dynamic stock manifest lifecycle per Gig, surrogate-keyed manifests (`pmp_{id}`) linked to `gigId`, dual cargo partitioning (pre-booked orders vs. rolling pamphlet stock), dynamic in-transit order conversion, merchant spot-restocking, warehouse loading/unloading, real-time stock item adjustments, in-transit breakage/return logging, and order item linkage.
 
 ---
 
-## FEAT-04.01: Dynamic Gig Pamphlet Creation & Manifest Keying
+## FEAT-04.01: Dynamic Gig Pamphlet Creation & In-Transit Rolling Stock
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-04.01`
 - **Feature Status**: [READY]
-- **Functional Scope**: Automated manifest initialization, composite key binding (`{vehicleId}_{startDatetime}`), and initial SKU allocation.
-- **Service Endpoints**: `POST /v1/pamphlets` (`createGigPamphlet`), `GET /v1/pamphlets/{pamphletId}`
+- **Functional Scope**: Automated manifest initialization, surrogate key binding (`pmp_{id}` linked to `gigId`), dual cargo partitioning (pre-booked customer orders vs. rolling merchant spot-restock stock), and dynamic in-transit order conversion.
+- **Service Endpoints**: `POST /v1/pamphlets` (`createGigPamphlet`), `GET /v1/pamphlets/{pamphletId}`, `POST /v1/pamphlets/{pamphletId}/deduct-transit-stock`
 - **UI Screens**: [SUP-06 Warehouse Loading](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-06), [VEH-03 Vehicle Manifest](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-03)
 
 ### 2. Derived Use Cases
-#### UC-04.01.A: Automated Dynamic Manifest Initialization
-- **Description**: When a supplier schedules a gig, the system initializes a dedicated dynamic manifest ("pamphlet") tied directly to the vehicle run.
+#### UC-04.01.A: Automated Dynamic Manifest Initialization & Dual Cargo Partitioning
+- **Description**: When a supplier schedules a gig, the system initializes a dedicated dynamic manifest ("pamphlet") with a surrogate ID bound to the `gigId`. The vehicle's cargo is explicitly partitioned into:
+  1. **Pre-Booked Orders**: Packaged orders assigned to specific village merchants or pre-ordered by buyers.
+  2. **Pamphlet Stock (In-Transit Rolling Stock)**: Uncommitted inventory loaded onto the truck primarily for village merchants to spot-restock when the truck arrives.
+  3. **Dynamic In-Transit Order Conversion**: While the truck is traveling along the route, buyers in upcoming villages can browse this live pamphlet stock on their phones. Placing an order deducts from the live truck pamphlet stock and dynamically converts it into a packaged order dropped off at their village merchant.
+  *(A truck can depart warehouse with zero pre-booked orders, loaded purely with pamphlet inventory, and dynamically aggregate buyer and merchant orders en-route).*
 - **Primary Actor**: System (`gigs-service`) or Warehouse Dispatcher (`role: supplier`).
-- **Secondary Systems**: `pamphlet-service`, `gigs-service`, Cloud Firestore.
-- **Preconditions**: A valid gig is being scheduled with vehicle ID and start timestamp.
+- **Secondary Systems**: `pamphlet-service`, `gigs-service`, `orders-service`, Cloud Firestore.
+- **Preconditions**: A valid gig exists with surrogate `gigId`.
 - **Nominal Flow**:
-  1. `gigs-service` invokes `POST /v1/pamphlets` during gig composition.
-  2. `pamphlet-service` generates pamphlet ID matching `{vehicleId}_{startDatetime}`.
-  3. Manifest is created in `pamphlet_db.pamphlets` with status `draft`.
-  4. SKU manifest table is initialized with items required for the assigned orders.
-  5. Outbox event emitted for Firestore mirror.
-- **Postconditions**: Pamphlet established; ready for physical warehouse loading.
+  1. `gigs-service` invokes `POST /v1/pamphlets` with `gigId`.
+  2. `pamphlet-service` generates surrogate `pamphletId` (e.g. `pmp_01J8F9...`) linked 1:1 with `gigId`.
+  3. Manifest is created in `pamphlet_db.pamphlets` in status `draft`.
+  4. Warehouse loads pre-booked order items AND adds uncommitted bulk inventory as `pamphlet_stock` (for merchant spot-restock).
+  5. As truck departs, status transitions to `in_transit`.
+  6. When buyers/merchants order en-route, `orders-service` calls `deduct-transit-stock`; items decrement from `pamphlet_stock` and link to the newly created `orderId`.
+  7. Outbox event emitted for real-time Firestore mirror.
+- **Postconditions**: Pamphlet established with surrogate ID; rolling stock tracked in real time; dynamic orders seamlessly supported.
 
 ### 3. User Journey Stories
-- **US-04.01.01 [READY]**: *As a warehouse dispatcher, I want a dedicated digital manifest for every scheduled vehicle departure, so that inventory loaded onto the truck is tracked with total fidelity.*
+- **US-04.01.01 [READY]**: *As a warehouse dispatcher, I want a dedicated digital manifest for every scheduled vehicle departure with clear separation between pre-booked orders and uncommitted pamphlet stock, so that warehouse loading is completely verifiable.*
+- **US-04.01.02 [READY]**: *As a delivery driver or supplier, I want a delivery truck to be able to depart with zero pre-booked orders and purely pamphlet inventory, so that we can capture dynamic orders from buyers and merchants while the truck is rolling toward their village.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
-Scenario: Automatic pamphlet generation on gig compose
-  Given gigs-service composing gig "veh_01_20261004T060000Z"
-  When gigs-service posts to "/v1/pamphlets" with vehicleId "veh_01" and startDatetime "20261004T060000Z"
-  Then pamphlet-service creates pamphlet "veh_01_20261004T060000Z"
-  And returns status 201 with empty initial inventory state
+Scenario: Automatic pamphlet generation with surrogate key
+  Given gigs-service composing gig "gig_9981"
+  When gigs-service posts to "/v1/pamphlets" with gigId "gig_9981"
+  Then pamphlet-service creates pamphlet with surrogate ID matching "pmp_*"
+  And links pamphlet to gigId "gig_9981"
+  And initializes pre_booked_orders and rolling_pamphlet_stock partitions
+
+Scenario: Dynamic in-transit stock deduction
+  Given an active pamphlet "pmp_01" in transit with 50 units of sugar in rolling stock
+  When orders-service requests deduction of 5 units for new in-transit order #ORD-501
+  Then pamphlet-service atomically decrements rolling stock to 45 units
+  And links 5 units to order #ORD-501 on the vehicle drop manifest
 ```
 
 ### 4. Integration Stories
-- **INT-04.01.01 [READY] (Gigs Service Lifecycle Hook Integration)**: *As the Pamphlet Service, I need to receive REST calls from `gigs-service` (`:4003`) to auto-create and close vehicle manifests matching gig lifecycles.*
-- **INT-04.01.02 [READY] (Firestore Periodic Sync Integration)**: *As the Pamphlet Service, I need to synchronize manifest items to Firestore collection `/Pamphlets/{pamphletId}` every 2000ms for real-time mobile app updates.*
+- **INT-04.01.01 [READY] (Gigs Service Lifecycle Hook Integration)**: *As the Pamphlet Service, I need to receive REST calls from `gigs-service` (`:4003`) to auto-create and close vehicle manifests bound to surrogate `gigId`s.*
+- **INT-04.01.02 [READY] (Firestore Periodic Sync Integration)**: *As the Pamphlet Service, I need to synchronize rolling pamphlet stock to Firestore collection `/Pamphlets/{pamphletId}` every 2000ms for real-time mobile app updates.*
+- **INT-04.01.03 [READY] (Orders Service In-Transit Stock Deduction Integration)**: *As the Pamphlet Service, I need to provide high-concurrency atomic stock deduction endpoints for `orders-service` when in-transit orders are placed.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-04.01.01 [READY] (Web PWA Client)**: *Implement Supplier Warehouse Loading dashboard (`SUP-06`) showing dynamic manifest items per scheduled vehicle departure with real-time stock sync in `web/`.*
+- **PWA-04.01.01 [READY] (Web PWA Client)**: *Implement Supplier Warehouse Loading dashboard (`SUP-06`) showing dynamic manifest items and rolling stock allocation per scheduled departure in `web/`.*
 - **AND-04.01.01 [READY] (Android Native Client)**: *Implement Vehicle Manifest screen (`VEH-03`) with offline SQLite cache and barcode scanner support for loaded SKU verification in `android/`.*
 - **IOS-04.01.01 [READY] (iOS Native Client)**: *Implement Supplier Warehouse inventory audit view with real-time Firestore pamphlet snapshot binding.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-04.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating that when a gig is composed, the matching pamphlet is automatically generated and visible on Supplier PWA console on `logikchain-test`.*
+- **TEST-04.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating that when a gig is composed, the matching pamphlet is automatically generated with surrogate key and visible on Supplier PWA console on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-04.01.01 [READY] (DevOps & Database Schema)**: *Maintain multi-stage Docker build, configure Kubernetes deployment (`03-pamphlet.yaml`), and apply PostgreSQL schema migrations for `pamphlet_db`.*
-- **DOC-04.01.01 [READY] (Manifest Schema Documentation)**: *Publish technical documentation detailing the relationship between Gigs, Orders, and Pamphlet SKUs.*
-- **TEST-04.01.01 [READY] (Automated Test Suite)**: *Build automated Bruno API test collection `tests/bruno/04-pamphlet/createPamphlet/` verifying deterministic ID generation.*
+- **OPS-04.01.01 [READY] (DevOps & Database Schema)**: *Maintain multi-stage Docker build, configure Kubernetes deployment (`03-pamphlet.yaml`), and apply PostgreSQL schema migrations for `pamphlet_db` including surrogate keys and return manifest tables.*
+- **DOC-04.01.01 [READY] (Manifest Schema Documentation)**: *Publish technical documentation detailing surrogate keys, dual cargo partitioning, and in-transit order conversion workflows.*
+- **TEST-04.01.01 [READY] (Automated Test Suite)**: *Build automated Bruno API test collection `tests/bruno/04-pamphlet/createPamphlet/` verifying surrogate key generation and rolling stock deduction.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -193,10 +208,21 @@ Scenario: Warehouse loading stock batch into vehicle pamphlet
   3. Client calls `POST /v1/pamphlets/{id}/adjust`.
   4. `pamphlet-service` deducts available deliverable stock and increments `damaged_qty`.
   5. Photo uploaded to Cloud Storage via sync engine; supplier alerted.
-- **Postconditions**: Deliverable inventory updated; loss recorded for accounting reconciliation.
+#### UC-04.03.B: Transit Damage Liability Assessment & Shrinkage Allowance Claims
+- **Description**: Evaluates whether cargo damage exceeds the 0.5% normal rural road shrinkage allowance. If under 0.5% of trip value, loss is absorbed by supplier as transit shrinkage; if over 0.5%, Support investigates whether damage resulted from rough driving, poor cargo strapping, or defective warehouse packaging.
+- **Primary Actor**: Support Claims Officer (`role: support`), Supplier Manager (`role: supplier`).
+- **Nominal Flow**:
+  1. At end of trip, `pamphlet-service` aggregates total damaged stock value vs. total cargo value.
+  2. If damage ratio $\le 0.5\%$: System automatically approves supplier shrinkage write-off.
+  3. If damage ratio $> 0.5\%$: System generates high-shrinkage alert on `SPT-14` and locks driver's transit security deposit pending photo/telemetry audit.
+  4. Support reviews road accelerometer telemetry (`gigs-service`) and warehouse pre-dispatch strap photo.
+  5. Support allocates liability between driver deduction or supplier insurance claim.
+- **Postconditions**: Liability attributed; write-off or driver balance deduction posted to `finance-service`.
 
 ### 3. User Journey Stories
 - **US-04.03.01 [READY]**: *As a driver, I want to immediately log damaged or spilled goods with photo evidence, so that customer orders can be adjusted before delivery attempts.*
+- **US-04.03.02 [READY]**: *As a supplier and fleet operator, I want clear contractual policies defining the 0.5% standard rural transit shrinkage allowance, so that drivers are not penalized for inevitable road vibration losses while gross negligence is strictly attributed.*
+- **US-04.03.03 [READY]**: *As a warehouse inventory manager, I want standardized intake procedures for returned or rejected goods brought back by trucks, so that re-sellable stock is restocked and damaged stock is routed to the statutory write-off ledger.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -205,6 +231,12 @@ Scenario: Driver logs broken goods in transit
   When driver posts an adjustment of -2 units with reason "broken_bottle" and photo URI
   Then pamphlet-service reduces deliverable stock to 18 units
   And records 2 units in damaged_inventory audit table
+
+Scenario: In-transit shrinkage evaluated against 0.5% threshold
+  Given a completed gig with total dispatched cargo value ₹1,00,000
+  When total reported breakage is ₹400 (0.4%)
+  Then system flags damage as "ALLOWABLE_RURAL_SHRINKAGE"
+  And absorbs loss without deducting driver payout
 ```
 
 ### 4. Integration Stories
@@ -221,7 +253,7 @@ Scenario: Driver logs broken goods in transit
 
 ### 7. Independent Support Stories
 - **OPS-04.03.01 [READY] (Storage Event Queue DevOps)**: *Configure `storage_sync_events` worker in `pamphlet-service` to reliably sync image binary metadata.*
-- **DOC-04.03.01 [READY] (Breakage Policy Documentation)**: *Publish supplier shrinkage thresholds and driver liability terms in standard operating documentation.*
+- **DOC-04.03.01 [READY] (Transit Damage & Shrinkage Policy)**: *Publish formal documents `docs/compliance/transit_damage_and_shrinkage_policy.md` and `docs/compliance/warehouse_returns_and_restocking_sop.md` defining shrinkage allowances, driver exemption rules, and returns intake.*
 - **TEST-04.03.01 [READY] (Bruno API Automation)**: *Create Bruno test collection `tests/bruno/04-pamphlet/adjustStockItem/` verifying non-negative inventory constraints.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
