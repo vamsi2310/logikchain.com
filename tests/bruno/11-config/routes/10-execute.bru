@@ -1,0 +1,58 @@
+meta {
+  name: upsertMasterRoute
+  type: http
+  seq: 10
+  tags: [
+    config
+    routes
+  ]
+}
+
+post {
+  url: {{baseUrl}}/v1/config/master-routes
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  X-Correlation-Id: route-test-01
+}
+
+body:json {
+  {
+    "routeId": "rte_corridor_bruno_01",
+    "name": "Bruno Test Corridor",
+    "origin": { "name": "Ongole Central Hub", "latitude": 15.5057, "longitude": 80.0499 },
+    "destination": { "name": "Chimakurthy Depot", "latitude": 15.5841, "longitude": 79.8732 },
+    "distanceKm": 48.5,
+    "turnaroundHours": 2.2,
+    "waypoints": [
+      { "name": "Pellur Junction", "latitude": 15.5412, "longitude": 80.0125 }
+    ]
+  }
+}
+
+assert {
+  res.status: in [200, 400, 401, 403, 404, 409, 429]
+}
+
+tests {
+  test("status is a spec HTTP code", function () {
+    expect([200, 400, 401, 403, 404, 409, 429]).to.include(res.getStatus());
+  });
+  test("envelope is spec-shaped", function () {
+    const status = res.getStatus();
+    const body = res.getBody();
+    if (status === 200) {
+      expect(body).to.be.an("object");
+      expect(body).to.have.property("success");
+    }
+  });
+}
+
+docs {
+  operationId: upsertMasterRoute
+  HTTP: POST /v1/config/master-routes
+  Role: support
+}

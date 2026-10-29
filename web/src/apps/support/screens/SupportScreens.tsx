@@ -296,6 +296,8 @@ const CONFIG_ITEMS: Array<{ to: string; icon: string; label: string; hint: strin
   { to: "/x/config/codes", icon: "#", label: "Discount codes", hint: "Promo code batches" },
   { to: "/x/config/tax", icon: "📊", label: "Tax", hint: "GST / VAT config" },
   { to: "/x/config/tds", icon: "📋", label: "TDS", hint: "TDS filing quarters" },
+  { to: "/x/config/supplier-ingestion", icon: "📥", label: "Supplier Bulk Ingestion", hint: "Onboard supplier datasets & selective entity loader" },
+  { to: "/x/config/pudo-tiers", icon: "🏪", label: "PUDO Commissions", hint: "Manage merchant village pickup commission tiers" },
 ];
 
 export function ConfigHomeScreen() {

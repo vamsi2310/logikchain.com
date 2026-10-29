@@ -33,6 +33,8 @@ import {
   SupportSubscriptionsScreen,
   SupportSimple,
 } from "./screens/SupportScreens";
+import { SupplierBulkIngestionScreen } from "./screens/SupplierBulkIngestionScreen";
+import { PudoCommissionGovernanceScreen } from "./screens/PudoCommissionGovernanceScreen";
 import {
   ProfileScreen,
   EditProfileScreen,
@@ -98,6 +100,9 @@ export function SupportRoutes() {
       <Route path="/x/config/tax/:supplierId" element={<Guard app="support"><TaxScreen /></Guard>} />
       <Route path="/x/config/tds" element={<Guard app="support"><TdsScreen /></Guard>} />
       <Route path="/x/config/tds/:financialYear/:quarter" element={<Guard app="support"><TdsScreen /></Guard>} />
+      <Route path="/x/config/supplier-ingestion" element={<Guard app="support"><SupplierBulkIngestionScreen /></Guard>} />
+      <Route path="/x/suppliers/:supplierId/ingest" element={<Guard app="support"><SupplierBulkIngestionScreen /></Guard>} />
+      <Route path="/x/config/pudo-tiers" element={<Guard app="support"><PudoCommissionGovernanceScreen /></Guard>} />
       <Route path="*" element={<Navigate to="/x/ops" replace />} />
     </Routes>
   );

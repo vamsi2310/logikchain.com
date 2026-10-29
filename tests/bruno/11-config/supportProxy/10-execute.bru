@@ -1,0 +1,51 @@
+meta {
+  name: supportProxy
+  type: http
+  seq: 10
+  tags: [
+    config
+    supportProxy
+  ]
+}
+
+post {
+  url: {{baseUrl}}/v1/config/catalog
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  X-Supplier-Context: sup_001
+  X-Correlation-Id: proxy-test-01
+}
+
+body:json {
+  {
+    "types": ["villages", "plans"]
+  }
+}
+
+assert {
+  res.status: in [200, 400, 401, 403, 404, 409, 422, 429]
+}
+
+tests {
+  test("status is a spec HTTP code", function () {
+    expect([200, 400, 401, 403, 404, 409, 422, 429]).to.include(res.getStatus());
+  });
+  test("envelope is spec-shaped", function () {
+    const status = res.getStatus();
+    const body = res.getBody();
+    if (status === 200) {
+      expect(body).to.be.an("object");
+      expect(body).to.have.property("success");
+    }
+  });
+}
+
+docs {
+  operationId: supportProxy
+  HTTP: POST /v1/config/catalog with X-Supplier-Context
+  Role: support
+}

@@ -24,6 +24,7 @@ import {
   SupplierSimple,
   SupplierConvertScreen,
   CreditRequestsQueueScreen,
+  SupplierPudoTiersScreen,
 } from "./screens/SupplierScreens";
 
 export function SupplierRoutes() {
@@ -61,6 +62,7 @@ export function SupplierRoutes() {
       <Route path="/s/cash/:settlementId/variance" element={<Guard app="supplier"><SupplierSimple title="Variance" id="SUP-16.2" /></Guard>} />
       <Route path="/s/fallbacks" element={<Guard app="supplier"><SupplierSimple title="Fallbacks" id="SUP-16.3" /></Guard>} />
       <Route path="/s/convert" element={<Guard app="supplier"><SupplierConvertScreen /></Guard>} />
+      <Route path="/s/pudo-tiers" element={<Guard app="supplier"><SupplierPudoTiersScreen /></Guard>} />
       <Route path="*" element={<Navigate to="/s/dashboard" replace />} />
     </Routes>
   );

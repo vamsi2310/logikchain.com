@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Guard } from "@/shared/guard";
 import { shellRoutes } from "@/apps/shell/routes";
+import { publicRoutes } from "@/apps/public/routes";
 import { BuyerSetupScreen } from "./screens/SetupScreens";
-import { BuyerHomeScreen, GigDetailScreen, PamphletScreen } from "./screens/HomeScreens";
+import { BuyerHomeScreen } from "./screens/HomeScreensEnhanced";
+import { GigDetailScreen, PamphletScreen } from "./screens/HomeScreens";
 import {
   CartScreen,
   CheckoutScreen,
@@ -18,6 +20,7 @@ import {
 export function BuyerRoutes() {
   return (
     <Routes>
+      {publicRoutes()}
       {shellRoutes()}
       <Route path="/setup" element={<Guard app="buyer"><BuyerSetupScreen /></Guard>} />
       <Route path="/home" element={<Guard app="buyer"><BuyerHomeScreen /></Guard>} />

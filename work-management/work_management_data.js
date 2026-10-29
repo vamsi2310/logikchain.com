@@ -123,6 +123,13 @@
             "description": "As a Support Administrator, I want to register a new verified supplier organization with regional configuration parameters, so that they can manage distribution routes, inventory, and field fleets."
           },
           {
+            "id": "US-01.02.02",
+            "type": "user_journey",
+            "title": "US-01.02.02",
+            "status": "READY",
+            "description": "As a Support operator acting as a supplier proxy, I want to perform all supplier-side data management actions (fleet setup, member directory, gig scheduling) on behalf of a supplier organization, so that suppliers who outsource their operations remain fully functional on the platform."
+          },
+          {
             "id": "INT-01.02.01",
             "type": "integration",
             "title": "Config Service Integration",
@@ -199,7 +206,7 @@
             "type": "user_journey",
             "title": "US-01.03.01",
             "status": "READY",
-            "description": "As a supplier, I want to convert an existing buyer into an authorized merchant or driver, so that our field logistics network expands with trusted local individuals."
+            "description": "As a supplier (or Support operator acting as supplier proxy), I want to convert an existing buyer into an authorized merchant or driver, so that our field logistics network expands with trusted local individuals."
           },
           {
             "id": "US-01.03.02",
@@ -295,6 +302,13 @@
             "description": "As an operator, I want to restore an account once discrepancies are settled, so that legitimate business activities can resume promptly."
           },
           {
+            "id": "US-01.04.03",
+            "type": "user_journey",
+            "title": "US-01.04.03",
+            "status": "READY",
+            "description": "As a Support operator, I want to view and edit a user's full profile — including contact details, role, linked supplierId, and service eligibility — from `SPT-03`, so that account corrections can be made without a code deployment or direct database intervention."
+          },
+          {
             "id": "INT-01.04.01",
             "type": "integration",
             "title": "Governance Service Integration",
@@ -363,8 +377,8 @@
         "id": "FEAT-01.05",
         "title": "Supplier-Delegated Support Access & Subscription Entitlement Gate",
         "status": "READY",
-        "scope": "Subscription-plan-gated delegated administration, supplier-initiated support permission grants, time-bound session lifecycles, and gateway permission verification for X-Supplier-Context.",
-        "endpoints": "POST /v1/suppliers/me/delegated-support/grants, GET /v1/suppliers/me/delegated-support/status, DELETE /v1/suppliers/me/delegated-support/grants/{grantId}",
+        "scope": "Subscription-plan-gated delegated administration, supplier-initiated support permission grants, time-bound session lifecycles, and gateway permission verification for `X-Supplier-Context`.",
+        "endpoints": "-",
         "stories": [
           {
             "id": "US-01.05.01",
@@ -392,28 +406,28 @@
             "type": "integration",
             "title": "Config Service Subscription Entitlement Check",
             "status": "READY",
-            "description": "As the Identity Service, I need to query config-service (:4010) to verify that the supplier's active subscription plan includes delegated_support_enabled before accepting grant creation."
+            "description": "As the Identity Service, I need to query `config-service` (`:4010`) to verify that the supplier's active subscription plan includes `delegated_support_enabled` before accepting grant creation."
           },
           {
             "id": "INT-01.05.02",
             "type": "integration",
             "title": "API Gateway Grant Verification Middleware",
             "status": "READY",
-            "description": "As the Identity Service, I need to provide high-performance in-memory grant lookups to the API Gateway to validate X-Supplier-Context headers in sub-5ms."
+            "description": "As the Identity Service, I need to provide high-performance in-memory grant lookups to the API Gateway to validate `X-Supplier-Context` headers in sub-5ms."
           },
           {
             "id": "PWA-01.05.01",
             "type": "pwa",
             "title": "Web PWA Supplier Delegated Support Panel",
             "status": "READY",
-            "description": "Build Delegated Support Access grant card on SUP-01 (web/s/) with duration picker, active session countdown timer, and 1-click Revoke button."
+            "description": "Build Delegated Support Access grant card on `SUP-01` (`web/s/`) with duration picker, active session countdown timer, and 1-click Revoke button."
           },
           {
             "id": "AND-01.05.01",
             "type": "android",
             "title": "Android Native Supplier Delegated Access Sheet",
             "status": "READY",
-            "description": "Build native Android settings screen in android/ allowing suppliers to grant and revoke support access."
+            "description": "Build native Android settings screen in `android/` allowing suppliers to grant and revoke support access."
           },
           {
             "id": "IOS-01.05.01",
@@ -427,14 +441,14 @@
             "type": "documentation",
             "title": "Delegated Support Administration SOP",
             "status": "READY",
-            "description": "Publish operational guide docs/support-sop/delegated_support_administration.md detailing supplier grant verification, session etiquette, and customer consent protocols."
+            "description": "Publish operational guide `docs/support-sop/delegated_support_administration.md` detailing supplier grant verification, session etiquette, and customer consent protocols."
           },
           {
             "id": "OPS-01.05.01",
             "type": "devops",
             "title": "PostgreSQL Migration",
             "status": "READY",
-            "description": "Create table identity_db.supplier_delegated_support_grants with indices on (supplier_id, status, expires_at)."
+            "description": "Create table `identity_db.supplier_delegated_support_grants` with indices on `(supplier_id, status, expires_at)`."
           }
         ]
       },
@@ -442,8 +456,8 @@
         "id": "FEAT-01.06",
         "title": "User Profile Lifecycle, Cloud Media Storage & KYC Onboarding",
         "status": "READY",
-        "scope": "User profile query/mutation APIs, onboarding wizard, Google Cloud Storage pre-signed URL media handshake, and real-time Firestore outbox replication.",
-        "endpoints": "GET /v1/users/me, GET /v1/users/{userId}, PATCH /v1/users/{userId}, POST /v1/users/{userId}/device-tokens, POST /v1/users/{userId}/avatar/upload-url, POST /v1/users/{userId}/documents/upload-url",
+        "scope": "- Complete user profile query and mutation APIs (`GET /v1/users/me`, `GET /v1/users/{userId}`, `PATCH /v1/users/{userId}`).",
+        "endpoints": "-",
         "stories": [
           {
             "id": "US-01.06.01",
@@ -471,77 +485,77 @@
             "type": "user_journey",
             "title": "US-01.06.04",
             "status": "READY",
-            "description": "As a Support operator, I want to view any user's profile and KYC verification status on SPT-03, so that I can assist with address corrections, language switches, or profile troubleshooting."
+            "description": "As a Support operator, I want to view any user's profile and KYC verification status on `SPT-03`, so that I can assist with address corrections, language switches, or profile troubleshooting."
           },
           {
             "id": "INT-01.06.01",
             "type": "integration",
             "title": "Google Cloud Storage Pre-Signed URL Generator",
             "status": "READY",
-            "description": "As the Identity Service, I need to integrate with Google Cloud Storage SDK (@google-cloud/storage) to issue cryptographically signed v4 upload URLs with strict MIME type and file size boundaries."
+            "description": "As the Identity Service, I need to integrate with Google Cloud Storage SDK (`@google-cloud/storage`) to issue cryptographically signed v4 upload URLs with strict MIME type and file size boundaries."
           },
           {
             "id": "INT-01.06.02",
             "type": "integration",
             "title": "Firestore Real-Time UserProfile Outbox Replication",
             "status": "READY",
-            "description": "As the Identity Service, I need to replicate all profile mutations to Cloud Firestore collection /UserProfiles/{uid} via transactional outbox sync within the 2000ms SLA."
+            "description": "As the Identity Service, I need to replicate all profile mutations to Cloud Firestore collection `/UserProfiles/{uid}` via transactional outbox sync within the 2000ms SLA."
           },
           {
             "id": "INT-01.06.03",
             "type": "integration",
             "title": "Firebase Auth User Profile Synchronization",
             "status": "READY",
-            "description": "As the Identity Service, I need to synchronize displayName and photoURL changes to Firebase Auth via admin.auth().updateUser(uid, ...) to keep token attributes aligned."
+            "description": "As the Identity Service, I need to synchronize `displayName` and `photoURL` changes to Firebase Auth via `admin.auth().updateUser(uid, ...)` to keep token attributes aligned."
           },
           {
             "id": "PWA-01.06.01",
             "type": "pwa",
             "title": "Web PWA Profile & Setup Wizard",
             "status": "READY",
-            "description": "Build onboarding wizard (BUY-00 / SetupScreens.tsx), Account Settings view (AccountScreens.tsx), and client-side WebP image cropper/uploader in web/."
+            "description": "Build onboarding wizard (`BUY-00` / `SetupScreens.tsx`), Account Settings view (`AccountScreens.tsx`), and client-side WebP image cropper/uploader in `web/`."
           },
           {
             "id": "AND-01.06.01",
             "type": "android",
             "title": "Android Native Profile UI & Room DB Cache",
             "status": "READY",
-            "description": "Build Jetpack Compose Profile Screen with Camera/Gallery photo picker, image compression worker, and Room DB cached_user_profile table in android/."
+            "description": "Build Jetpack Compose Profile Screen with Camera/Gallery photo picker, image compression worker, and Room DB `cached_user_profile` table in `android/`."
           },
           {
             "id": "IOS-01.06.01",
             "type": "ios",
             "title": "iOS Native Profile View & SwiftData",
             "status": "READY",
-            "description": "Build SwiftUI Profile View with PhotosPicker, image downsampling, and SwiftData local user caching in ios/."
+            "description": "Build SwiftUI Profile View with PhotosPicker, image downsampling, and SwiftData local user caching in `ios/`."
           },
           {
             "id": "DOC-01.06.01",
             "type": "documentation",
             "title": "User Profile API & Media Architecture Spec",
             "status": "READY",
-            "description": "Publish OpenAPI 3.0 specification for profile queries, mutations, and media handshakes in docs/architecture/user_profile_and_media_specs.md."
+            "description": "Publish OpenAPI 3.0 specification for profile queries, mutations, and media handshakes in `docs/architecture/user_profile_and_media_specs.md`."
           },
           {
             "id": "OPS-01.06.01",
             "type": "devops",
             "title": "PostgreSQL User Profiles Indexing & Media Buckets",
             "status": "READY",
-            "description": "Configure database indices on user_profiles(phone_number, role, status) and set Google Cloud Storage bucket CORS, lifecycle retention, and public CDN caching headers."
+            "description": "Configure database indices on `user_profiles(phone_number, role, status)` and set Google Cloud Storage bucket CORS, lifecycle retention, and public CDN caching headers."
           },
           {
             "id": "TEST-01.06.01",
             "type": "automation_test",
             "title": "Bruno API Automation",
             "status": "READY",
-            "description": "Create automated Bruno test collection tests/bruno/01-identity/profileLifecycle/ validating profile updates, signed URL generation, and unauthorized mutation rejection."
+            "description": "Create automated Bruno test collection `tests/bruno/01-identity/profileLifecycle/` validating profile updates, signed URL generation, and unauthorized mutation rejection."
           },
           {
             "id": "TEST-01.06.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
             "status": "READY",
-            "description": "Automated Playwright cloud test on logikchain-test executing full profile onboarding: Phone OTP Login ➔ Onboarding Wizard ➔ Profile Update ➔ Avatar Upload ➔ Real-Time Firestore Listener Verification."
+            "description": "Automated Playwright cloud test on `logikchain-test` executing full profile onboarding: Phone OTP Login ➔ Onboarding Wizard ➔ Profile Update ➔ Avatar Upload ➔ Real-Time Firestore Listener Verification."
           }
         ]
       }
@@ -559,24 +573,38 @@
     "features": [
       {
         "id": "FEAT-02.01",
-        "title": "Buyer E-Commerce & Group Purchase Ordering",
+        "title": "Buyer E-Commerce & In-Transit Dynamic Ordering",
         "status": "READY",
-        "scope": "Rural consumer cart checkout, village group-buying aggregation, pricing tiers, and prepaid/CoD order creation.",
-        "endpoints": "POST /v1/orders",
+        "scope": "Rural consumer cart checkout, village merchant hub delivery (PUDO), village serviceability check (requires registered merchant), dynamic order capture from in-transit truck pamphlet stock, and prepaid/CoD order creation. *(Group-buying demand pooling is PARKED for a future phase).*",
+        "endpoints": "-",
         "stories": [
           {
             "id": "US-02.01.01",
             "type": "user_journey",
             "title": "US-02.01.01",
             "status": "READY",
-            "description": "As a rural buyer, I want to place an order choosing either UPI or Cash on Delivery, so that I can purchase essential supplies regardless of my immediate digital bank balance."
+            "description": "As a rural buyer, I want to choose between collecting my parcel from the village merchant shop or opting for village home delivery at the merchant's fee, so that I can choose the convenience level that fits my day."
           },
           {
             "id": "US-02.01.02",
             "type": "user_journey",
             "title": "US-02.01.02",
             "status": "READY",
-            "description": "As a rural buyer, I want real-time status tracking of my order, so that I know exactly when the delivery vehicle will arrive in my village."
+            "description": "As a rural buyer with a CoD order, I want to pay online via UPI in my app anytime before picking up the parcel, so that I don't have to carry exact cash change to the merchant's store."
+          },
+          {
+            "id": "US-02.01.03",
+            "type": "user_journey",
+            "title": "US-02.01.03",
+            "status": "READY",
+            "description": "As a rural buyer, I want to browse the live stock currently carried on the delivery truck en-route to my village, so that I can buy items on-the-fly and have them dropped off at my village merchant on the truck's arrival."
+          },
+          {
+            "id": "US-02.01.04",
+            "type": "user_journey",
+            "title": "US-02.01.04",
+            "status": "READY",
+            "description": "As the platform, I need to verify that a village has an active registered merchant before allowing orders to be placed, so that packages are never dispatched to a village without an authorized pickup/PUDO location."
           },
           {
             "id": "INT-02.01.01",
@@ -590,14 +618,14 @@
             "type": "integration",
             "title": "Gigs Service Integration",
             "status": "READY",
-            "description": "As the Orders Service, I need to query `gigs-service` (`:4003`) to associate the order with the active scheduled delivery vehicle gig servicing the buyer's village."
+            "description": "As the Orders Service, I need to query `gigs-service` (`:4003`) to link orders to the active delivery gig serving the destination village merchant."
           },
           {
             "id": "INT-02.01.03",
             "type": "integration",
-            "title": "Pamphlet Service Integration",
+            "title": "Pamphlet Service In-Transit Stock Deduction Integration",
             "status": "READY",
-            "description": "As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to reserve and link items to the gig's dynamic inventory manifest."
+            "description": "As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to atomically decrement rolling vehicle pamphlet stock when an in-transit order is placed."
           },
           {
             "id": "INT-02.01.04",
@@ -609,51 +637,72 @@
           {
             "id": "PWA-02.01.01",
             "type": "pwa",
-            "title": "Web PWA Client",
+            "title": "Web PWA — Buyer Catalog & Merchant Hub Pickup",
             "status": "READY",
-            "description": "Implement Catalog browsing (`BUY-03`), multi-item Cart & Checkout (`BUY-04`), UPI Intent / CoD payment selection, and Order Tracking (`BUY-05`) with service worker offline caching in `web/`."
+            "description": "Implement Catalog browsing (`BUY-03`), live truck pamphlet stock view, merchant pickup point display, and checkout (`BUY-04`) with UPI Intent / CoD in `web/`."
           },
           {
             "id": "AND-02.01.01",
             "type": "android",
-            "title": "Android Native Client",
+            "title": "Android Native — Buyer Catalog UI & Cart Layout",
             "status": "READY",
-            "description": "Implement Jetpack Compose buyer catalog with offline Room cache, UPI Intent app chooser integration, and background Firestore snapshot listeners in `android/`."
+            "description": "Implement Jetpack Compose screens for catalog browsing (`BUY-03`), category filter tabs, product detail modal, and cart bottom-sheet with merchant hub pickup selector in `android/`."
+          },
+          {
+            "id": "AND-02.01.02",
+            "type": "android",
+            "title": "Android Native — Room DB Offline Catalog & Cart Cache",
+            "status": "READY",
+            "description": "Implement Room DB entities (`ProductEntity`, `CartItemEntity`), DAOs, and repository layer for offline catalog reading and cart persistence during network drops."
+          },
+          {
+            "id": "AND-02.01.03",
+            "type": "android",
+            "title": "Android Native — UPI Intent Chooser & Real-Time Sync",
+            "status": "READY",
+            "description": "Implement Android OS Intent launcher for UPI app chooser (GPay, PhonePe, Paytm), checkout network client with idempotency headers, and live truck stock counter via Firestore snapshot listener."
           },
           {
             "id": "IOS-02.01.01",
             "type": "ios",
-            "title": "iOS Native Client",
+            "title": "iOS Native — Buyer Catalog",
             "status": "READY",
-            "description": "Implement SwiftUI catalog, Apple Pay / UPI fallback checkout, and CoreData offline item caching in `ios/`."
+            "description": "Implement SwiftUI catalog with merchant hub selector, live stock widget, and offline catalog cache in `ios/`."
           },
           {
             "id": "TEST-02.01.PWA",
             "type": "pwa_test",
-            "title": "PWA Cloud E2E Test on Test Project",
+            "title": "PWA Cloud E2E Test — Individual & In-Transit Checkout",
             "status": "READY",
-            "description": "Automated Playwright test validating end-to-end buyer checkout (Prepaid UPI Intent and CoD), idempotency token handling, and tracking screen update against `orders-service` and `payments-service` on `logikchain-test`."
+            "description": "Automated Playwright test validating end-to-end buyer checkout with merchant hub pickup, in-transit stock deduction, and tracking screen update against `orders-service` on `logikchain-test`."
           },
           {
             "id": "OPS-02.01.01",
             "type": "devops",
             "title": "DevOps & Containerization",
             "status": "READY",
-            "description": "Maintain multi-stage Docker build, configure Kubernetes deployment (`03-orders.yaml`) with horizontal pod autoscaler (HPA), and apply PostgreSQL migration scripts for `orders_db`."
+            "description": "Maintain multi-stage Docker build, configure Kubernetes deployment (`03-orders.yaml`) with horizontal pod autoscaler (HPA), apply PostgreSQL migration scripts for `orders_db` including new `group_buy_sessions` and `group_buy_members` tables with `villageId + skuId + status` composite index."
+          },
+          {
+            "id": "OPS-02.01.02",
+            "type": "devops",
+            "title": "Cloud Scheduler Job",
+            "status": "READY",
+            "description": "Configure Cloud Scheduler job `orders-group-session-expiry` running every 5 minutes, calling `POST /internal/orders/group-sessions/expire-check` on `orders-service` internal endpoint."
           },
           {
             "id": "DOC-02.01.01",
             "type": "documentation",
             "title": "API Contract Documentation",
             "status": "READY",
-            "description": "Publish OpenAPI 3.0 specification for buyer ordering APIs and document state transition invariants."
+            "description": "Publish OpenAPI 3.0 specification for buyer ordering APIs, group session lifecycle state machine diagram (`open → locked | expired`), and document concurrent join idempotency guarantees."
           },
           {
             "id": "TEST-02.01.01",
             "type": "automation_test",
             "title": "Automation Test Suite",
             "status": "READY",
-            "description": "Build automated Bruno API test collection `tests/bruno/02-orders/placeOrder/` validating cart calculation and idempotency protections."
+            "description": "Build automated Bruno API test collection `tests/bruno/02-orders/placeOrder/` validating cart calculation and idempotency protections, plus `tests/bruno/02-orders/groupSession/` validating session create, join, threshold lock, and expiry scenarios."
           }
         ]
       },
@@ -738,24 +787,31 @@
       },
       {
         "id": "FEAT-02.03",
-        "title": "Order Custody Transitions & Delivery Handover",
+        "title": "Order Custody Transitions, Merchant Hub Handover & Partial Delivery",
         "status": "READY",
-        "scope": "Field delivery confirmation, buyer OTP / signature verification, cash collection linkage, and custody handover.",
-        "endpoints": "POST /v1/orders/{orderId}/delivered",
+        "scope": "Field delivery confirmation at village merchant location (PUDO), buyer collection OTP verification, partial delivery line-item rejection, doorstep invoice adjustment, cash custody linkage, and return inventory logging.",
+        "endpoints": "-",
         "stories": [
           {
             "id": "US-02.03.01",
             "type": "user_journey",
             "title": "US-02.03.01",
             "status": "READY",
-            "description": "As a delivery driver, I want to verify delivery using a customer OTP and record cash collection on my Android app, so that proof-of-delivery is legally and operationally undeniable."
+            "description": "As a delivery driver, I want to drop all village packages at the registered merchant shop and verify handovers via OTP, so that proof-of-delivery is legally and operationally undeniable."
           },
           {
             "id": "US-02.03.02",
             "type": "user_journey",
             "title": "US-02.03.02",
             "status": "READY",
-            "description": "As a rural buyer, I want to give the OTP to the driver only after inspecting my goods, so that I am assured of receiving the correct items."
+            "description": "As a rural buyer, I want to collect my package from my village merchant shop at my convenience using a 4-digit OTP, so that I don't have to wait by the roadside for a delivery truck."
+          },
+          {
+            "id": "US-02.03.03",
+            "type": "user_journey",
+            "title": "US-02.03.03",
+            "status": "READY",
+            "description": "As a merchant or buyer inspecting a delivery, I want to reject damaged or broken items on the spot and pay only for accepted goods, so that I am never forced to pay for damaged stock."
           },
           {
             "id": "INT-02.03.01",
@@ -788,9 +844,23 @@
           {
             "id": "AND-02.03.01",
             "type": "android",
-            "title": "Android Native Client",
+            "title": "Android Native — Delivery Handover UI Layout",
             "status": "READY",
-            "description": "Implement Driver Delivery Handover (`VEH-05`) with OTP verification pad, cash received denomination counter, and background Play Integrity attestation."
+            "description": "Implement Jetpack Compose driver delivery handover screen (`VEH-05`) with 4-digit OTP input pad, line-item rejection checkboxes, and cash denomination counter."
+          },
+          {
+            "id": "AND-02.03.02",
+            "type": "android",
+            "title": "Android Native — Room DB Offline Handover & Rejection Store",
+            "status": "READY",
+            "description": "Implement local Room database entities (`DeliveryHandoverEntity`, `RejectedItemEntity`) and DAOs to store completed handovers and line-item rejection proofs during cellular dead zones."
+          },
+          {
+            "id": "AND-02.03.03",
+            "type": "android",
+            "title": "Android Native — Hardware Scanner & Play Integrity Attestation",
+            "status": "READY",
+            "description": "Integrate Bluetooth barcode scanner SDK, camera ML Kit barcode scanner fallback, and Google Play Integrity App Check attestation token generation on delivery submission."
           },
           {
             "id": "IOS-02.03.01",
@@ -828,6 +898,85 @@
             "description": "Create Bruno automated test `tests/bruno/02-orders/markOrderDelivered/` validating incorrect OTP rejections."
           }
         ]
+      },
+      {
+        "id": "FEAT-02.04",
+        "title": "Order Deliverables, Customer Return Policy & RTO Protocol",
+        "status": "READY",
+        "scope": "Formal order deliverable specifications, village merchant PUDO 72-hour retention window, doorstep line-item rejection policy, non-returnable categories, automated Return-to-Origin (RTO) execution, and buyer refund triggers.",
+        "endpoints": "-",
+        "stories": [
+          {
+            "id": "US-02.04.01",
+            "type": "user_journey",
+            "title": "US-02.04.01",
+            "status": "READY",
+            "description": "As a rural buyer, I want clear contractual policies on order deliverables, holding windows (72 hours at my village shop), and return rights displayed before I place an order, so that I understand my pickup deadlines and guarantees."
+          },
+          {
+            "id": "US-02.04.02",
+            "type": "user_journey",
+            "title": "US-02.04.02",
+            "status": "READY",
+            "description": "As a village merchant, I want packages uncollected after 72 hours automatically flagged for RTO and collected by the next visiting truck, so that my shop storage space is protected from abandoned parcels."
+          },
+          {
+            "id": "US-02.04.03",
+            "type": "user_journey",
+            "title": "US-02.04.03",
+            "status": "READY",
+            "description": "As a supplier, I want non-returnable categories (such as opened agrochemicals and perishables) strictly enforced by the system, so that fraudulent returns are prevented after goods leave physical custody."
+          },
+          {
+            "id": "INT-02.04.01",
+            "type": "integration",
+            "title": "Reverse Logistics Manifest Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to add RTO parcels to the visiting truck's reverse cargo manifest upon driver check-in."
+          },
+          {
+            "id": "INT-02.04.02",
+            "type": "integration",
+            "title": "Automated Refund & Credit Note Integration",
+            "status": "READY",
+            "description": "As the Orders Service, I need to call `payments-service` (`:4005`) and `finance-service` (`:4009`) to issue credit notes and trigger UPI reversals when RTO parcels arrive back at the supplier warehouse."
+          },
+          {
+            "id": "PWA-02.04.01",
+            "type": "pwa",
+            "title": "Web PWA Return & Policy Viewer",
+            "status": "READY",
+            "description": "Implement Order Return Policy drawer on `web/b/` (`BUY-06`) and Merchant RTO clearance dashboard on `web/m/` (`MER-03`)."
+          },
+          {
+            "id": "AND-02.04.01",
+            "type": "android",
+            "title": "Android Native RTO & Return Scan",
+            "status": "READY",
+            "description": "Implement RTO package scan and merchant handover signoff in `android/` (`VEH-05`, `MER-03`)."
+          },
+          {
+            "id": "IOS-02.04.01",
+            "type": "ios",
+            "title": "iOS Native Return & Policy Viewer",
+            "status": "READY",
+            "description": "Implement Buyer return request flow and policy viewer on iOS."
+          },
+          {
+            "id": "DOC-02.04.01",
+            "type": "documentation",
+            "title": "Order Deliverables, Return & RTO Policy",
+            "status": "READY",
+            "description": "Publish formal compliance documents `docs/compliance/order_deliverables_and_sla_policy.md`, `docs/compliance/customer_return_and_refund_policy.md`, and `docs/compliance/unclaimed_parcel_rto_policy.md`."
+          },
+          {
+            "id": "OPS-02.04.01",
+            "type": "devops",
+            "title": "RTO Scheduler Cron",
+            "status": "READY",
+            "description": "Configure Cloud Scheduler cron job invoking `/v1/orders/rto/check-expired` every 6 hours."
+          }
+        ]
       }
     ]
   },
@@ -845,7 +994,7 @@
         "id": "FEAT-03.01",
         "title": "Gig Composition & Fleet Dispatch Scheduling",
         "status": "READY",
-        "scope": "Route assembly, multi-stop village sequencing, vehicle assignment, and composite Gig initialization.",
+        "scope": "Route assembly, multi-stop village merchant sequencing, vehicle assignment, surrogate gig ID creation, and mid-route vehicle/driver reassignment.",
         "endpoints": "POST /v1/gigs",
         "stories": [
           {
@@ -853,14 +1002,21 @@
             "type": "user_journey",
             "title": "US-03.01.01",
             "status": "READY",
-            "description": "As a supplier logistics manager, I want to automatically optimize waypoints across multiple villages, so that our delivery vehicles minimize fuel consumption and transit delays."
+            "description": "As a supplier logistics manager (or Support operator acting as proxy), I want to automatically optimize waypoints across registered merchant locations, so that our delivery vehicles minimize fuel consumption and transit delays."
           },
           {
             "id": "US-03.01.02",
             "type": "user_journey",
             "title": "US-03.01.02",
             "status": "READY",
-            "description": "As a delivery driver, I want to receive my daily scheduled route with village stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch."
+            "description": "As a delivery driver, I want to receive my daily scheduled route with merchant stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch."
+          },
+          {
+            "id": "US-03.01.03",
+            "type": "user_journey",
+            "title": "US-03.01.03",
+            "status": "READY",
+            "description": "As a Support operator or Supplier manager, I want to reassign a broken-down vehicle to a replacement truck without altering the underlying gig ID or canceling customer orders, so that rural deliveries can proceed with minimal disruption."
           },
           {
             "id": "INT-03.01.01",
@@ -874,7 +1030,7 @@
             "type": "integration",
             "title": "Pamphlet Service Integration",
             "status": "READY",
-            "description": "As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest for the vehicle run."
+            "description": "As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest (`pamphletId` bound to `gigId`)."
           },
           {
             "id": "INT-03.01.03",
@@ -921,16 +1077,16 @@
           {
             "id": "DOC-03.01.01",
             "type": "documentation",
-            "title": "Route Computation & Gig Specs",
+            "title": "Route Computation & Surrogate Gig Specs",
             "status": "READY",
-            "description": "Document the deterministic `{vehicleId}_{startDatetime}` gig ID generation rule and Google Maps API quota policies in `microservices/` docs."
+            "description": "Document surrogate `gig_{id}` generation, mutable vehicle/driver reassignments, and Google Maps API quota policies in `microservices/` docs."
           },
           {
             "id": "TEST-03.01.01",
             "type": "automation_test",
             "title": "Bruno API Automation",
             "status": "READY",
-            "description": "Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying composite key generation and waypoint persistence."
+            "description": "Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying surrogate key generation and vehicle reassignment."
           }
         ]
       },
@@ -972,9 +1128,23 @@
           {
             "id": "AND-03.02.01",
             "type": "android",
-            "title": "Android Native Client",
+            "title": "Android Native — Driver Navigation UI Layout",
             "status": "READY",
-            "description": "Implement Driver Active Gig navigation screen (`VEH-02`) with Foreground Service background GPS pinging, Play Integrity attestation, and offline waypoint caching."
+            "description": "Implement Jetpack Compose active navigation screen (`VEH-02`) with waypoint sequence cards, turn-by-turn banner, and gig status control buttons."
+          },
+          {
+            "id": "AND-03.02.02",
+            "type": "android",
+            "title": "Android Native — Foreground GPS Location Service",
+            "status": "READY",
+            "description": "Build Android Foreground Service with continuous background GPS pinging (30s interval), battery optimization whitelist request, and Google Play Integrity token attestation."
+          },
+          {
+            "id": "AND-03.02.03",
+            "type": "android",
+            "title": "Android Native — Room DB Offline Waypoint & Telemetry Cache",
+            "status": "READY",
+            "description": "Implement local Room database entities and DAOs for caching route waypoints and queueing GPS telemetry points during cellular dead zones."
           },
           {
             "id": "IOS-03.02.01",
@@ -1096,8 +1266,8 @@
         "id": "FEAT-03.04",
         "title": "Supplier Route Catalog, Freeform Route Authoring, Cloning & Monthly Gig Quota Enforcement",
         "status": "READY",
-        "scope": "Route catalog on SUP-07, freeform custom route creation and cloning without route caps, subscription monthly gig execution limits (monthlyGigLimit), interactive waypoint editor on SUP-07.1, and gig-dependency delete blocker.",
-        "endpoints": "POST /v1/routes/{routeId}/clone",
+        "scope": "Route catalog presentation on `SUP-07`, universal ability for all suppliers to author custom routes from scratch or clone existing corridors/custom routes (`cloneRoute`), zero route-count caps (no separate or combined route quotas), enforcement of subscription **monthly gig execution limits** (`monthlyGigLimit` / `maxGigsPerMonth`) during gig scheduling on any route, interactive route builder on `SUP-07.1`, and deletion protection while referenced by active or upcoming gigs.",
+        "endpoints": "-",
         "stories": [
           {
             "id": "US-03.04.01",
@@ -1118,14 +1288,14 @@
             "type": "user_journey",
             "title": "US-03.04.03",
             "status": "READY",
-            "description": "As a regional supplier, I want the system to warn and block deletion of any route that has upcoming scheduled gigs, so that drivers in transit are never disrupted by accidental route removals."
+            "description": "As a regional supplier, I want the system to warn and block deletion of any route that has active or scheduled gigs, so that drivers in transit are never disrupted by accidental route removals."
           },
           {
             "id": "INT-03.04.01",
             "type": "integration",
             "title": "Subscription Monthly Gig Quota Gate",
             "status": "READY",
-            "description": "As the Gigs Service, I need to evaluate the supplier's current monthly gig execution count against their active subscription monthlyGigLimit in config_db.subscription_plans before accepting composeGig."
+            "description": "As the Gigs Service, I need to evaluate the supplier's current monthly gig execution count against their active subscription `monthlyGigLimit` in `config_db.subscription_plans` before accepting `composeGig`."
           },
           {
             "id": "INT-03.04.02",
@@ -1135,11 +1305,18 @@
             "description": "As the Gigs Service, I need to call Google Maps Distance Matrix to compute turnarounds and kilometer lengths when suppliers reorder or edit custom route stops."
           },
           {
+            "id": "INT-03.04.03",
+            "type": "integration",
+            "title": "Active Gig Route Reference Validation",
+            "status": "READY",
+            "description": "As the Gigs Service, I need to verify that zero active (`in_progress`) or upcoming (`scheduled`) gigs reference a route before processing any route deletion."
+          },
+          {
             "id": "PWA-03.04.01",
             "type": "pwa",
-            "title": "Web PWA Route Catalog & Interactive Builder",
+            "title": "Web PWA Route Catalog & Builder",
             "status": "READY",
-            "description": "Build segmented Pre-configured vs My Custom tabs on SUP-07, 1-click Clone action, interactive drag-and-drop waypoint editor on SUP-07.1, and gig-dependency delete blocker in web/s/."
+            "description": "Build route catalog on `SUP-07` with 1-click clone and new route creation, interactive drag-and-drop waypoint editor on `SUP-07.1`, monthly gig quota consumption bar on `SUP-02`, and gig-dependency delete blocker in `web/s/`."
           },
           {
             "id": "AND-03.04.01",
@@ -1160,14 +1337,21 @@
             "type": "documentation",
             "title": "Supplier Route Playbook & Monthly Gig Quota Guide",
             "status": "READY",
-            "description": "Publish operational documentation explaining standard corridor benefits, route authoring and cloning workflows, and subscription monthly gig quota rules in docs/playbooks/supplier_route_management.md."
+            "description": "Publish operational documentation explaining standard corridor benefits, route authoring and cloning workflows, and subscription monthly gig quota rules in `docs/playbooks/supplier_route_management.md`."
+          },
+          {
+            "id": "OPS-03.04.01",
+            "type": "devops",
+            "title": "Gigs Service Route Schema Migration",
+            "status": "READY",
+            "description": "Create migration for `gigs_db.routes` and configure monthly gig aggregation query index in `gigs_db.gigs`."
           },
           {
             "id": "TEST-03.04.01",
             "type": "automation_test",
             "title": "Bruno API Automation",
             "status": "READY",
-            "description": "Create automated Bruno test tests/bruno/03-gigs/routeGovernance/ validating route cloning without route caps, 403 rejection on exceeding monthly gig limit, and 409 rejection on deleting routes in use."
+            "description": "Create automated Bruno test `tests/bruno/03-gigs/routeGovernance/` validating route cloning without route caps, 403 rejection on exceeding monthly gig limit, and 409 rejection on deleting routes in use."
           }
         ]
       }
@@ -1185,9 +1369,9 @@
     "features": [
       {
         "id": "FEAT-04.01",
-        "title": "Dynamic Gig Pamphlet Creation & Manifest Keying",
+        "title": "Dynamic Gig Pamphlet Creation & In-Transit Rolling Stock",
         "status": "READY",
-        "scope": "Automated manifest initialization, composite key binding (`{vehicleId}_{startDatetime}`), and initial SKU allocation.",
+        "scope": "Automated manifest initialization, surrogate key binding (`pmp_{id}` linked to `gigId`), dual cargo partitioning (pre-booked customer orders vs. rolling merchant spot-restock stock), and dynamic in-transit order conversion.",
         "endpoints": "POST /v1/pamphlets",
         "stories": [
           {
@@ -1195,28 +1379,42 @@
             "type": "user_journey",
             "title": "US-04.01.01",
             "status": "READY",
-            "description": "As a warehouse dispatcher, I want a dedicated digital manifest for every scheduled vehicle departure, so that inventory loaded onto the truck is tracked with total fidelity."
+            "description": "As a warehouse dispatcher, I want a dedicated digital manifest for every scheduled vehicle departure with clear separation between pre-booked orders and uncommitted pamphlet stock, so that warehouse loading is completely verifiable."
+          },
+          {
+            "id": "US-04.01.02",
+            "type": "user_journey",
+            "title": "US-04.01.02",
+            "status": "READY",
+            "description": "As a delivery driver or supplier, I want a delivery truck to be able to depart with zero pre-booked orders and purely pamphlet inventory, so that we can capture dynamic orders from buyers and merchants while the truck is rolling toward their village."
           },
           {
             "id": "INT-04.01.01",
             "type": "integration",
             "title": "Gigs Service Lifecycle Hook Integration",
             "status": "READY",
-            "description": "As the Pamphlet Service, I need to receive REST calls from `gigs-service` (`:4003`) to auto-create and close vehicle manifests matching gig lifecycles."
+            "description": "As the Pamphlet Service, I need to receive REST calls from `gigs-service` (`:4003`) to auto-create and close vehicle manifests bound to surrogate `gigId`s."
           },
           {
             "id": "INT-04.01.02",
             "type": "integration",
             "title": "Firestore Periodic Sync Integration",
             "status": "READY",
-            "description": "As the Pamphlet Service, I need to synchronize manifest items to Firestore collection `/Pamphlets/{pamphletId}` every 2000ms for real-time mobile app updates."
+            "description": "As the Pamphlet Service, I need to synchronize rolling pamphlet stock to Firestore collection `/Pamphlets/{pamphletId}` every 2000ms for real-time mobile app updates."
+          },
+          {
+            "id": "INT-04.01.03",
+            "type": "integration",
+            "title": "Orders Service In-Transit Stock Deduction Integration",
+            "status": "READY",
+            "description": "As the Pamphlet Service, I need to provide high-concurrency atomic stock deduction endpoints for `orders-service` when in-transit orders are placed."
           },
           {
             "id": "PWA-04.01.01",
             "type": "pwa",
             "title": "Web PWA Client",
             "status": "READY",
-            "description": "Implement Supplier Warehouse Loading dashboard (`SUP-06`) showing dynamic manifest items per scheduled vehicle departure with real-time stock sync in `web/`."
+            "description": "Implement Supplier Warehouse Loading dashboard (`SUP-06`) showing dynamic manifest items and rolling stock allocation per scheduled departure in `web/`."
           },
           {
             "id": "AND-04.01.01",
@@ -1237,28 +1435,28 @@
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
             "status": "READY",
-            "description": "Automated Playwright test validating that when a gig is composed, the matching pamphlet is automatically generated and visible on Supplier PWA console on `logikchain-test`."
+            "description": "Automated Playwright test validating that when a gig is composed, the matching pamphlet is automatically generated with surrogate key and visible on Supplier PWA console on `logikchain-test`."
           },
           {
             "id": "OPS-04.01.01",
             "type": "devops",
             "title": "DevOps & Database Schema",
             "status": "READY",
-            "description": "Maintain multi-stage Docker build, configure Kubernetes deployment (`03-pamphlet.yaml`), and apply PostgreSQL schema migrations for `pamphlet_db`."
+            "description": "Maintain multi-stage Docker build, configure Kubernetes deployment (`03-pamphlet.yaml`), and apply PostgreSQL schema migrations for `pamphlet_db` including surrogate keys and return manifest tables."
           },
           {
             "id": "DOC-04.01.01",
             "type": "documentation",
             "title": "Manifest Schema Documentation",
             "status": "READY",
-            "description": "Publish technical documentation detailing the relationship between Gigs, Orders, and Pamphlet SKUs."
+            "description": "Publish technical documentation detailing surrogate keys, dual cargo partitioning, and in-transit order conversion workflows."
           },
           {
             "id": "TEST-04.01.01",
             "type": "automation_test",
             "title": "Automated Test Suite",
             "status": "READY",
-            "description": "Build automated Bruno API test collection `tests/bruno/04-pamphlet/createPamphlet/` verifying deterministic ID generation."
+            "description": "Build automated Bruno API test collection `tests/bruno/04-pamphlet/createPamphlet/` verifying surrogate key generation and rolling stock deduction."
           }
         ]
       },
@@ -1356,6 +1554,20 @@
             "description": "As a driver, I want to immediately log damaged or spilled goods with photo evidence, so that customer orders can be adjusted before delivery attempts."
           },
           {
+            "id": "US-04.03.02",
+            "type": "user_journey",
+            "title": "US-04.03.02",
+            "status": "READY",
+            "description": "As a supplier and fleet operator, I want clear contractual policies defining the 0.5% standard rural transit shrinkage allowance, so that drivers are not penalized for inevitable road vibration losses while gross negligence is strictly attributed."
+          },
+          {
+            "id": "US-04.03.03",
+            "type": "user_journey",
+            "title": "US-04.03.03",
+            "status": "READY",
+            "description": "As a warehouse inventory manager, I want standardized intake procedures for returned or rejected goods brought back by trucks, so that re-sellable stock is restocked and damaged stock is routed to the statutory write-off ledger."
+          },
+          {
             "id": "INT-04.03.01",
             "type": "integration",
             "title": "Orders Service Adjustment Integration",
@@ -1407,9 +1619,9 @@
           {
             "id": "DOC-04.03.01",
             "type": "documentation",
-            "title": "Breakage Policy Documentation",
+            "title": "Transit Damage & Shrinkage Policy",
             "status": "READY",
-            "description": "Publish supplier shrinkage thresholds and driver liability terms in standard operating documentation."
+            "description": "Publish formal documents `docs/compliance/transit_damage_and_shrinkage_policy.md` and `docs/compliance/warehouse_returns_and_restocking_sop.md` defining shrinkage allowances, driver exemption rules, and returns intake."
           },
           {
             "id": "TEST-04.03.01",
@@ -1966,6 +2178,50 @@
             "description": "Build automated Bruno API test in `tests/bruno/06-payouts/transferTask/` validating OIDC token authorization and idempotent re-executions."
           }
         ]
+      },
+      {
+        "id": "FEAT-06.04",
+        "title": "Supplier Funds Tracking, Merchant Commission & Driver Allocation Governance Console",
+        "status": "READY",
+        "scope": "End-to-end supplier funds tracking, platform escrow visibility, fund allocation breakdown (merchant handling commissions, driver trip compensation, platform take-rate), supplier bank withdrawal authorization, and Support financial monitoring dashboard.",
+        "endpoints": "-",
+        "stories": [
+          {
+            "id": "US-06.04.01",
+            "type": "user_journey",
+            "title": "US-06.04.01",
+            "status": "READY",
+            "description": "As a Support operator, I want a comprehensive financial monitoring dashboard to view and track each supplier's gross inflow, merchant commission obligations, driver pay allocations, and bank withdrawal history, so that platform financial integrity is maintained."
+          },
+          {
+            "id": "US-06.04.02",
+            "type": "user_journey",
+            "title": "US-06.04.02",
+            "status": "READY",
+            "description": "As a regional supplier, I want transparent real-time tracking of my revenue, showing exact deductions for merchant pickup fees and driver payouts, so that I can manage my cash flow and withdraw net earnings to my bank account with confidence."
+          },
+          {
+            "id": "INT-06.04.01",
+            "type": "integration",
+            "title": "Finance Service Real-Time Ledger Summary Integration",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to call `finance-service` (`:4009`) to compute immutable account balances across Merchant Clearing, Driver Clearing, and Supplier Equity accounts."
+          },
+          {
+            "id": "INT-06.04.02",
+            "type": "integration",
+            "title": "Firestore Supplier Balance Sync",
+            "status": "READY",
+            "description": "As the Payouts Service, I need to synchronize supplier financial balances to Firestore collection `/SupplierFinancials/{supplierId}` every 2000ms."
+          },
+          {
+            "id": "PWA-06.04.01",
+            "type": "pwa",
+            "title": "Web PWA Supplier Financial Monitor & Support Console",
+            "status": "READY",
+            "description": "Build `SUP-11` (Supplier Financial Overview) and `SPT-12` (Support Supplier Financial Monitor) in `web/` with visual allocation progress rings, payout ledger tables, and bank disbursement triggers."
+          }
+        ]
       }
     ]
   },
@@ -1991,7 +2247,7 @@
             "type": "user_journey",
             "title": "US-07.01.01",
             "status": "READY",
-            "description": "As a rural delivery driver, I want my mobile app to reliably record cash collections even when there is no mobile network in the village, so that my collected cash tally remains accurate."
+            "description": "As a rural delivery driver, I want my mobile app to reliably record cash collections at village merchant shops even when there is no mobile network, so that my collected cash tally remains accurate."
           },
           {
             "id": "US-07.01.02",
@@ -2031,9 +2287,23 @@
           {
             "id": "AND-07.01.01",
             "type": "android",
-            "title": "Android Native CoD Cash Collection",
+            "title": "Android Native — Cash Collection & Wallet UI Layout",
             "status": "READY",
-            "description": "Implement driver native Android cash collection UI (`VEH-05`, `VEH-08`) in `android/` with Room DB offline queuing, WorkManager sync, and tamper-resistant cash tally."
+            "description": "Implement driver native Android cash collection UI (`VEH-05`) and custody wallet screen (`VEH-08`) in Jetpack Compose with physical currency denomination counter, offline indicators, and active balance card."
+          },
+          {
+            "id": "AND-07.01.02",
+            "type": "android",
+            "title": "Android Native — Room DB Offline Cash Ledger Store",
+            "status": "READY",
+            "description": "Implement Room DB entities (`CashCollectionEntity`), DAOs, and repository to store collected currency offline with UUID idempotency keys, order linkages, and tamper-resistant local balance computation."
+          },
+          {
+            "id": "AND-07.01.03",
+            "type": "android",
+            "title": "Android Native — WorkManager Background Outbox Sync",
+            "status": "READY",
+            "description": "Implement Android WorkManager background sync worker with exponential backoff to flush queued cash transactions to `POST /v1/cash/collections` when cellular connectivity resumes."
           },
           {
             "id": "IOS-07.01.01",
@@ -2173,6 +2443,13 @@
             "description": "As a cashier encountering a cash discrepancy, I want to record the exact shortage and upload notes, so that the discrepancy is escalated to Support without delaying the driver's next trip."
           },
           {
+            "id": "US-07.03.02",
+            "type": "user_journey",
+            "title": "US-07.03.02",
+            "status": "READY",
+            "description": "As a platform risk manager, I want clear contractual policies governing counterfeit note attribution, driver cash-in-transit limits (₹50,000 max), and third-party cash insurance claims for highway robbery, so that legal and financial liabilities are clearly defined."
+          },
+          {
             "id": "INT-07.03.01",
             "type": "integration",
             "title": "Payouts Service Lockout Integration",
@@ -2224,9 +2501,9 @@
           {
             "id": "DOC-07.03.01",
             "type": "documentation",
-            "title": "Discrepancy Resolution Protocol",
+            "title": "Cash Custody & Counterfeit Currency Policy",
             "status": "READY",
-            "description": "Publish guidelines for distinguishing accidental shortages from systemic theft."
+            "description": "Publish formal compliance document `docs/compliance/cash_custody_and_counterfeit_policy.md` defining physical currency handling, RBI counterfeit note reporting guidelines, shortage thresholds, and transit theft indemnification."
           },
           {
             "id": "TEST-07.03.01",
@@ -2253,7 +2530,7 @@
         "id": "FEAT-08.01",
         "title": "Merchant Credit Line Underwriting & Limit Assignment",
         "status": "READY",
-        "scope": "Merchant trade credit underwriting, credit limit assignment, limit increase requests, and Supplier/Support review.",
+        "scope": "Merchant trade credit underwriting, supplier-specific credit limit assignment, limit increase requests, and Supplier/Support review. *(Credit headroom is strictly isolated per supplier: a merchant may hold ₹10,000 with Supplier A, ₹30,000 with Supplier B, and ₹0 with Supplier C).*",
         "endpoints": "POST /v1/credit/limits",
         "stories": [
           {
@@ -2261,14 +2538,14 @@
             "type": "user_journey",
             "title": "US-08.01.01",
             "status": "READY",
-            "description": "As a village merchant, I want to view my credit limit, used credit, and available headroom on my phone, so that I can plan my store inventory purchases effectively."
+            "description": "As a village merchant, I want to view my credit limit, used credit, and available headroom broken down by each individual supplier on my phone, so that I know exactly how much stock I can order on credit from each vendor."
           },
           {
             "id": "US-08.01.02",
             "type": "user_journey",
             "title": "US-08.01.02",
             "status": "READY",
-            "description": "As a regional supplier, I want to assign customized credit limits to local shopkeepers based on their order history, so that I can drive sales while mitigating credit risk."
+            "description": "As a regional supplier, I want to assign customized credit limits to local shopkeepers for my products only, so that my capital risk is isolated and never exposed to orders placed with competitor suppliers."
           },
           {
             "id": "INT-08.01.01",
@@ -2282,7 +2559,7 @@
             "type": "integration",
             "title": "Firestore Periodic Sync Integration",
             "status": "READY",
-            "description": "As the Credit Service, I need to synchronize credit balances to Firestore collection `/CreditProfiles/{merchantId}` every 2000ms."
+            "description": "As the Credit Service, I need to synchronize supplier-scoped credit balances to Firestore collection `/CreditProfiles/{merchantId}_{supplierId}` every 2000ms."
           },
           {
             "id": "PWA-08.01.01",
@@ -2337,9 +2614,9 @@
       },
       {
         "id": "FEAT-08.02",
-        "title": "Revolving Credit Authorization & Order Holds",
+        "title": "Revolving Credit Authorization & Supplier-Scoped Holds",
         "status": "READY",
-        "scope": "Real-time synchronous credit availability evaluation, order balance hold, and commit/release rollback protocol.",
+        "scope": "Real-time synchronous credit availability evaluation against the specific ordering supplier's headroom, order balance hold, and commit/release rollback protocol (including partial delivery credit releases).",
         "endpoints": "POST /v1/credit/holds",
         "stories": [
           {
@@ -2347,7 +2624,7 @@
             "type": "user_journey",
             "title": "US-08.02.01",
             "status": "READY",
-            "description": "As a village merchant, I want my credit purchase authorized instantly at checkout without waiting for manual approvals, so that my delivery orders are processed without delay."
+            "description": "As a village merchant, I want my credit purchase validated instantly against the specific supplier's available headroom at checkout, so that wholesale orders are reserved with zero ambiguity."
           },
           {
             "id": "INT-08.02.01",
@@ -2490,6 +2767,78 @@
             "title": "Bruno API Automation",
             "status": "READY",
             "description": "Create automated Bruno test `tests/bruno/08-credit/repayment/` verifying headroom math and partial repayment handling."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-08.04",
+        "title": "Trade Credit Terms, Repayment Cycles & Default Recovery Policy",
+        "status": "READY",
+        "scope": "Contractual B2B trade credit terms, supplier-isolated credit limits, mandatory 7-day or 14-day repayment schedules, aging buckets (0-14d Current, 15-30d Grace, 30+d Default), automated ordering freezes, statement dispute logging, and default debt recovery protocols.",
+        "endpoints": "-",
+        "stories": [
+          {
+            "id": "US-08.04.01",
+            "type": "user_journey",
+            "title": "US-08.04.01",
+            "status": "READY",
+            "description": "As a village merchant purchasing wholesale goods on credit, I want transparent contractual terms showing my repayment due date (7 or 14 days), late payment grace periods, and supplier-specific isolation, so that my business cash flow is clearly planned."
+          },
+          {
+            "id": "US-08.04.02",
+            "type": "user_journey",
+            "title": "US-08.04.02",
+            "status": "READY",
+            "description": "As a supplier extending trade credit, I want automated ordering freezes triggered when a merchant balance enters the Default aging bucket (>30 days overdue), so that credit risk is strictly capped without manual daily monitoring."
+          },
+          {
+            "id": "INT-08.04.01",
+            "type": "integration",
+            "title": "Orders Service Order Gate Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to reject credit hold requests from `orders-service` (`:4002`) whenever the merchant's credit line with that supplier is in `grace_locked` or `defaulted` status."
+          },
+          {
+            "id": "INT-08.04.02",
+            "type": "integration",
+            "title": "Notification Dispatch Integration",
+            "status": "READY",
+            "description": "As the Credit Service, I need to call `social-connect-service` (`:4012`) to send WhatsApp payment reminders at T-2 days, T-day, and T+1 day of payment due dates."
+          },
+          {
+            "id": "PWA-08.04.01",
+            "type": "pwa",
+            "title": "Web PWA Credit Terms Viewer",
+            "status": "READY",
+            "description": "Implement Credit Terms & Agreement viewer modal on `web/m/` (`MER-07`) and Supplier Aging Risk table on `web/s/` (`SUP-10`)."
+          },
+          {
+            "id": "AND-08.04.01",
+            "type": "android",
+            "title": "Android Native Credit Agreement Acceptor",
+            "status": "READY",
+            "description": "Implement native Android clickwrap agreement and repayment schedule widget in `android/` (`MER-07`)."
+          },
+          {
+            "id": "IOS-08.04.01",
+            "type": "ios",
+            "title": "iOS Native Credit Agreement Acceptor",
+            "status": "READY",
+            "description": "Implement native iOS credit terms and statement viewer."
+          },
+          {
+            "id": "DOC-08.04.01",
+            "type": "documentation",
+            "title": "Merchant Trade Credit Policy",
+            "status": "READY",
+            "description": "Publish formal compliance document `docs/compliance/merchant_trade_credit_policy.md` defining credit agreement structures, interest-free terms, overdue penalties, and default dispute resolution."
+          },
+          {
+            "id": "OPS-08.04.01",
+            "type": "devops",
+            "title": "Aging Ledger Cron Job",
+            "status": "READY",
+            "description": "Configure Cloud Scheduler cron job invoking `/v1/credit/aging/evaluate` daily at `01:00:00 UTC`."
           }
         ]
       }
@@ -2772,84 +3121,119 @@
             "id": "US-10.01.01",
             "type": "user_journey",
             "title": "US-10.01.01",
-            "status": "READY",
+            "status": "DONE",
             "description": "As a platform support operator, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate."
           },
           {
             "id": "US-10.01.02",
             "type": "user_journey",
             "title": "US-10.01.02",
-            "status": "READY",
-            "description": "As a rural buyer, I want to select my village and nearest landmark easily, so that delivery vehicles can find my location without calling multiple times."
+            "status": "DONE",
+            "description": "As a rural buyer, I want to see if my village is currently serviceable based on having an active local kirana merchant, so that I only place orders when a local pickup hub exists."
+          },
+          {
+            "id": "US-10.01.03",
+            "type": "user_journey",
+            "title": "US-10.01.03",
+            "status": "DONE",
+            "description": "As the platform, I need to resolve a user's GPS coordinate to their pincode and eligible village using `ST_Within` + `ST_Distance` PostGIS queries and check active merchant presence, so that service availability is gated accurately in real time."
+          },
+          {
+            "id": "US-10.01.04",
+            "type": "user_journey",
+            "title": "US-10.01.04",
+            "status": "DONE",
+            "description": "As a Support operator, I want to add, edit, and deactivate pincodes (with their GeoJSON boundary polygons) from the Support console (`SPT-10`), so that service coverage zones can be expanded or corrected without a code deployment."
+          },
+          {
+            "id": "US-10.01.05",
+            "type": "user_journey",
+            "title": "US-10.01.05",
+            "status": "DONE",
+            "description": "As a Support operator, I want to manage the State and District master list directly from `SPT-10`, so that new administrative jurisdictions can be registered and geo-hierarchy stays authoritative."
           },
           {
             "id": "INT-10.01.01",
             "type": "integration",
             "title": "Google Maps Geocoding & Places API Integration",
-            "status": "IN_PROGRESS",
+            "status": "DONE",
             "description": "As the Config Service, I need to integrate with Google Maps Geocoding and Places API using GCP restricted server-side API keys."
           },
           {
             "id": "INT-10.01.02",
             "type": "integration",
             "title": "Firestore Periodic Sync Integration",
-            "status": "READY",
+            "status": "DONE",
             "description": "As the Config Service, I need to mirror all active villages and geo-hierarchies to Cloud Firestore collection `/Villages/{villageId}` every 2000ms."
           },
           {
             "id": "INT-10.01.03",
             "type": "integration",
             "title": "Gateway Cache Integration",
-            "status": "READY",
+            "status": "DONE",
             "description": "As the Config Service, I need to push cache invalidation signals to API Gateway when village boundaries or master configs are altered."
           },
           {
             "id": "PWA-10.01.01",
             "type": "pwa",
             "title": "Web PWA Geo-Hierarchy & Village Registry",
-            "status": "IN_PROGRESS",
+            "status": "DONE",
             "description": "Build spatial search and Google Maps autocomplete village picker on Support Web PWA (`web/x/` on `SPT-10`) and Supplier portal (`web/s/` on `SUP-03`)."
           },
           {
             "id": "AND-10.01.01",
             "type": "android",
             "title": "Android Native Location Picker & Offline Village Cache",
-            "status": "READY",
+            "status": "DONE",
             "description": "Build native Android location selector with Google Play Services Places SDK and offline SQLite village cache."
           },
           {
             "id": "IOS-10.01.01",
             "type": "ios",
             "title": "iOS Native Location Picker & Village Cache",
-            "status": "READY",
+            "status": "DONE",
             "description": "Build native iOS location selector with Apple Maps / Google Maps SDK and offline CoreData village catalog."
           },
           {
             "id": "TEST-10.01.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "READY",
+            "status": "DONE",
             "description": "Automated Playwright test verifying village search, Google Maps Places geocoding integration, and Firestore mirror sync on PWA against `config-service` on `logikchain-test`."
           },
           {
             "id": "OPS-10.01.01",
             "type": "devops",
             "title": "DevOps & PostGIS / Geo Indexing",
-            "status": "READY",
+            "status": "DONE",
             "description": "Configure PostgreSQL with spatial indices on `villages(latitude, longitude)` for high-speed radius and nearest-village queries."
+          },
+          {
+            "id": "OPS-10.01.02",
+            "type": "devops",
+            "title": "PostGIS Pincode Polygon Storage",
+            "status": "DONE",
+            "description": "Enable PostGIS extension on `config_db` and store pincode boundary polygons as a `GEOMETRY(MultiPolygon, 4326)` column in `config_db.pincodes`, seeded from GeoJSON source datasets (Survey of India / Data.gov.in). Add a GIST spatial index on the polygon column to support millisecond-latency `ST_Within` and `ST_Distance` queries for user location-to-village resolution."
+          },
+          {
+            "id": "OPS-10.01.03",
+            "type": "devops",
+            "title": "Pincode & Geo-Master CRUD Endpoints",
+            "status": "DONE",
+            "description": "Expose `POST /v1/config/pincodes` (`upsertPincode`), `DELETE /v1/config/pincodes/{id}`, `POST /v1/config/states` (`upsertState`), and `POST /v1/config/districts` (`upsertDistrict`) on `config-service`, secured to `role: support` claims only."
           },
           {
             "id": "DOC-10.01.01",
             "type": "documentation",
             "title": "Geographical Hierarchy Standards",
-            "status": "READY",
+            "status": "DONE",
             "description": "Document census village naming conventions, LGD (Local Government Directory) code mapping, and PIN code datasets."
           },
           {
             "id": "TEST-10.01.01",
             "type": "automation_test",
             "title": "Bruno API Automation",
-            "status": "READY",
+            "status": "DONE",
             "description": "Create automated Bruno test `tests/bruno/10-config/upsertVillage/` validating hierarchy constraints."
           }
         ]
@@ -2859,69 +3243,69 @@
         "title": "Subscription Plans & Tiered Tariffs",
         "status": "READY",
         "scope": "SaaS subscription plan definition, feature flag entitlements, multi-tier pricing, and platform service fees.",
-        "endpoints": "POST /v1/config/plans",
+        "endpoints": "GET /v1/config/plans",
         "stories": [
           {
             "id": "US-10.02.01",
             "type": "user_journey",
             "title": "US-10.02.01",
-            "status": "READY",
-            "description": "As a supplier selecting a subscription tier, I want clear visibility into vehicle quotas and platform fees, so that I can choose the appropriate plan for my fleet size."
+            "status": "DONE",
+            "description": "As a supplier selecting a subscription tier, I want clear visibility into vehicle quotas, monthly gig limits, platform fees, and whether Delegated Support Management is included, so that I can choose the appropriate plan for my delivery operations."
           },
           {
             "id": "INT-10.02.01",
             "type": "integration",
             "title": "Firestore Plan Sync Integration",
-            "status": "READY",
+            "status": "DONE",
             "description": "As the Config Service, I need to sync subscription plans and tariff catalogs to Firestore collection `/SubscriptionPlans/{id}`."
           },
           {
             "id": "PWA-10.02.01",
             "type": "pwa",
             "title": "Web PWA Subscription Plan Viewer & Management",
-            "status": "READY",
+            "status": "DONE",
             "description": "Build subscription tier comparison table and entitlement editor on Support Web PWA (`web/x/` on `SPT-11`) and Supplier account portal (`web/s/`)."
           },
           {
             "id": "AND-10.02.01",
             "type": "android",
             "title": "Android Native Subscription Status Card",
-            "status": "READY",
-            "description": "Build native Android subscription tier and quota utilization card for supplier admins."
+            "status": "DONE",
+            "description": "Build native Android subscription tier and quota utilization card for suppliers."
           },
           {
             "id": "IOS-10.02.01",
             "type": "ios",
             "title": "iOS Native Subscription Status Card",
-            "status": "READY",
-            "description": "Build native iOS subscription tier view for supplier admins."
+            "status": "DONE",
+            "description": "Build native iOS subscription tier view for suppliers."
           },
           {
             "id": "TEST-10.02.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "READY",
+            "status": "DONE",
             "description": "Automated Playwright test verifying plan creation, price calculation, and Firestore collection sync on PWA against `config-service` on `logikchain-test`."
           },
           {
             "id": "OPS-10.02.01",
             "type": "devops",
             "title": "DevOps & Database Schema",
-            "status": "READY",
+            "status": "DONE",
             "description": "Execute PostgreSQL migration for `config_db.subscription_plans` and establish seed data scripts."
           },
           {
             "id": "DOC-10.02.01",
             "type": "documentation",
             "title": "Tariff & Entitlement Specification",
-            "status": "READY",
+            "status": "DONE",
             "description": "Publish master tariff documentation and feature entitlement matrices."
           },
           {
             "id": "TEST-10.02.01",
             "type": "automation_test",
             "title": "Bruno API Automation",
-            "status": "READY",
+            "status": "DONE",
             "description": "Create automated Bruno test `tests/bruno/10-config/upsertPlan/` validating pricing rules."
           }
         ]
@@ -2937,64 +3321,245 @@
             "id": "US-10.03.01",
             "type": "user_journey",
             "title": "US-10.03.01",
-            "status": "READY",
+            "status": "DONE",
             "description": "As a compliance officer, I want tax rates and TDS rules centrally configured and versioned, so that regulatory updates can be applied platform-wide without code redeployment."
           },
           {
             "id": "INT-10.03.01",
             "type": "integration",
             "title": "Finance & Orders Service Ingestion Integration",
-            "status": "READY",
+            "status": "DONE",
             "description": "As the Config Service, I need to provide high-speed cached endpoints for `orders-service` and `finance-service` to query active tax rates."
           },
           {
             "id": "PWA-10.03.01",
             "type": "pwa",
             "title": "Web PWA Tax Profile Console",
-            "status": "READY",
+            "status": "DONE",
             "description": "Build master GST slab and TDS configuration UI on Support Web PWA (`web/x/` on `SPT-12`) with version history and scheduled effective date controls."
           },
           {
             "id": "AND-10.03.01",
             "type": "android",
             "title": "Android Native Tax Summary Viewer",
-            "status": "READY",
+            "status": "DONE",
             "description": "Build native Android tax rate summary viewer for billing operators."
           },
           {
             "id": "IOS-10.03.01",
             "type": "ios",
             "title": "iOS Native Tax Summary Viewer",
-            "status": "READY",
+            "status": "DONE",
             "description": "Build native iOS tax rate viewer for billing operators."
           },
           {
             "id": "TEST-10.03.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "READY",
+            "status": "DONE",
             "description": "Automated Playwright test verifying tax profile versioning, TDS rate validation, and cache synchronization on PWA against `config-service` on `logikchain-test`."
           },
           {
             "id": "OPS-10.03.01",
             "type": "devops",
             "title": "DevOps & Cache Warming",
-            "status": "READY",
+            "status": "DONE",
             "description": "Implement in-memory LRU cache in `config-service` for millisecond-latency tax profile retrieval."
           },
           {
             "id": "DOC-10.03.01",
             "type": "documentation",
             "title": "GST & TDS Rules Architecture",
-            "status": "READY",
+            "status": "DONE",
             "description": "Document HSN/SAC classification hierarchy and statutory compliance references."
           },
           {
             "id": "TEST-10.03.01",
             "type": "automation_test",
             "title": "Bruno API Automation",
-            "status": "READY",
+            "status": "DONE",
             "description": "Create automated Bruno test `tests/bruno/10-config/upsertTaxProfile/` validating percentage bounds."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-10.04",
+        "title": "Support-as-Supplier Proxy Data Management",
+        "status": "READY",
+        "scope": "Cross-cutting capability allowing Support operators to act on behalf of any supplier for data management tasks — gig scheduling, fleet management, route planning, member directory, and subscription administration — when a supplier outsources platform operations to the Support team.",
+        "endpoints": "All supplier-scoped endpoints accept",
+        "stories": [
+          {
+            "id": "US-10.04.01",
+            "type": "user_journey",
+            "title": "US-10.04.01",
+            "status": "DONE",
+            "description": "As a Support operator, I want to schedule gigs and plan routes on behalf of a supplier who granted me administrative access, so that suppliers who outsource operations do not face service disruption."
+          },
+          {
+            "id": "US-10.04.02",
+            "type": "user_journey",
+            "title": "US-10.04.02",
+            "status": "DONE",
+            "description": "As a Support operator, I want to manage a supplier's member directory and promote buyers to merchant or driver roles, so that the supplier's field network remains operational even when the supplier's admin is unavailable."
+          },
+          {
+            "id": "US-10.04.03",
+            "type": "user_journey",
+            "title": "US-10.04.03",
+            "status": "DONE",
+            "description": "As a platform compliance officer, I want every support-proxy action attributed to both the operator and the target supplier in the audit log, so that delegation accountability is maintained for regulatory review."
+          },
+          {
+            "id": "INT-10.04.01",
+            "type": "integration",
+            "title": "Governance Proxy Audit Integration",
+            "status": "DONE",
+            "description": "As every microservice, I need to forward proxy action metadata (operatorId, targetSupplierId) to `governance-service` (`:4011`) for immutable audit logging whenever `role: support` executes a supplier-scoped action."
+          },
+          {
+            "id": "INT-10.04.02",
+            "type": "integration",
+            "title": "API Gateway Context Validation Integration",
+            "status": "DONE",
+            "description": "As the API Gateway, I need to validate that Support proxy requests include a valid `X-Supplier-Context` header resolving to an active supplierId in `identity_db`, before forwarding to downstream services."
+          },
+          {
+            "id": "PWA-10.04.01",
+            "type": "pwa",
+            "title": "Web PWA Support Proxy Console",
+            "status": "DONE",
+            "description": "Build a supplier-context switcher on the Support Web PWA (`web/x/`) allowing operators to select a supplier and seamlessly access mirrored views of `SUP-02` (Gig Scheduler), `SUP-03` (Route Planner), `SUP-05` (Route Monitoring), and `SUP-08` (Member Directory) with proxy actions fully audit-logged."
+          },
+          {
+            "id": "TEST-10.04.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "DONE",
+            "description": "Automated Playwright test verifying that a Support operator can select a supplier context, schedule a gig, and that the audit log records the correct proxy identity chain on `logikchain-test`."
+          },
+          {
+            "id": "OPS-10.04.01",
+            "type": "devops",
+            "title": "API Gateway Supplier Context Middleware",
+            "status": "DONE",
+            "description": "Configure API Gateway middleware to parse and validate `X-Supplier-Context` header on all supplier-scoped endpoints when caller carries `role: support` claim. Reject requests without context with `422 SUPPLIER_CONTEXT_REQUIRED`."
+          },
+          {
+            "id": "DOC-10.04.01",
+            "type": "documentation",
+            "title": "Support Proxy Delegation Model",
+            "status": "DONE",
+            "description": "Document the Support-as-Supplier proxy authorization pattern, audit chain, per-endpoint scope boundaries, and `X-Supplier-Context` header specification in platform governance documentation."
+          },
+          {
+            "id": "TEST-10.04.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "DONE",
+            "description": "Create Bruno test collection `tests/bruno/10-config/supportProxy/` verifying proxy authorization grants, context-missing rejections, and audit log integrity."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-10.05",
+        "title": "Bulk Geo-Data Ingestion & Superimposition Engine",
+        "status": "READY",
+        "scope": "Bulk ingestion, polygon topological validation (`ST_MakeValid`), CSV post office + GeoJSON boundary superimposition, missing coordinate interpolation, and Firestore read-projection batch compilation.",
+        "endpoints": "POST /v1/config/geo/bulk-import",
+        "stories": [
+          {
+            "id": "US-10.05.01",
+            "type": "user_journey",
+            "title": "US-10.05.01",
+            "status": "DONE",
+            "description": "As a Support operator, I want to upload nationwide CSV and GeoJSON updates from the Support console and see an automated validation diff report, so that new postal circles, districts, and boundaries are imported without manual database scripting."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-10.06",
+        "title": "Merchant Village Delivery & Supplier PUDO Commission Tier Governance",
+        "status": "READY",
+        "scope": "Merchant village home delivery configuration (enable/disable, working days, delivery days, delivery charge), supplier tiered PUDO parcel handling commission configuration, Support proxy override, and notification dispatch.",
+        "endpoints": "-",
+        "stories": [
+          {
+            "id": "US-10.06.01",
+            "type": "user_journey",
+            "title": "US-10.06.01",
+            "status": "DONE",
+            "description": "As a village merchant, I want to configure whether I offer home delivery, set my delivery fee, and pick which days I deliver, so that I can earn extra income while controlling my delivery schedule."
+          },
+          {
+            "id": "US-10.06.02",
+            "type": "user_journey",
+            "title": "US-10.06.02",
+            "status": "DONE",
+            "description": "As a regional supplier, I want to set volume-tiered commissions for merchant parcel pickups on a dedicated dashboard, so that active kirana merchants are incentivized to handle higher package volumes."
+          },
+          {
+            "id": "US-10.06.03",
+            "type": "user_journey",
+            "title": "US-10.06.03",
+            "status": "DONE",
+            "description": "As a Support operator, I want to configure or adjust PUDO commission tiers on behalf of suppliers and send instant notifications to merchants and suppliers, so that policy disputes and commission updates are handled smoothly."
+          },
+          {
+            "id": "US-10.06.04",
+            "type": "user_journey",
+            "title": "US-10.06.04",
+            "status": "DONE",
+            "description": "As a village merchant and platform operator, I want a formal Village PUDO Hub Partner Agreement detailing package storage care obligations, 72-hour holding SLAs, lost parcel liability, and monthly commission settlement guarantees, so that our operational relationship is legally grounded."
+          },
+          {
+            "id": "INT-10.06.01",
+            "type": "integration",
+            "title": "Payouts Service Commission Lookup Integration",
+            "status": "DONE",
+            "description": "As the Payouts Service, I need to query `config-service` (`:4010`) to calculate monthly merchant PUDO commission earnings based on verified parcel collection volume."
+          },
+          {
+            "id": "INT-10.06.02",
+            "type": "integration",
+            "title": "Social Connect Notification Integration",
+            "status": "DONE",
+            "description": "As the Config Service, I need to call `social-connect-service` (`:4012`) to alert merchants when supplier commission tiers change."
+          },
+          {
+            "id": "PWA-10.06.01",
+            "type": "pwa",
+            "title": "Web PWA Management Screens",
+            "status": "DONE",
+            "description": "Build `MER-08` on Merchant PWA, `SUP-12` on Supplier PWA, and `SPT-13` on Support PWA with reactive Firestore sync."
+          },
+          {
+            "id": "AND-10.06.01",
+            "type": "android",
+            "title": "Android Native Delivery Settings",
+            "status": "DONE",
+            "description": "Build `MER-08` native Jetpack Compose screen in Android app for setting home delivery fees and active delivery days."
+          },
+          {
+            "id": "IOS-10.06.01",
+            "type": "ios",
+            "title": "iOS Native Delivery Settings",
+            "status": "DONE",
+            "description": "Build `MER-08` native SwiftUI view for village home delivery configuration."
+          },
+          {
+            "id": "DOC-10.06.01",
+            "type": "documentation",
+            "title": "Merchant PUDO Hub Partner Agreement & Commission Policy",
+            "status": "DONE",
+            "description": "Publish formal compliance document `docs/compliance/merchant_pudo_partner_agreement.md` defining package storage care standards, 72h holding SLAs, loss indemnification, and monthly tiered commission settlement schedules."
+          },
+          {
+            "id": "OPS-10.06.01",
+            "type": "devops",
+            "title": "PostgreSQL Migration",
+            "status": "DONE",
+            "description": "Create database tables `config_db.merchant_delivery_configs` and `config_db.pudo_commission_tiers` with GIST and foreign key constraints."
           }
         ]
       },
@@ -3002,92 +3567,192 @@
         "id": "FEAT-10.07",
         "title": "Master Route Corridors, Supplier Route Oversight & Unified Deletion Policy",
         "status": "READY",
-        "scope": "Support master corridors authoring, full Support visibility and editability of supplier custom routes, and unified route deletion protection blocked while referenced by active or scheduled gigs.",
-        "endpoints": "POST /v1/config/master-routes",
+        "scope": "- Authoring and maintaining standard master corridors (`supplierId: \"GLOBAL\"`, `isPreConfigured: true`) tied to Hubs/Districts with village stops, geocodes, and transit turnaround times.",
+        "endpoints": "-",
         "stories": [
           {
             "id": "US-10.07.01",
             "type": "user_journey",
             "title": "US-10.07.01",
-            "status": "READY",
+            "status": "DONE",
             "description": "As a platform support operator, I want to author and publish standard master corridors tied to regional hubs, so that newly onboarded suppliers can immediately dispatch gigs without manual route mapping."
           },
           {
             "id": "US-10.07.02",
             "type": "user_journey",
             "title": "US-10.07.02",
-            "status": "READY",
+            "status": "DONE",
             "description": "As a platform support operator, I want to view and edit custom routes created by any supplier from the Support console, so that I can assist suppliers with logistics troubleshooting, road adjustments, and coordinates corrections."
           },
           {
             "id": "US-10.07.03",
             "type": "user_journey",
             "title": "US-10.07.03",
-            "status": "READY",
+            "status": "DONE",
             "description": "As a platform compliance and operations officer, I want any route deletion (standard corridor or supplier custom route) blocked while referenced by active or scheduled gigs, so that drivers in the field never have their active delivery circuit deleted underneath them."
           },
           {
             "id": "INT-10.07.01",
             "type": "integration",
             "title": "Google Maps Distance Matrix Corridor Calculation",
-            "status": "READY",
+            "status": "DONE",
             "description": "As the Config Service, I need to integrate with Google Maps Distance Matrix to compute turnarounds and kilometer lengths for multi-stop master corridors."
           },
           {
             "id": "INT-10.07.02",
             "type": "integration",
             "title": "Gigs Service Active Reference Check Integration",
-            "status": "READY",
-            "description": "As the Config Service, I need to query gigs-service (:4003) prior to deleting any route to verify that zero active or scheduled gigs reference the route ID."
+            "status": "DONE",
+            "description": "As the Config Service, I need to query `gigs-service` (`:4003`) prior to deleting any route to verify that zero active or scheduled gigs reference the route ID."
           },
           {
             "id": "INT-10.07.03",
             "type": "integration",
             "title": "Firestore Real-Time Route Catalog Mirror",
-            "status": "READY",
-            "description": "As the Config Service, I need to mirror all active master corridors and supplier custom routes to Cloud Firestore collection /Routes/{routeId}."
+            "status": "DONE",
+            "description": "As the Config Service, I need to mirror all active master corridors and supplier custom routes to Cloud Firestore collection `/Routes/{routeId}`."
           },
           {
             "id": "PWA-10.07.01",
             "type": "pwa",
             "title": "Web PWA Support Route Console",
-            "status": "READY",
-            "description": "Build route management console on Support Web PWA (web/x/config/routes / SPT-09.4) with master corridor authoring, supplier filter dropdown to view/edit custom routes, and gig-dependency delete blocker."
+            "status": "DONE",
+            "description": "Build route management console on Support Web PWA (`web/x/config/routes` / `SPT-09.4`) with master corridor authoring, supplier filter dropdown to view/edit custom routes, and gig-dependency delete blocker."
           },
           {
             "id": "AND-10.07.01",
             "type": "android",
             "title": "Android Support Proxy Route Viewer",
-            "status": "READY",
+            "status": "DONE",
             "description": "Implement route list and stop inspector in Support Android app with supplier filter."
           },
           {
             "id": "IOS-10.07.01",
             "type": "ios",
             "title": "iOS Support Route Viewer",
-            "status": "READY",
+            "status": "DONE",
             "description": "Implement route list and stop sequence viewer in Support iOS app."
           },
           {
             "id": "DOC-10.07.01",
             "type": "documentation",
             "title": "Master Corridor Design & Deletion Policy SOP",
-            "status": "READY",
+            "status": "DONE",
             "description": "Publish operational guide documenting master corridor authoring standards, merchant density criteria, supplier custom route editing protocols, and the unified zero-referencing-gigs deletion rule."
           },
           {
             "id": "OPS-10.07.01",
             "type": "devops",
             "title": "PostgreSQL Master Routes Migration",
-            "status": "READY",
-            "description": "Create database table config_db.master_routes supporting route_type ('standard_corridor', 'supplier_custom'), supplier_id, cloned_from_route_id, and GIST/spatial indexes."
+            "status": "DONE",
+            "description": "Create database table `config_db.master_routes` supporting `route_type` ('standard_corridor', 'supplier_custom'), `supplier_id`, `cloned_from_route_id`, and GIST/spatial indexes."
           },
           {
             "id": "TEST-10.07.01",
             "type": "automation_test",
             "title": "Bruno API Automation",
-            "status": "READY",
-            "description": "Create Bruno automated test tests/bruno/10-config/routes/ verifying master route creation, cross-supplier editing by Support, and 409 rejection on deleting routes in use by gigs."
+            "status": "DONE",
+            "description": "Create Bruno automated test `tests/bruno/10-config/routes/` verifying master route creation, cross-supplier editing by Support, and 409 rejection on deleting routes in use by gigs."
+          }
+        ]
+      },
+      {
+        "id": "FEAT-10.08",
+        "title": "Support Bulk Ingestion & Selective Entity Loader for Supplier Ecosystem Data",
+        "status": "COMPLETED",
+        "scope": "- Platform Support operational console tooling for bulk onboarding legacy and active supplier operational datasets into Logikchain.",
+        "endpoints": "-",
+        "stories": [
+          {
+            "id": "US-10.08.01",
+            "type": "user_journey",
+            "title": "US-10.08.01",
+            "status": "DONE",
+            "description": "As a platform support operator, I want to bulk-upload supplier data with a 'Select All' toggle or granular checkboxes for Contact Details, Organization, GST, Food License, Inventory/Stock/Price, Sales History, Price History, Routes, Drivers, Trucks, and Merchants, so that I can ingest the complete operational ecosystem or update any individual entity modularly."
+          },
+          {
+            "id": "US-10.08.02",
+            "type": "user_journey",
+            "title": "US-10.08.02",
+            "status": "DONE",
+            "description": "As a platform support operator, I want a dry-run validation preview highlighting row-level schema errors, duplicate records, and missing foreign keys before committing, so that bad data is detected and corrected without corrupting production databases."
+          },
+          {
+            "id": "US-10.08.03",
+            "type": "user_journey",
+            "title": "US-10.08.03",
+            "status": "DONE",
+            "description": "As a platform support operator, I want real-time job progress tracking and a downloadable audit log showing rows succeeded versus rows failed, so that bulk data ingestion operations are fully auditable and transparent."
+          },
+          {
+            "id": "INT-10.08.01",
+            "type": "integration",
+            "title": "Cross-Service Ingestion Orchestration",
+            "status": "DONE",
+            "description": "As the Config Service, I need to orchestrate distributed entity ingestion by dispatching validated data subsets to `identity-service` (org, contacts, drivers, merchants), `pamphlet-service` (catalog, stock, prices), `gigs-service` (trucks, gigs), `orders-service` (sales history), and `credit-service` (merchant credit lines)."
+          },
+          {
+            "id": "INT-10.08.02",
+            "type": "integration",
+            "title": "Firebase Cloud Storage Document Staging",
+            "status": "DONE",
+            "description": "As the Config Service, I need to stage and persist uploaded supplier GST certificates, FSSAI licenses, and driver KYC documents to Firebase Cloud Storage path `/suppliers/{supplierId}/kyc/`."
+          },
+          {
+            "id": "INT-10.08.03",
+            "type": "integration",
+            "title": "Firestore Multi-Collection Mirror",
+            "status": "DONE",
+            "description": "As the Config Service, I need to mirror all newly created or updated entities across their respective Cloud Firestore collections (`/Suppliers`, `/Routes`, `/UserProfiles`, `/Vehicles`, `/MerchantProfiles`, `/Pamphlets`) upon job commit."
+          },
+          {
+            "id": "PWA-10.08.01",
+            "type": "pwa",
+            "title": "Web PWA Support Bulk Ingestion Console",
+            "status": "DONE",
+            "description": "Build screen `SPT-02.5` on the Support Web PWA (`web/x/config/supplier-ingestion`) featuring a supplier selector, master 'Select All' toggle, 11 individual entity checkboxes, drag-and-drop file uploader, validation diff table, real-time progress bar, and error CSV export."
+          },
+          {
+            "id": "AND-10.08.01",
+            "type": "android",
+            "title": "Android Support Read-Only Ingestion Job Monitor",
+            "status": "DONE",
+            "description": "Implement background job status and ingestion history viewer on the Support Android app."
+          },
+          {
+            "id": "IOS-10.08.01",
+            "type": "ios",
+            "title": "iOS Support Read-Only Ingestion Job Monitor",
+            "status": "DONE",
+            "description": "Implement background job status and ingestion history viewer on the Support iOS app."
+          },
+          {
+            "id": "TEST-10.08.PWA",
+            "type": "pwa_test",
+            "title": "PWA Cloud E2E Test on Test Project",
+            "status": "DONE",
+            "description": "Automated Playwright test validating the complete bulk loading workflow on PWA—including checkbox toggling, file upload, dry-run schema validation, and live commit verification against microservices on `logikchain-test`."
+          },
+          {
+            "id": "OPS-10.08.01",
+            "type": "devops",
+            "title": "PostgreSQL Staging Tables & Migration",
+            "status": "DONE",
+            "description": "Create database tables `config_db.supplier_ingestion_jobs` and `config_db.supplier_ingestion_staging` supporting chunked batch insertion, JSONB payloads, execution statuses, and rollback transaction isolation."
+          },
+          {
+            "id": "DOC-10.08.01",
+            "type": "documentation",
+            "title": "Supplier Bulk Ingestion Data Dictionary & SOP",
+            "status": "DONE",
+            "description": "Publish formal operational handbook `docs/operations/supplier_bulk_ingestion_guide.md` specifying exact CSV/XLSX schemas, mandatory versus optional columns, regex validation rules, and support troubleshooting runbooks for all 11 entities."
+          },
+          {
+            "id": "TEST-10.08.01",
+            "type": "automation_test",
+            "title": "Bruno API Automation",
+            "status": "DONE",
+            "description": "Create automated Bruno test suite `tests/bruno/10-config/bulkSupplierIngest/` covering template download, dry-run validation, selective checkbox ingestion, and audit log generation."
           }
         ]
       }
@@ -3197,6 +3862,13 @@
             "description": "As a fraud risk manager, I want high-velocity fraudulent transaction rings automatically intercepted in real time, so that platform financial losses and chargebacks are prevented."
           },
           {
+            "id": "US-11.02.02",
+            "type": "user_journey",
+            "title": "US-11.02.02",
+            "status": "READY",
+            "description": "As a platform compliance auditor, I want every API request executed by Support under `X-Supplier-Context` immutably logged with the operator ID, target supplier ID, grant ID, payload hash, and IP address, so that unauthorized actions or operational errors are undeniably attributable."
+          },
+          {
             "id": "INT-11.02.01",
             "type": "integration",
             "title": "Identity Service Account Freeze Integration",
@@ -3209,6 +3881,13 @@
             "title": "Payments Service Interceptor Integration",
             "status": "READY",
             "description": "As the Governance Service, I need to provide sub-50ms REST response times to `payments-service` during synchronous pre-transaction fraud scoring."
+          },
+          {
+            "id": "INT-11.02.03",
+            "type": "integration",
+            "title": "Support Proxy Audit Ingestion Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to receive and record proxy action telemetry in `governance_db.proxy_audit_trail` asynchronously from the API Gateway."
           },
           {
             "id": "PWA-11.02.01",
@@ -3339,6 +4018,85 @@
             "description": "Create automated Bruno test `tests/bruno/11-governance/trackDispute/` verifying SLA date calculations."
           }
         ]
+      },
+      {
+        "id": "FEAT-11.04",
+        "title": "Platform Terms of Service, Legal Policies & Versioned Consent Engine",
+        "status": "READY",
+        "scope": "Multi-role legal contracts (Buyer Terms of Sale, Merchant PUDO Agreement, Supplier Master Agreement, Driver Logistics Agreement), versioned clickwrap consent capture, cryptographic audit logging, mandatory policy update re-consent workflows, and statutory disclosures under the Consumer Protection (E-Commerce) Rules 2020.",
+        "endpoints": "-",
+        "stories": [
+          {
+            "id": "US-11.04.01",
+            "type": "user_journey",
+            "title": "US-11.04.01",
+            "status": "READY",
+            "description": "As an unauthenticated citizen or merchant signing up, I want clear, accessible clickwrap links to the platform Terms of Service, Privacy Policy, and Return Policy, so that I can provide informed consent before account creation."
+          },
+          {
+            "id": "US-11.04.02",
+            "type": "user_journey",
+            "title": "US-11.04.02",
+            "status": "READY",
+            "description": "As a compliance auditor, I want every user consent event recorded immutably with timestamp, user ID, IP address, client runtime, and policy version hash, so that legal enforceability is guaranteed in case of dispute."
+          },
+          {
+            "id": "US-11.04.03",
+            "type": "user_journey",
+            "title": "US-11.04.03",
+            "status": "READY",
+            "description": "As a platform administrator updating legal terms (e.g. delivery fee or liability revisions), I want existing users prompted with a re-consent modal on their next app launch, so that updated contractual obligations are legally binding."
+          },
+          {
+            "id": "INT-11.04.01",
+            "type": "integration",
+            "title": "Identity Service Consent Gate Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to provide a consent status check API to `identity-service` (`:4001`) during claims bootstrap to inject an `unacceptedPolicies` claim if legal terms are outstanding."
+          },
+          {
+            "id": "INT-11.04.02",
+            "type": "integration",
+            "title": "Firestore Policy Mirror Integration",
+            "status": "READY",
+            "description": "As the Governance Service, I need to mirror active policy texts and version hashes to Firestore collection `/PlatformPolicies/{id}` for zero-latency client reading."
+          },
+          {
+            "id": "PWA-11.04.01",
+            "type": "pwa",
+            "title": "Web PWA Clickwrap & Policy Modal",
+            "status": "READY",
+            "description": "Build responsive Policy Viewer Drawer and Clickwrap components on PWA across `web/b/`, `web/m/`, `web/s/`, and `web/x/`."
+          },
+          {
+            "id": "AND-11.04.01",
+            "type": "android",
+            "title": "Android Native Policy Sheet & Offline Reader",
+            "status": "READY",
+            "description": "Build Jetpack Compose legal terms viewer bottom-sheet in `android/` with cached policy markdown rendering."
+          },
+          {
+            "id": "IOS-11.04.01",
+            "type": "ios",
+            "title": "iOS Native Policy Sheet & Offline Reader",
+            "status": "READY",
+            "description": "Build SwiftUI legal terms sheet in `ios/` with markdown formatting."
+          },
+          {
+            "id": "DOC-11.04.01",
+            "type": "documentation",
+            "title": "Master Legal Policy Catalog",
+            "status": "READY",
+            "description": "Publish formal documents `docs/compliance/platform_terms_of_service.md`, `docs/compliance/privacy_data_protection_policy.md`, and `docs/compliance/intermediary_guidelines_disclosure.md`."
+          },
+          {
+            "id": "OPS-11.04.01",
+            "type": "devops",
+            "title": "PostgreSQL Migration",
+            "status": "READY",
+            "description": "Execute PostgreSQL migration for `governance_db.policy_consents` and `governance_db.platform_policies`."
+          }
+        ]
       }
     ]
   },
@@ -3386,6 +4144,13 @@
             "title": "Redis Rate Limiting Integration",
             "status": "READY",
             "description": "As the API Gateway, I need to integrate with a Redis cluster to enforce a strict 300 requests/minute sliding-window rate limit per client IP and user UID."
+          },
+          {
+            "id": "INT-12.01.03",
+            "type": "integration",
+            "title": "Gateway Proxy Grant Verification & Financial Mutation Blacklist",
+            "status": "READY",
+            "description": "As the API Gateway, I need to intercept all requests carrying `X-Supplier-Context`, verify the active delegated support grant and subscription entitlement against `identity-service`, and strictly reject any mutating requests targeting financial endpoints (`/v1/payouts/*`, `/v1/banking/*`) with `403 Forbidden` (`FINANCIAL_MUTATION_PROXY_BLOCKED`)."
           },
           {
             "id": "PWA-12.01.01",

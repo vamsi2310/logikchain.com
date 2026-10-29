@@ -28,6 +28,7 @@ app.use(
       'X-Client-Platform',
       'X-Client-Version',
       'X-Correlation-Id',
+      'X-Supplier-Context',
     ],
   })
 );
@@ -51,6 +52,41 @@ app.use((req, res, next) => {
   next();
 });
 
+// FEAT-10.04 Support-as-Supplier Proxy Middleware
+function supplierProxyMiddleware(req: any, res: any, next: any) {
+  const userRole = req.user?.role || req.headers['x-user-role'];
+  const supplierContext = req.headers['x-supplier-context'];
+  const path = req.originalUrl || req.url;
+
+  if (userRole === 'support') {
+    // Financial Exclusion Guardrail: strictly block payouts and banking mutations
+    if (
+      (path.includes('/payouts') || path.includes('/banking')) &&
+      ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)
+    ) {
+      return res.status(403).json({
+        error: {
+          code: 'FINANCIAL_MUTATION_PROXY_BLOCKED',
+          message: 'Support proxy is strictly prohibited from executing financial or payout mutations.',
+        },
+      });
+    }
+
+    // Require X-Supplier-Context for supplier-scoped actions (e.g., gigs, custom routes)
+    const supplierScopedPaths = ['/api/v1/gigs', '/v1/gigs'];
+    const isSupplierAction = supplierScopedPaths.some((p) => path.startsWith(p)) && ['POST', 'PUT', 'PATCH'].includes(req.method);
+    if (isSupplierAction && !supplierContext) {
+      return res.status(422).json({
+        error: {
+          code: 'SUPPLIER_CONTEXT_REQUIRED',
+          message: 'Support operator must specify an authorized X-Supplier-Context header.',
+        },
+      });
+    }
+  }
+  next();
+}
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -58,6 +94,82 @@ app.get('/health', (req, res) => {
     service: 'api-gateway',
     timestamp: new Date().toISOString(),
     supportedPlatforms: ['web', 'android', 'ios'],
+  });
+});
+
+// Comprehensive microservices cluster health probe for public status dashboard
+app.get('/health/services', async (req, res) => {
+  const serviceConfigs = [
+    { id: 'identity', epic: 'EPIC-01', name: 'Identity, Auth & Access', port: 4001, url: SERVICE_TARGETS.identity },
+    { id: 'orders', epic: 'EPIC-02', name: 'Orders & Commerce Fulfillment', port: 4002, url: SERVICE_TARGETS.orders },
+    { id: 'gigs', epic: 'EPIC-03', name: 'Gig Logistics & Fleet Dispatch', port: 4003, url: SERVICE_TARGETS.gigs },
+    { id: 'pamphlet', epic: 'EPIC-04', name: 'Pamphlet & Inventory Syndication', port: 4004, url: SERVICE_TARGETS.pamphlet },
+    { id: 'payments', epic: 'EPIC-05', name: 'Payments & UPI Collections', port: 4005, url: SERVICE_TARGETS.payments },
+    { id: 'payouts', epic: 'EPIC-06', name: 'Payouts & Disbursements', port: 4006, url: SERVICE_TARGETS.payouts },
+    { id: 'cash', epic: 'EPIC-07', name: 'Rural Cash & CoD Custody', port: 4007, url: SERVICE_TARGETS.cash },
+    { id: 'credit', epic: 'EPIC-08', name: 'Merchant Working Capital Credit', port: 4008, url: SERVICE_TARGETS.credit },
+    { id: 'finance', epic: 'EPIC-09', name: 'Financial Ledger & Reconciliation', port: 4009, url: SERVICE_TARGETS.finance },
+    { id: 'config', epic: 'EPIC-10', name: 'Platform Geo-Hierarchy & Config', port: 4010, url: SERVICE_TARGETS.config },
+    { id: 'governance', epic: 'EPIC-11', name: 'Platform Governance & AML', port: 4011, url: SERVICE_TARGETS.governance },
+    { id: 'gateway', epic: 'EPIC-12', name: 'API Gateway & Sync Engine', port: 8080, url: 'http://localhost:8080' },
+    { id: 'socialConnect', epic: 'EPIC-13', name: 'Social Connect & Notifications', port: 4012, url: SERVICE_TARGETS.socialConnect },
+  ];
+
+  const results = await Promise.all(
+    serviceConfigs.map(async (svc) => {
+      const startTime = Date.now();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const endpoint = svc.id === 'gateway' ? 'http://localhost:8080/health' : `${svc.url}/health`;
+        const resp = await fetch(endpoint, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const latencyMs = Date.now() - startTime;
+        let data: any = {};
+        try {
+          data = await resp.json();
+        } catch {
+          // non-json response
+        }
+
+        const isOk = resp.ok && (data.status === 'ok' || data.status === 'healthy');
+        const isDegraded = data.status === 'degraded' || (resp.status >= 500 && data.status);
+
+        return {
+          id: svc.id,
+          epic: svc.epic,
+          name: svc.name,
+          port: svc.port,
+          status: isOk ? 'healthy' : isDegraded ? 'degraded' : resp.ok ? 'healthy' : 'unreachable',
+          httpStatus: resp.status,
+          latencyMs,
+          lastChecked: new Date().toISOString(),
+          details: data.error || data.sync ? { sync: data.sync, error: data.error } : undefined,
+        };
+      } catch (err: any) {
+        return {
+          id: svc.id,
+          epic: svc.epic,
+          name: svc.name,
+          port: svc.port,
+          status: 'offline',
+          httpStatus: null,
+          latencyMs: Date.now() - startTime,
+          lastChecked: new Date().toISOString(),
+          error: err.name === 'AbortError' ? 'Connection timeout (>1200ms)' : 'Service offline or port closed',
+        };
+      }
+    })
+  );
+
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(200).json({
+    gateway: {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      platform: 'Logikchain Microservices Mesh',
+    },
+    services: results,
   });
 });
 
@@ -96,6 +208,9 @@ function proxyFor(targetUrl: string, pathPrefix: string) {
             proxyReq.setHeader('x-user-role', req.user.role);
           }
         }
+        if (req.headers['x-supplier-context']) {
+          proxyReq.setHeader('x-supplier-context', req.headers['x-supplier-context']);
+        }
       },
       error: (err, req, res: any) => {
         logger.error({ err: err.message, targetUrl }, 'Proxy forwarding error');
@@ -113,9 +228,10 @@ function proxyFor(targetUrl: string, pathPrefix: string) {
 app.use('/api/v1/payments/webhook', proxyFor(SERVICE_TARGETS.payments, '/api/v1/payments'));
 app.use('/api/v1/social/webhook', proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/social'));
 app.use('/api/v1/config/catalog', proxyFor(SERVICE_TARGETS.config, '/api/v1/config'));
+app.use('/v1/config/catalog', proxyFor(SERVICE_TARGETS.config, '/v1/config'));
 
-// Protected Routes: Require App Check (Web/Android/iOS) + Firebase Auth
-const protectedMiddlewares = [appCheckMiddleware, authMiddleware()];
+// Protected Routes: Require App Check (Web/Android/iOS) + Firebase Auth + Support Proxy Check
+const protectedMiddlewares = [appCheckMiddleware, authMiddleware(), supplierProxyMiddleware];
 
 app.use('/api/v1/identity', protectedMiddlewares, proxyFor(SERVICE_TARGETS.identity, '/api/v1/identity'));
 app.use('/api/v1/orders', protectedMiddlewares, proxyFor(SERVICE_TARGETS.orders, '/api/v1/orders'));

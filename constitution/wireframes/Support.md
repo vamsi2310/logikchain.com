@@ -46,6 +46,7 @@ The tabs are now **Ops · Users · Config · Search**. Hubs and villages move in
 | `SPT-02.2` | Suspend or restore user |
 | `SPT-02.3` | Create supplier |
 | `SPT-02.4` | Supplier detail |
+| `SPT-02.5` | Bulk supplier data ingestion |
 | `SPT-03` | Suspended orders queue |
 | `SPT-04` | Village requests queue |
 | `SPT-05` | Config home |
@@ -546,6 +547,83 @@ The FAB creates a supplier, the only account type Support provisions directly. B
 ```
 
 **Actions:** Assign calls `assignSubscription`. `INVALID_DISCOUNT` distinguishes the reasons rather than collapsing them: code not found, offer expired, role or country ineligible, plan mismatch, redemption cap reached, or already used by this subscriber. Check evaluates eligibility before assigning, so Support is never surprised at submit.
+
+### SPT-02.5 Bulk supplier data ingestion
+
+Allows Support to bulk-load supplier operational datasets: Organization, Contact, GST, Food License (FSSAI), Inventory/Stock/Price, Sales History, Price History, Routes, Drivers, Trucks, and Merchants. Supports master 'Select All' or granular checkboxes for any individual entity.
+
+**Data**
+
+| Shown | Source |
+| ----- | ------ |
+| Supplier Name & ID | `FS get /UserProfiles/{supplierId}` |
+| Entity Selection Checkboxes | `local` (Select All, Contact, Org, GST, FSSAI, Inventory, Price History, Sales History, Routes, Drivers, Trucks, Merchants) |
+| Staging Job Status & Progress | `REST GET /v1/config/suppliers/{supplierId}/bulk-import/jobs/{jobId}` |
+| Pre-flight Validation Summary | `REST POST /v1/config/suppliers/{supplierId}/bulk-import/validate` |
+
+| Control | On click |
+| ------- | -------- |
+| Select All toggle | `local` check/uncheck all 11 checkboxes |
+| Individual Checkboxes | `local` toggle entity scope |
+| Choose Dataset Files | `local file picker` (`.xlsx`, `.csv`, `.zip`) |
+| Download Templates | `REST GET /v1/config/suppliers/bulk-import/templates` |
+| Validate & Preview | `REST POST /v1/config/suppliers/{supplierId}/bulk-import/validate` |
+| Start Bulk Ingestion | `REST POST /v1/config/suppliers/{supplierId}/bulk-import` |
+| Export Error Report | `local CSV export` from job response |
+
+```
+┌──────────────────────────────────┐
+│  Support · Bulk Supplier Ingest  │
+├──────────────────────────────────┤
+│  Target Supplier                 │
+│  ┌────────────────────────────┐  │
+│  │ Prakasam Agro Wholesalers  │  │
+│  │ sup_ongole_01 · Active     │  │
+│  └────────────────────────────┘  │
+├──────────────────────────────────┤
+│  Dataset Entities to Ingest      │
+│  [x] Select All (11 entities)    │
+│                                  │
+│  Company & Compliance:           │
+│  (x) Organization details        │
+│  (x) Contact details             │
+│  (x) GST details (GSTIN)         │
+│  (x) Food License (FSSAI)        │
+│                                  │
+│  Catalog & Transactions:         │
+│  (x) Inventory, stock & prices   │
+│  (x) Price history log           │
+│  (x) Sales history (region/route)│
+│                                  │
+│  Logistics & Network:            │
+│  (x) Routes & delivery circuits  │
+│  (x) Drivers & driver profiles   │
+│  (x) Trucks & vehicle fleet      │
+│  (x) Merchants & profiles        │
+├──────────────────────────────────┤
+│  Upload Datasets (XLSX / CSV)    │
+│  ┌────────────────────────────┐  │
+│  │ 📄 prakasam_master_pack.xlsx│ │
+│  │ 11 sheets detected · 2.4 MB│  │
+│  │ [ Change File ]            │  │
+│  └────────────────────────────┘  │
+│  [ ⬇ Download Templates ]        │
+├──────────────────────────────────┤
+│  Validation Preview              │
+│  ┌────────────────────────────┐  │
+│  │ Status: READY FOR IMPORT   │  │
+│  │ • 15 Drivers · 10 Trucks   │  │
+│  │ • 142 SKUs · ₹18.4L Stock  │  │
+│  │ • 4 Routes · 28 Villages   │  │
+│  │ • 3,840 Sales History rows │  │
+│  │ • 0 Critical schema errors │  │
+│  └────────────────────────────┘  │
+├──────────────────────────────────┤
+│  [ Validate ] [ Start Ingestion ]│
+└──────────────────────────────────┘
+```
+
+**Actions:** Validate runs server-side schema, duplicate, and foreign key verification without modifying databases. Start Ingestion triggers an asynchronous background job with transactional rollback per selected entity. Real-time progress is streamed via Firestore.
 
 ### SPT-03 Suspended orders queue
 

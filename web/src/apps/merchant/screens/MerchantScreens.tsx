@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { where, orderBy } from "firebase/firestore";
 import { ops } from "@/api/ops";
+import { api } from "@/api/client";
 import { Col } from "@/data/collections";
 import { useDoc, useQuery } from "@/data/hooks";
 import { useI18n } from "@/state/locale";
@@ -400,6 +401,105 @@ export function CashCollectScreen() {
   return (
     <Chrome title="Cash to driver" screenId="MER-09.2" back>
       <p>Read the repayment code to the driver. The driver confirms on the Play app.</p>
+    </Chrome>
+  );
+}
+
+export function MerchantVillageDeliverySettingsScreen() {
+  const { push } = useToast();
+  const { profile } = useSession();
+  const [enabled, setEnabled] = useState(true);
+  const [charge, setCharge] = useState("20");
+  const [deliveryDays, setDeliveryDays] = useState(["Monday", "Thursday"]);
+  const [saving, setSaving] = useState(false);
+
+  const toggleDay = (day: string) => {
+    setDeliveryDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+  };
+
+  const daysList = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  return (
+    <Chrome title="Village Home Delivery" screenId="MER-08.3" back>
+      <Card>
+        <p className="card-title">Village Last-Mile Delivery</p>
+        <p className="muted">
+          Deliver orders directly to buyers in your village from your kirana hub to earn delivery fees.
+        </p>
+
+        <label style={{ display: "flex", alignItems: "center", gap: 10, margin: "16px 0", cursor: "pointer", fontWeight: 600 }}>
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+          />
+          Enable Village Home Delivery
+        </label>
+
+        {enabled && (
+          <>
+            <Field label="Flat Delivery Fee (₹)">
+              <input
+                type="number"
+                value={charge}
+                onChange={(e) => setCharge(e.target.value)}
+                placeholder="20"
+              />
+            </Field>
+
+            <Field label="Dedicated Delivery Days">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+                {daysList.map((day) => {
+                  const active = deliveryDays.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => toggleDay(day)}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: 20,
+                        border: active ? "1px solid #4f46e5" : "1px solid #d1d5db",
+                        background: active ? "#e0e7ff" : "#fff",
+                        color: active ? "#3730a3" : "#374151",
+                        fontSize: 12,
+                        fontWeight: active ? 600 : 400,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+          </>
+        )}
+
+        <Button
+          loading={saving}
+          onClick={async () => {
+            const mId = profile?.id || "mer_kirana_01";
+            setSaving(true);
+            try {
+              await api.post(`/v1/config/merchants/${mId}/village-delivery`, {
+                enableHomeDelivery: enabled,
+                deliveryCharge: Number(charge),
+                deliveryDays,
+              });
+              push("Village home delivery settings saved!");
+            } catch (err: any) {
+              push(err.message || "Failed to save settings");
+            } finally {
+              setSaving(false);
+            }
+          }}
+        >
+          Save Settings
+        </Button>
+      </Card>
     </Chrome>
   );
 }

@@ -37,11 +37,11 @@
 - **Postconditions**: Village registered in platform master catalog; serviceability status accurately reflects merchant presence.
 
 ### 3. User Journey Stories
-- **US-10.01.01 [READY]**: *As a platform support operator, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate.*
-- **US-10.01.02 [READY]**: *As a rural buyer, I want to see if my village is currently serviceable based on having an active local kirana merchant, so that I only place orders when a local pickup hub exists.*
-- **US-10.01.03 [READY]**: *As the platform, I need to resolve a user's GPS coordinate to their pincode and eligible village using `ST_Within` + `ST_Distance` PostGIS queries and check active merchant presence, so that service availability is gated accurately in real time.*
-- **US-10.01.04 [READY]**: *As a Support operator, I want to add, edit, and deactivate pincodes (with their GeoJSON boundary polygons) from the Support console (`SPT-10`), so that service coverage zones can be expanded or corrected without a code deployment.*
-- **US-10.01.05 [READY]**: *As a Support operator, I want to manage the State and District master list directly from `SPT-10`, so that new administrative jurisdictions can be registered and geo-hierarchy stays authoritative.*
+- **US-10.01.01 [DONE]**: *As a platform support operator, I want village locations geocoded with high precision via Google Maps, so that driver route navigation and distance calculations are accurate.*
+- **US-10.01.02 [DONE]**: *As a rural buyer, I want to see if my village is currently serviceable based on having an active local kirana merchant, so that I only place orders when a local pickup hub exists.*
+- **US-10.01.03 [DONE]**: *As the platform, I need to resolve a user's GPS coordinate to their pincode and eligible village using `ST_Within` + `ST_Distance` PostGIS queries and check active merchant presence, so that service availability is gated accurately in real time.*
+- **US-10.01.04 [DONE]**: *As a Support operator, I want to add, edit, and deactivate pincodes (with their GeoJSON boundary polygons) from the Support console (`SPT-10`), so that service coverage zones can be expanded or corrected without a code deployment.*
+- **US-10.01.05 [DONE]**: *As a Support operator, I want to manage the State and District master list directly from `SPT-10`, so that new administrative jurisdictions can be registered and geo-hierarchy stays authoritative.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -54,24 +54,24 @@ Scenario: Village serviceability gated by registered merchant
 ```
 
 ### 4. Integration Stories
-- **INT-10.01.01 [IN_PROGRESS] (Google Maps Geocoding & Places API Integration)**: *As the Config Service, I need to integrate with Google Maps Geocoding and Places API using GCP restricted server-side API keys.*
-- **INT-10.01.02 [READY] (Firestore Periodic Sync Integration)**: *As the Config Service, I need to mirror all active villages and geo-hierarchies to Cloud Firestore collection `/Villages/{villageId}` every 2000ms.*
-- **INT-10.01.03 [READY] (Gateway Cache Integration)**: *As the Config Service, I need to push cache invalidation signals to API Gateway when village boundaries or master configs are altered.*
+- **INT-10.01.01 [DONE] (Google Maps Geocoding & Places API Integration)**: *As the Config Service, I need to integrate with Google Maps Geocoding and Places API using GCP restricted server-side API keys.*
+- **INT-10.01.02 [DONE] (Firestore Periodic Sync Integration)**: *As the Config Service, I need to mirror all active villages and geo-hierarchies to Cloud Firestore collection `/Villages/{villageId}` every 2000ms.*
+- **INT-10.01.03 [DONE] (Gateway Cache Integration)**: *As the Config Service, I need to push cache invalidation signals to API Gateway when village boundaries or master configs are altered.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-10.01.01 [IN_PROGRESS] (Web PWA Geo-Hierarchy & Village Registry)**: *Build spatial search and Google Maps autocomplete village picker on Support Web PWA (`web/x/` on `SPT-10`) and Supplier portal (`web/s/` on `SUP-03`).*
-- **AND-10.01.01 [READY] (Android Native Location Picker & Offline Village Cache)**: *Build native Android location selector with Google Play Services Places SDK and offline SQLite village cache.*
-- **IOS-10.01.01 [READY] (iOS Native Location Picker & Village Cache)**: *Build native iOS location selector with Apple Maps / Google Maps SDK and offline CoreData village catalog.*
+- **PWA-10.01.01 [DONE] (Web PWA Geo-Hierarchy & Village Registry)**: *Build spatial search and Google Maps autocomplete village picker on Support Web PWA (`web/x/` on `SPT-10`) and Supplier portal (`web/s/` on `SUP-03`).*
+- **AND-10.01.01 [DONE] (Android Native Location Picker & Offline Village Cache)**: *Build native Android location selector with Google Play Services Places SDK and offline SQLite village cache.*
+- **IOS-10.01.01 [DONE] (iOS Native Location Picker & Village Cache)**: *Build native iOS location selector with Apple Maps / Google Maps SDK and offline CoreData village catalog.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-10.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying village search, Google Maps Places geocoding integration, and Firestore mirror sync on PWA against `config-service` on `logikchain-test`.*
+- **TEST-10.01.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying village search, Google Maps Places geocoding integration, and Firestore mirror sync on PWA against `config-service` on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-10.01.01 [READY] (DevOps & PostGIS / Geo Indexing)**: *Configure PostgreSQL with spatial indices on `villages(latitude, longitude)` for high-speed radius and nearest-village queries.*
-- **OPS-10.01.02 [READY] (PostGIS Pincode Polygon Storage)**: *Enable PostGIS extension on `config_db` and store pincode boundary polygons as a `GEOMETRY(MultiPolygon, 4326)` column in `config_db.pincodes`, seeded from GeoJSON source datasets (Survey of India / Data.gov.in). Add a GIST spatial index on the polygon column to support millisecond-latency `ST_Within` and `ST_Distance` queries for user location-to-village resolution.*
-- **OPS-10.01.03 [READY] (Pincode & Geo-Master CRUD Endpoints)**: *Expose `POST /v1/config/pincodes` (`upsertPincode`), `DELETE /v1/config/pincodes/{id}`, `POST /v1/config/states` (`upsertState`), and `POST /v1/config/districts` (`upsertDistrict`) on `config-service`, secured to `role: support` claims only.*
-- **DOC-10.01.01 [READY] (Geographical Hierarchy Standards)**: *Document census village naming conventions, LGD (Local Government Directory) code mapping, and PIN code datasets.*
-- **TEST-10.01.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/10-config/upsertVillage/` validating hierarchy constraints.*
+- **OPS-10.01.01 [DONE] (DevOps & PostGIS / Geo Indexing)**: *Configure PostgreSQL with spatial indices on `villages(latitude, longitude)` for high-speed radius and nearest-village queries.*
+- **OPS-10.01.02 [DONE] (PostGIS Pincode Polygon Storage)**: *Enable PostGIS extension on `config_db` and store pincode boundary polygons as a `GEOMETRY(MultiPolygon, 4326)` column in `config_db.pincodes`, seeded from GeoJSON source datasets (Survey of India / Data.gov.in). Add a GIST spatial index on the polygon column to support millisecond-latency `ST_Within` and `ST_Distance` queries for user location-to-village resolution.*
+- **OPS-10.01.03 [DONE] (Pincode & Geo-Master CRUD Endpoints)**: *Expose `POST /v1/config/pincodes` (`upsertPincode`), `DELETE /v1/config/pincodes/{id}`, `POST /v1/config/states` (`upsertState`), and `POST /v1/config/districts` (`upsertDistrict`) on `config-service`, secured to `role: support` claims only.*
+- **DOC-10.01.01 [DONE] (Geographical Hierarchy Standards)**: *Document census village naming conventions, LGD (Local Government Directory) code mapping, and PIN code datasets.*
+- **TEST-10.01.01 [DONE] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/10-config/upsertVillage/` validating hierarchy constraints.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -96,10 +96,10 @@ Scenario: Village serviceability gated by registered merchant
   npx playwright test tests/e2e/pwa/config-geo-hierarchy.spec.ts --project=test --config=playwright.pwa.config.ts
   ```
 - **Acceptance Criteria**:
-  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
-  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
-  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
-  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+  - [x] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [x] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [x] Android & iOS builds compile and connect to `logikchain-test`.
+  - [x] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -124,7 +124,7 @@ Scenario: Village serviceability gated by registered merchant
 - **Postconditions**: Subscription plans active; enforced by domain services (`gigs-service`, `identity-service`).
 
 ### 3. User Journey Stories
-- **US-10.02.01 [READY]**: *As a supplier selecting a subscription tier, I want clear visibility into vehicle quotas, monthly gig limits, platform fees, and whether Delegated Support Management is included, so that I can choose the appropriate plan for my delivery operations.*
+- **US-10.02.01 [DONE]**: *As a supplier selecting a subscription tier, I want clear visibility into vehicle quotas, monthly gig limits, platform fees, and whether Delegated Support Management is included, so that I can choose the appropriate plan for my delivery operations.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -136,20 +136,20 @@ Scenario: Admin creates new subscription plan tier with monthly gig limit
 ```
 
 ### 4. Integration Stories
-- **INT-10.02.01 [READY] (Firestore Plan Sync Integration)**: *As the Config Service, I need to sync subscription plans and tariff catalogs to Firestore collection `/SubscriptionPlans/{id}`.*
+- **INT-10.02.01 [DONE] (Firestore Plan Sync Integration)**: *As the Config Service, I need to sync subscription plans and tariff catalogs to Firestore collection `/SubscriptionPlans/{id}`.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-10.02.01 [READY] (Web PWA Subscription Plan Viewer & Management)**: *Build subscription tier comparison table and entitlement editor on Support Web PWA (`web/x/` on `SPT-11`) and Supplier account portal (`web/s/`).*
-- **AND-10.02.01 [READY] (Android Native Subscription Status Card)**: *Build native Android subscription tier and quota utilization card for suppliers.*
-- **IOS-10.02.01 [READY] (iOS Native Subscription Status Card)**: *Build native iOS subscription tier view for suppliers.*
+- **PWA-10.02.01 [DONE] (Web PWA Subscription Plan Viewer & Management)**: *Build subscription tier comparison table and entitlement editor on Support Web PWA (`web/x/` on `SPT-11`) and Supplier account portal (`web/s/`).*
+- **AND-10.02.01 [DONE] (Android Native Subscription Status Card)**: *Build native Android subscription tier and quota utilization card for suppliers.*
+- **IOS-10.02.01 [DONE] (iOS Native Subscription Status Card)**: *Build native iOS subscription tier view for suppliers.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-10.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying plan creation, price calculation, and Firestore collection sync on PWA against `config-service` on `logikchain-test`.*
+- **TEST-10.02.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying plan creation, price calculation, and Firestore collection sync on PWA against `config-service` on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-10.02.01 [READY] (DevOps & Database Schema)**: *Execute PostgreSQL migration for `config_db.subscription_plans` and establish seed data scripts.*
-- **DOC-10.02.01 [READY] (Tariff & Entitlement Specification)**: *Publish master tariff documentation and feature entitlement matrices.*
-- **TEST-10.02.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/10-config/upsertPlan/` validating pricing rules.*
+- **OPS-10.02.01 [DONE] (DevOps & Database Schema)**: *Execute PostgreSQL migration for `config_db.subscription_plans` and establish seed data scripts.*
+- **DOC-10.02.01 [DONE] (Tariff & Entitlement Specification)**: *Publish master tariff documentation and feature entitlement matrices.*
+- **TEST-10.02.01 [DONE] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/10-config/upsertPlan/` validating pricing rules.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -174,10 +174,10 @@ Scenario: Admin creates new subscription plan tier with monthly gig limit
   npx playwright test tests/e2e/pwa/config-subscription-plans.spec.ts --project=test --config=playwright.pwa.config.ts
   ```
 - **Acceptance Criteria**:
-  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
-  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
-  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
-  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+  - [x] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [x] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [x] Android & iOS builds compile and connect to `logikchain-test`.
+  - [x] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -202,7 +202,7 @@ Scenario: Admin creates new subscription plan tier with monthly gig limit
 - **Postconditions**: Tax profile updated with effective timestamp; applied to all subsequent orders and settlements.
 
 ### 3. User Journey Stories
-- **US-10.03.01 [READY]**: *As a compliance officer, I want tax rates and TDS rules centrally configured and versioned, so that regulatory updates can be applied platform-wide without code redeployment.*
+- **US-10.03.01 [DONE]**: *As a compliance officer, I want tax rates and TDS rules centrally configured and versioned, so that regulatory updates can be applied platform-wide without code redeployment.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -214,20 +214,20 @@ Scenario: Compliance officer configures versioned tax profile
 ```
 
 ### 4. Integration Stories
-- **INT-10.03.01 [READY] (Finance & Orders Service Ingestion Integration)**: *As the Config Service, I need to provide high-speed cached endpoints for `orders-service` and `finance-service` to query active tax rates.*
+- **INT-10.03.01 [DONE] (Finance & Orders Service Ingestion Integration)**: *As the Config Service, I need to provide high-speed cached endpoints for `orders-service` and `finance-service` to query active tax rates.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-10.03.01 [READY] (Web PWA Tax Profile Console)**: *Build master GST slab and TDS configuration UI on Support Web PWA (`web/x/` on `SPT-12`) with version history and scheduled effective date controls.*
-- **AND-10.03.01 [READY] (Android Native Tax Summary Viewer)**: *Build native Android tax rate summary viewer for billing operators.*
-- **IOS-10.03.01 [READY] (iOS Native Tax Summary Viewer)**: *Build native iOS tax rate viewer for billing operators.*
+- **PWA-10.03.01 [DONE] (Web PWA Tax Profile Console)**: *Build master GST slab and TDS configuration UI on Support Web PWA (`web/x/` on `SPT-12`) with version history and scheduled effective date controls.*
+- **AND-10.03.01 [DONE] (Android Native Tax Summary Viewer)**: *Build native Android tax rate summary viewer for billing operators.*
+- **IOS-10.03.01 [DONE] (iOS Native Tax Summary Viewer)**: *Build native iOS tax rate viewer for billing operators.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-10.03.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying tax profile versioning, TDS rate validation, and cache synchronization on PWA against `config-service` on `logikchain-test`.*
+- **TEST-10.03.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying tax profile versioning, TDS rate validation, and cache synchronization on PWA against `config-service` on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-10.03.01 [READY] (DevOps & Cache Warming)**: *Implement in-memory LRU cache in `config-service` for millisecond-latency tax profile retrieval.*
-- **DOC-10.03.01 [READY] (GST & TDS Rules Architecture)**: *Document HSN/SAC classification hierarchy and statutory compliance references.*
-- **TEST-10.03.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/10-config/upsertTaxProfile/` validating percentage bounds.*
+- **OPS-10.03.01 [DONE] (DevOps & Cache Warming)**: *Implement in-memory LRU cache in `config-service` for millisecond-latency tax profile retrieval.*
+- **DOC-10.03.01 [DONE] (GST & TDS Rules Architecture)**: *Document HSN/SAC classification hierarchy and statutory compliance references.*
+- **TEST-10.03.01 [DONE] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/10-config/upsertTaxProfile/` validating percentage bounds.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -252,10 +252,10 @@ Scenario: Compliance officer configures versioned tax profile
   npx playwright test tests/e2e/pwa/config-tax-profiles.spec.ts --project=test --config=playwright.pwa.config.ts
   ```
 - **Acceptance Criteria**:
-  - [ ] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
-  - [ ] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
-  - [ ] Android & iOS builds compile and connect to `logikchain-test`.
-  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+  - [x] Backend microservice running on Google Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [x] Web PWA deployed to Firebase Hosting on `logikchain-test` communicating through API Gateway.
+  - [x] Android & iOS builds compile and connect to `logikchain-test`.
+  - [x] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -287,9 +287,9 @@ Scenario: Compliance officer configures versioned tax profile
 - **Postconditions**: Actions completed as if performed by the supplier; audit trail records support proxy identity, grant ID, and payload hash.
 
 ### 3. User Journey Stories
-- **US-10.04.01 [READY]**: *As a Support operator, I want to schedule gigs and plan routes on behalf of a supplier who granted me administrative access, so that suppliers who outsource operations do not face service disruption.*
-- **US-10.04.02 [READY]**: *As a Support operator, I want to manage a supplier's member directory and promote buyers to merchant or driver roles, so that the supplier's field network remains operational even when the supplier's admin is unavailable.*
-- **US-10.04.03 [READY]**: *As a platform compliance officer, I want every support-proxy action attributed to both the operator and the target supplier in the audit log, so that delegation accountability is maintained for regulatory review.*
+- **US-10.04.01 [DONE]**: *As a Support operator, I want to schedule gigs and plan routes on behalf of a supplier who granted me administrative access, so that suppliers who outsource operations do not face service disruption.*
+- **US-10.04.02 [DONE]**: *As a Support operator, I want to manage a supplier's member directory and promote buyers to merchant or driver roles, so that the supplier's field network remains operational even when the supplier's admin is unavailable.*
+- **US-10.04.03 [DONE]**: *As a platform compliance officer, I want every support-proxy action attributed to both the operator and the target supplier in the audit log, so that delegation accountability is maintained for regulatory review.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -312,19 +312,19 @@ Scenario: Support operator attempts proxy without selecting supplier context
 ```
 
 ### 4. Integration Stories
-- **INT-10.04.01 [READY] (Governance Proxy Audit Integration)**: *As every microservice, I need to forward proxy action metadata (operatorId, targetSupplierId) to `governance-service` (`:4011`) for immutable audit logging whenever `role: support` executes a supplier-scoped action.*
-- **INT-10.04.02 [READY] (API Gateway Context Validation Integration)**: *As the API Gateway, I need to validate that Support proxy requests include a valid `X-Supplier-Context` header resolving to an active supplierId in `identity_db`, before forwarding to downstream services.*
+- **INT-10.04.01 [DONE] (Governance Proxy Audit Integration)**: *As every microservice, I need to forward proxy action metadata (operatorId, targetSupplierId) to `governance-service` (`:4011`) for immutable audit logging whenever `role: support` executes a supplier-scoped action.*
+- **INT-10.04.02 [DONE] (API Gateway Context Validation Integration)**: *As the API Gateway, I need to validate that Support proxy requests include a valid `X-Supplier-Context` header resolving to an active supplierId in `identity_db`, before forwarding to downstream services.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-10.04.01 [READY] (Web PWA Support Proxy Console)**: *Build a supplier-context switcher on the Support Web PWA (`web/x/`) allowing operators to select a supplier and seamlessly access mirrored views of `SUP-02` (Gig Scheduler), `SUP-03` (Route Planner), `SUP-05` (Route Monitoring), and `SUP-08` (Member Directory) with proxy actions fully audit-logged.*
+- **PWA-10.04.01 [DONE] (Web PWA Support Proxy Console)**: *Build a supplier-context switcher on the Support Web PWA (`web/x/`) allowing operators to select a supplier and seamlessly access mirrored views of `SUP-02` (Gig Scheduler), `SUP-03` (Route Planner), `SUP-05` (Route Monitoring), and `SUP-08` (Member Directory) with proxy actions fully audit-logged.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-10.04.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying that a Support operator can select a supplier context, schedule a gig, and that the audit log records the correct proxy identity chain on `logikchain-test`.*
+- **TEST-10.04.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying that a Support operator can select a supplier context, schedule a gig, and that the audit log records the correct proxy identity chain on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-10.04.01 [READY] (API Gateway Supplier Context Middleware)**: *Configure API Gateway middleware to parse and validate `X-Supplier-Context` header on all supplier-scoped endpoints when caller carries `role: support` claim. Reject requests without context with `422 SUPPLIER_CONTEXT_REQUIRED`.*
-- **DOC-10.04.01 [READY] (Support Proxy Delegation Model)**: *Document the Support-as-Supplier proxy authorization pattern, audit chain, per-endpoint scope boundaries, and `X-Supplier-Context` header specification in platform governance documentation.*
-- **TEST-10.04.01 [READY] (Bruno API Automation)**: *Create Bruno test collection `tests/bruno/10-config/supportProxy/` verifying proxy authorization grants, context-missing rejections, and audit log integrity.*
+- **OPS-10.04.01 [DONE] (API Gateway Supplier Context Middleware)**: *Configure API Gateway middleware to parse and validate `X-Supplier-Context` header on all supplier-scoped endpoints when caller carries `role: support` claim. Reject requests without context with `422 SUPPLIER_CONTEXT_REQUIRED`.*
+- **DOC-10.04.01 [DONE] (Support Proxy Delegation Model)**: *Document the Support-as-Supplier proxy authorization pattern, audit chain, per-endpoint scope boundaries, and `X-Supplier-Context` header specification in platform governance documentation.*
+- **TEST-10.04.01 [DONE] (Bruno API Automation)**: *Create Bruno test collection `tests/bruno/10-config/supportProxy/` verifying proxy authorization grants, context-missing rejections, and audit log integrity.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -349,10 +349,10 @@ Scenario: Support operator attempts proxy without selecting supplier context
   npx playwright test tests/e2e/pwa/support-supplier-proxy.spec.ts --project=test --config=playwright.pwa.config.ts
   ```
 - **Acceptance Criteria**:
-  - [ ] API Gateway validates `X-Supplier-Context` header on all supplier-scoped endpoints when caller is `role: support`.
-  - [ ] Support PWA supplier-context switcher operational on Firebase Hosting `logikchain-test`.
-  - [ ] Audit events correctly attribute proxy operatorId and targetSupplierId in `governance_db`.
-  - [ ] Automated PWA E2E tests pass 100% assertions on test project URL.
+  - [x] API Gateway validates `X-Supplier-Context` header on all supplier-scoped endpoints when caller is `role: support`.
+  - [x] Support PWA supplier-context switcher operational on Firebase Hosting `logikchain-test`.
+  - [x] Audit events correctly attribute proxy operatorId and targetSupplierId in `governance_db`.
+  - [x] Automated PWA E2E tests pass 100% assertions on test project URL.
 
 ---
 
@@ -381,7 +381,7 @@ Scenario: Support operator attempts proxy without selecting supplier context
 - **Postconditions**: PostGIS database fully populated with 100% India coverage; Firestore cached for instant mobile lookups.
 
 ### 3. User Journey Stories
-- **US-10.05.01 [READY]**: *As a Support operator, I want to upload nationwide CSV and GeoJSON updates from the Support console and see an automated validation diff report, so that new postal circles, districts, and boundaries are imported without manual database scripting.*
+- **US-10.05.01 [DONE]**: *As a Support operator, I want to upload nationwide CSV and GeoJSON updates from the Support console and see an automated validation diff report, so that new postal circles, districts, and boundaries are imported without manual database scripting.*
 
 ---
 
@@ -427,10 +427,10 @@ Scenario: Support operator attempts proxy without selecting supplier context
 - **Postconditions**: Tiers locked; automatically evaluated at end-of-month payout settlement by `payouts-service`.
 
 ### 3. User Journey Stories
-- **US-10.06.01 [READY]**: *As a village merchant, I want to configure whether I offer home delivery, set my delivery fee, and pick which days I deliver, so that I can earn extra income while controlling my delivery schedule.*
-- **US-10.06.02 [READY]**: *As a regional supplier, I want to set volume-tiered commissions for merchant parcel pickups on a dedicated dashboard, so that active kirana merchants are incentivized to handle higher package volumes.*
-- **US-10.06.03 [READY]**: *As a Support operator, I want to configure or adjust PUDO commission tiers on behalf of suppliers and send instant notifications to merchants and suppliers, so that policy disputes and commission updates are handled smoothly.*
-- **US-10.06.04 [READY]**: *As a village merchant and platform operator, I want a formal Village PUDO Hub Partner Agreement detailing package storage care obligations, 72-hour holding SLAs, lost parcel liability, and monthly commission settlement guarantees, so that our operational relationship is legally grounded.*
+- **US-10.06.01 [DONE]**: *As a village merchant, I want to configure whether I offer home delivery, set my delivery fee, and pick which days I deliver, so that I can earn extra income while controlling my delivery schedule.*
+- **US-10.06.02 [DONE]**: *As a regional supplier, I want to set volume-tiered commissions for merchant parcel pickups on a dedicated dashboard, so that active kirana merchants are incentivized to handle higher package volumes.*
+- **US-10.06.03 [DONE]**: *As a Support operator, I want to configure or adjust PUDO commission tiers on behalf of suppliers and send instant notifications to merchants and suppliers, so that policy disputes and commission updates are handled smoothly.*
+- **US-10.06.04 [DONE]**: *As a village merchant and platform operator, I want a formal Village PUDO Hub Partner Agreement detailing package storage care obligations, 72-hour holding SLAs, lost parcel liability, and monthly commission settlement guarantees, so that our operational relationship is legally grounded.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -448,17 +448,17 @@ Scenario: Supplier configures tiered PUDO commissions
 ```
 
 ### 4. Integration Stories
-- **INT-10.06.01 [READY] (Payouts Service Commission Lookup Integration)**: *As the Payouts Service, I need to query `config-service` (`:4010`) to calculate monthly merchant PUDO commission earnings based on verified parcel collection volume.*
-- **INT-10.06.02 [READY] (Social Connect Notification Integration)**: *As the Config Service, I need to call `social-connect-service` (`:4012`) to alert merchants when supplier commission tiers change.*
+- **INT-10.06.01 [DONE] (Payouts Service Commission Lookup Integration)**: *As the Payouts Service, I need to query `config-service` (`:4010`) to calculate monthly merchant PUDO commission earnings based on verified parcel collection volume.*
+- **INT-10.06.02 [DONE] (Social Connect Notification Integration)**: *As the Config Service, I need to call `social-connect-service` (`:4012`) to alert merchants when supplier commission tiers change.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-10.06.01 [READY] (Web PWA Management Screens)**: *Build `MER-08` on Merchant PWA, `SUP-12` on Supplier PWA, and `SPT-13` on Support PWA with reactive Firestore sync.*
-- **AND-10.06.01 [READY] (Android Native Delivery Settings)**: *Build `MER-08` native Jetpack Compose screen in Android app for setting home delivery fees and active delivery days.*
-- **IOS-10.06.01 [READY] (iOS Native Delivery Settings)**: *Build `MER-08` native SwiftUI view for village home delivery configuration.*
+- **PWA-10.06.01 [DONE] (Web PWA Management Screens)**: *Build `MER-08` on Merchant PWA, `SUP-12` on Supplier PWA, and `SPT-13` on Support PWA with reactive Firestore sync.*
+- **AND-10.06.01 [DONE] (Android Native Delivery Settings)**: *Build `MER-08` native Jetpack Compose screen in Android app for setting home delivery fees and active delivery days.*
+- **IOS-10.06.01 [DONE] (iOS Native Delivery Settings)**: *Build `MER-08` native SwiftUI view for village home delivery configuration.*
 
 ### 6. Independent Support Stories
-- **DOC-10.06.01 [READY] (Merchant PUDO Hub Partner Agreement & Commission Policy)**: *Publish formal compliance document `docs/compliance/merchant_pudo_partner_agreement.md` defining package storage care standards, 72h holding SLAs, loss indemnification, and monthly tiered commission settlement schedules.*
-- **OPS-10.06.01 [READY] (PostgreSQL Migration)**: *Create database tables `config_db.merchant_delivery_configs` and `config_db.pudo_commission_tiers` with GIST and foreign key constraints.*
+- **DOC-10.06.01 [DONE] (Merchant PUDO Hub Partner Agreement & Commission Policy)**: *Publish formal compliance document `docs/compliance/merchant_pudo_partner_agreement.md` defining package storage care standards, 72h holding SLAs, loss indemnification, and monthly tiered commission settlement schedules.*
+- **OPS-10.06.01 [DONE] (PostgreSQL Migration)**: *Create database tables `config_db.merchant_delivery_configs` and `config_db.pudo_commission_tiers` with GIST and foreign key constraints.*
 
 ---
 
@@ -513,9 +513,9 @@ Scenario: Supplier configures tiered PUDO commissions
 - **Postconditions**: Supplier route corrected with full audit traceability; active field deliveries protected against route deletion.
 
 ### 3. User Journey Stories
-- **US-10.07.01 [READY]**: *As a platform support operator, I want to author and publish standard master corridors tied to regional hubs, so that newly onboarded suppliers can immediately dispatch gigs without manual route mapping.*
-- **US-10.07.02 [READY]**: *As a platform support operator, I want to view and edit custom routes created by any supplier from the Support console, so that I can assist suppliers with logistics troubleshooting, road adjustments, and coordinates corrections.*
-- **US-10.07.03 [READY]**: *As a platform compliance and operations officer, I want any route deletion (standard corridor or supplier custom route) blocked while referenced by active or scheduled gigs, so that drivers in the field never have their active delivery circuit deleted underneath them.*
+- **US-10.07.01 [DONE]**: *As a platform support operator, I want to author and publish standard master corridors tied to regional hubs, so that newly onboarded suppliers can immediately dispatch gigs without manual route mapping.*
+- **US-10.07.02 [DONE]**: *As a platform support operator, I want to view and edit custom routes created by any supplier from the Support console, so that I can assist suppliers with logistics troubleshooting, road adjustments, and coordinates corrections.*
+- **US-10.07.03 [DONE]**: *As a platform compliance and operations officer, I want any route deletion (standard corridor or supplier custom route) blocked while referenced by active or scheduled gigs, so that drivers in the field never have their active delivery circuit deleted underneath them.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -535,18 +535,154 @@ Scenario: Route deletion blocked while referenced by upcoming gigs
 ```
 
 ### 4. Integration Stories
-- **INT-10.07.01 [READY] (Google Maps Distance Matrix Corridor Calculation)**: *As the Config Service, I need to integrate with Google Maps Distance Matrix to compute turnarounds and kilometer lengths for multi-stop master corridors.*
-- **INT-10.07.02 [READY] (Gigs Service Active Reference Check Integration)**: *As the Config Service, I need to query `gigs-service` (`:4003`) prior to deleting any route to verify that zero active or scheduled gigs reference the route ID.*
-- **INT-10.07.03 [READY] (Firestore Real-Time Route Catalog Mirror)**: *As the Config Service, I need to mirror all active master corridors and supplier custom routes to Cloud Firestore collection `/Routes/{routeId}`.*
+- **INT-10.07.01 [DONE] (Google Maps Distance Matrix Corridor Calculation)**: *As the Config Service, I need to integrate with Google Maps Distance Matrix to compute turnarounds and kilometer lengths for multi-stop master corridors.*
+- **INT-10.07.02 [DONE] (Gigs Service Active Reference Check Integration)**: *As the Config Service, I need to query `gigs-service` (`:4003`) prior to deleting any route to verify that zero active or scheduled gigs reference the route ID.*
+- **INT-10.07.03 [DONE] (Firestore Real-Time Route Catalog Mirror)**: *As the Config Service, I need to mirror all active master corridors and supplier custom routes to Cloud Firestore collection `/Routes/{routeId}`.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-10.07.01 [READY] (Web PWA Support Route Console)**: *Build route management console on Support Web PWA (`web/x/config/routes` / `SPT-09.4`) with master corridor authoring, supplier filter dropdown to view/edit custom routes, and gig-dependency delete blocker.*
-- **AND-10.07.01 [READY] (Android Support Proxy Route Viewer)**: *Implement route list and stop inspector in Support Android app with supplier filter.*
-- **IOS-10.07.01 [READY] (iOS Support Route Viewer)**: *Implement route list and stop sequence viewer in Support iOS app.*
+- **PWA-10.07.01 [DONE] (Web PWA Support Route Console)**: *Build route management console on Support Web PWA (`web/x/config/routes` / `SPT-09.4`) with master corridor authoring, supplier filter dropdown to view/edit custom routes, and gig-dependency delete blocker.*
+- **AND-10.07.01 [DONE] (Android Support Proxy Route Viewer)**: *Implement route list and stop inspector in Support Android app with supplier filter.*
+- **IOS-10.07.01 [DONE] (iOS Support Route Viewer)**: *Implement route list and stop sequence viewer in Support iOS app.*
 
 ### 6. Independent Support Stories
-- **DOC-10.07.01 [READY] (Master Corridor Design & Deletion Policy SOP)**: *Publish operational guide documenting master corridor authoring standards, merchant density criteria, supplier custom route editing protocols, and the unified zero-referencing-gigs deletion rule.*
-- **OPS-10.07.01 [READY] (PostgreSQL Master Routes Migration)**: *Create database table `config_db.master_routes` supporting `route_type` ('standard_corridor', 'supplier_custom'), `supplier_id`, `cloned_from_route_id`, and GIST/spatial indexes.*
-- **TEST-10.07.01 [READY] (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/10-config/routes/` verifying master route creation, cross-supplier editing by Support, and 409 rejection on deleting routes in use by gigs.*
+- **DOC-10.07.01 [DONE] (Master Corridor Design & Deletion Policy SOP)**: *Publish operational guide documenting master corridor authoring standards, merchant density criteria, supplier custom route editing protocols, and the unified zero-referencing-gigs deletion rule.*
+- **OPS-10.07.01 [DONE] (PostgreSQL Master Routes Migration)**: *Create database table `config_db.master_routes` supporting `route_type` ('standard_corridor', 'supplier_custom'), `supplier_id`, `cloned_from_route_id`, and GIST/spatial indexes.*
+- **TEST-10.07.01 [DONE] (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/10-config/routes/` verifying master route creation, cross-supplier editing by Support, and 409 rejection on deleting routes in use by gigs.*
 
 
+
+---
+
+## FEAT-10.08: Support Bulk Ingestion & Selective Entity Loader for Supplier Ecosystem Data
+
+### 1. Feature Metadata & Hierarchy
+- **Feature ID**: `FEAT-10.08`
+- **Feature Status**: [COMPLETED]
+- **Functional Scope**:
+  - Platform Support operational console tooling for bulk onboarding legacy and active supplier operational datasets into Logikchain.
+  - Modular Checkbox Selection UI: Supports a master "Select All" toggle alongside granular checkboxes allowing the Support team to load either the complete dataset package at once or selectively ingest any single operational category:
+    1. **Organization Details**: Registered legal business name, trade name, company registration number, business PAN, registered office and warehouse physical addresses.
+    2. **Contact Details**: Primary authorized contact name, mobile telephone (+91), operational dispatch email, escalations hotline, and emergency contact.
+    3. **GST Details**: 15-character GSTIN, legal trade class (Proprietorship / LLP / Pvt Ltd), state jurisdiction, filing frequency, and certificate document reference.
+    4. **Food License (FSSAI)**: 14-digit FSSAI license number, manufacturer/wholesaler classification, license issue and expiry dates, and certificate media upload.
+    5. **Inventory, Stock & Prices**: Master product catalog, SKU codes, HSN codes, product titles, packaging unit of measure, base wholesale prices, physical warehouse stock counts, and bulk case-break tier pricing.
+    6. **Price History**: Historical price evolution log per SKU, effective date intervals, promotional campaign price adjustments, and wholesale price changes.
+    7. **Sales History Data**: Granular historical transactions recorded per geographical region, per delivery route, per village hub, and per SKU, including quantities sold, unit invoice prices, and settlement dates.
+    8. **Routes**: Standard delivery routes, origin warehouse hub, sequenced village waypoints, planned transit turnaround hours, and route mileage.
+    9. **Drivers & Driver Profiles**: Field driver profiles, legal name, phone number, driving license number, license expiration date, emergency contacts, profile photo, and KYC verification state.
+    10. **Trucks & Vehicle Fleet**: Delivery vehicle assets, registration plate number, chassis number, payload capacity (kg and volumetric cubic feet), fuel type, and insurance validity.
+    11. **Merchants & Merchant Profiles**: Partner village kirana merchants, store trade name, village ID, shopkeeper contact info, merchant profile photos, pre-assigned revolving trade credit headroom, and PUDO pickup hub authorization flag.
+  - Pre-flight Dry-Run & Validation Engine: Multi-file (CSV / XLSX / JSON) schema validation, foreign-key dependency integrity check (e.g. verifying villages exist before creating routes; verifying routes exist before assigning gigs), duplicate detection, and row-level diff reports.
+  - Asynchronous Batch Execution: Cloud Tasks / background worker execution with transactional rollback per selected entity domain, real-time percentage progress tracking, and downloadable error audit report.
+  - Outbox Sync to Cloud Firestore: Automatically mirrors created records to Firestore collections (`/Suppliers`, `/Pamphlets`, `/Routes`, `/UserProfiles`, `/MerchantProfiles`, `/Vehicles`) for instant client availability.
+- **Service Endpoints**:
+  - `POST /v1/config/suppliers/{supplierId}/bulk-import` (`bulkImportSupplierData`)
+  - `POST /v1/config/suppliers/{supplierId}/bulk-import/validate` (`validateSupplierBulkImport`)
+  - `GET /v1/config/suppliers/{supplierId}/bulk-import/jobs/{jobId}` (`getSupplierImportJobStatus`)
+  - `GET /v1/config/suppliers/bulk-import/templates` (`downloadSupplierImportTemplates`)
+- **UI Screens**: [SPT-02.5 Supplier Bulk Ingestion Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-02.5), [SPT-05 Config Home](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-05), [SPT-02.4 Supplier Detail](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-02.4)
+
+### 2. Derived Use Cases
+
+#### UC-10.08.A: Support End-to-End Bulk Supplier Onboarding (Select All)
+- **Description**: A Support operator onboards an enterprise regional supplier migrating from a legacy ERP. The operator uploads the unified multi-sheet dataset, clicks "Select All", inspects the pre-flight validation preview, and triggers automated end-to-end ingestion across all 11 operational entities.
+- **Primary Actor**: Platform Support Administrator (`role: support`).
+- **Secondary Systems**: `config-service`, `identity-service`, `pamphlet-service`, `gigs-service`, `orders-service`, `credit-service`, Google Cloud Storage, Cloud Firestore.
+- **Nominal Flow**:
+  1. Operator accesses `SPT-02.5` from Supplier Detail (`SPT-02.4`) or Config Home (`SPT-05`).
+  2. Selects target Supplier (or enters new Supplier provisioning details).
+  3. Uploads multi-sheet XLSX or modular CSV batch.
+  4. Clicks `[x] Select All` checkboxes covering all 11 data categories.
+  5. Operator triggers `[ Validate & Preview ]`.
+  6. System parses data, checks schema types, verifies GSTIN / FSSAI formats, resolves village coordinates against `config_db.villages`, and presents a validation summary grid (Total Rows, Valid Rows, Conflicts).
+  7. Operator reviews the clean validation report and confirms `[ Start Bulk Ingestion ]`.
+  8. `config-service` spawns an asynchronous ingestion job, dispatches entity payloads to respective microservices via transactional boundaries, stages certificates in Cloud Storage, and mirrors entities to Cloud Firestore.
+  9. System notifies operator upon completion with execution metrics.
+- **Postconditions**: Supplier organization, statutory documents, fleet, drivers, merchant network, routes, catalog, pricing, and historical sales fully populated in system databases.
+
+#### UC-10.08.B: Selective Incremental Entity Loading via Checkbox Selection
+- **Description**: An already active supplier needs to update only their historical sales records, or onboard 25 new drivers and trucks, without re-uploading or modifying their company profile or catalog. Support selects only the relevant entity checkboxes (e.g. `[x] Drivers`, `[x] Trucks`) and ingests that isolated entity subset.
+- **Primary Actor**: Platform Support Operator (`role: support`).
+- **Secondary Systems**: `config-service`, `identity-service`, `gigs-service`.
+- **Nominal Flow**:
+  1. Operator opens `SPT-02.5` and selects the target supplier.
+  2. Leaves "Select All" unchecked; manually checks only `(x) Drivers & Driver Profiles` and `(x) Trucks & Vehicle Fleet`.
+  3. Uploads the driver and fleet CSV datasets.
+  4. Triggers `[ Validate & Preview ]`; the validator parses only the selected driver and truck tables, ignoring unselected sections.
+  5. Operator clicks `[ Ingest Selected Entities ]`.
+  6. The system ingests only the drivers and trucks into `identity_db` and `gigs_db`, validating foreign-key ties to the supplier, and updates Firestore collections.
+- **Postconditions**: Only the targeted driver and vehicle records are loaded; other supplier domains remain unchanged.
+
+### 3. User Journey Stories
+- **US-10.08.01 [DONE]**: *As a platform support operator, I want to bulk-upload supplier data with a 'Select All' toggle or granular checkboxes for Contact Details, Organization, GST, Food License, Inventory/Stock/Price, Sales History, Price History, Routes, Drivers, Trucks, and Merchants, so that I can ingest the complete operational ecosystem or update any individual entity modularly.*
+- **US-10.08.02 [DONE]**: *As a platform support operator, I want a dry-run validation preview highlighting row-level schema errors, duplicate records, and missing foreign keys before committing, so that bad data is detected and corrected without corrupting production databases.*
+- **US-10.08.03 [DONE]**: *As a platform support operator, I want real-time job progress tracking and a downloadable audit log showing rows succeeded versus rows failed, so that bulk data ingestion operations are fully auditable and transparent.*
+
+#### Acceptance Criteria (Gherkin)
+```gherkin
+Scenario: Support performs selective entity bulk load
+  Given an authenticated Support operator on screen "SPT-02.5" with supplier "sup_ongole_01"
+  When the operator unchecks "Select All" and checks only "Drivers" and "Trucks"
+  And uploads valid CSV datasets for 15 drivers and 10 trucks
+  When the operator clicks "Validate & Preview"
+  Then the system displays validation status "VALID" with 15 drivers and 10 trucks ready
+  When the operator clicks "Start Bulk Ingestion"
+  Then config-service creates background ingestion job with status "processing"
+  And persists 15 drivers into identity_db and 10 vehicles into gigs_db
+  And mirrors records to Firestore collections "/UserProfiles" and "/Vehicles"
+  And records audit event in governance-service attributing the import to the Support operator
+
+Scenario: Dry-run detects invalid GSTIN and blocks unverified commit
+  Given a supplier data sheet containing an invalid GSTIN "37ABCDE0000Z1Z" (14 chars instead of 15)
+  When the operator runs dry-run validation for "GST Details"
+  Then the system marks entity status as "VALIDATION_FAILED"
+  And highlights row 1 column "gstin" with error "INVALID_GSTIN_FORMAT"
+  And disables the "Start Bulk Ingestion" button until the file is corrected
+```
+
+### 4. Integration Stories
+- **INT-10.08.01 [DONE] (Cross-Service Ingestion Orchestration)**: *As the Config Service, I need to orchestrate distributed entity ingestion by dispatching validated data subsets to `identity-service` (org, contacts, drivers, merchants), `pamphlet-service` (catalog, stock, prices), `gigs-service` (trucks, gigs), `orders-service` (sales history), and `credit-service` (merchant credit lines).*
+- **INT-10.08.02 [DONE] (Firebase Cloud Storage Document Staging)**: *As the Config Service, I need to stage and persist uploaded supplier GST certificates, FSSAI licenses, and driver KYC documents to Firebase Cloud Storage path `/suppliers/{supplierId}/kyc/`.*
+- **INT-10.08.03 [DONE] (Firestore Multi-Collection Mirror)**: *As the Config Service, I need to mirror all newly created or updated entities across their respective Cloud Firestore collections (`/Suppliers`, `/Routes`, `/UserProfiles`, `/Vehicles`, `/MerchantProfiles`, `/Pamphlets`) upon job commit.*
+
+### 5. Multi-Client Implementation Stories
+- **PWA-10.08.01 [DONE] (Web PWA Support Bulk Ingestion Console)**: *Build screen `SPT-02.5` on the Support Web PWA (`web/x/config/supplier-ingestion`) featuring a supplier selector, master 'Select All' toggle, 11 individual entity checkboxes, drag-and-drop file uploader, validation diff table, real-time progress bar, and error CSV export.*
+- **AND-10.08.01 [DONE] (Android Support Read-Only Ingestion Job Monitor)**: *Implement background job status and ingestion history viewer on the Support Android app.*
+- **IOS-10.08.01 [DONE] (iOS Support Read-Only Ingestion Job Monitor)**: *Implement background job status and ingestion history viewer on the Support iOS app.*
+
+### 6. PWA Cloud Testing Story
+- **TEST-10.08.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating the complete bulk loading workflow on PWA—including checkbox toggling, file upload, dry-run schema validation, and live commit verification against microservices on `logikchain-test`.*
+
+### 7. Independent Support Stories
+- **OPS-10.08.01 [DONE] (PostgreSQL Staging Tables & Migration)**: *Create database tables `config_db.supplier_ingestion_jobs` and `config_db.supplier_ingestion_staging` supporting chunked batch insertion, JSONB payloads, execution statuses, and rollback transaction isolation.*
+- **DOC-10.08.01 [DONE] (Supplier Bulk Ingestion Data Dictionary & SOP)**: *Publish formal operational handbook `docs/operations/supplier_bulk_ingestion_guide.md` specifying exact CSV/XLSX schemas, mandatory versus optional columns, regex validation rules, and support troubleshooting runbooks for all 11 entities.*
+- **TEST-10.08.01 [DONE] (Bruno API Automation)**: *Create automated Bruno test suite `tests/bruno/10-config/bulkSupplierIngest/` covering template download, dry-run validation, selective checkbox ingestion, and audit log generation.*
+
+### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
+- **Cloud Run Microservice Deployment Command**:
+  ```bash
+  docker build -t asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/config-service:latest -f microservices/services/config-service/Dockerfile.service microservices/services/config-service
+  docker push asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/config-service:latest
+  gcloud run deploy config-service \
+    --image=asia-south1-docker.pkg.dev/logikchain-test/logikchain-microservices/config-service:latest \
+    --region=asia-south1 \
+    --project=logikchain-test \
+    --platform=managed \
+    --no-allow-unauthenticated \
+    --ingress=internal
+  ```
+- **Web PWA Deployment Command**:
+  ```bash
+  npm --prefix web run build:test
+  firebase deploy --project test --only hosting --non-interactive
+  ```
+- **PWA Cloud Test Verification Command**:
+  ```bash
+  npx playwright test tests/e2e/pwa/support-supplier-bulk-ingest.spec.ts --project=test --config=playwright.pwa.config.ts
+  ```
+- **Acceptance Criteria**:
+  - [x] `config-service` deployed to Cloud Run in `logikchain-test` with `200 OK` on `/health`.
+  - [x] Support Web PWA deployed to Firebase Hosting with operational `SPT-02.5` screen.
+  - [x] Checkbox selection allows ingesting "Select All" or any isolated entity (e.g. Drivers only, or Sales History only).
+  - [x] Dry-run validation successfully catches invalid rows and rejects unverified commits.
+  - [x] Automated PWA E2E tests pass 100% assertions on test project URL.

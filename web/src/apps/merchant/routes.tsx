@@ -18,6 +18,7 @@ import {
   ShopSettingsScreen,
   MerchantSubscriptionScreen,
   CashCollectScreen,
+  MerchantVillageDeliverySettingsScreen,
 } from "./screens/MerchantScreens";
 
 export function MerchantRoutes() {
@@ -40,6 +41,8 @@ export function MerchantRoutes() {
       <Route path="/m/credit/requests" element={<Guard app="merchant"><CreditRequestsScreen /></Guard>} />
       <Route path="/m/shop" element={<Guard app="merchant"><ShopSettingsScreen /></Guard>} />
       <Route path="/m/subscription" element={<Guard app="merchant"><MerchantSubscriptionScreen /></Guard>} />
+      <Route path="/m/delivery-settings" element={<Guard app="merchant"><MerchantVillageDeliverySettingsScreen /></Guard>} />
+      <Route path="/m/settings/village-delivery" element={<Guard app="merchant"><MerchantVillageDeliverySettingsScreen /></Guard>} />
       <Route path="*" element={<Navigate to="/m/gigs" replace />} />
     </Routes>
   );

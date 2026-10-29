@@ -1048,6 +1048,40 @@ export function PreConfiguredRouteDetailScreen() {
               </p>
             )}
           </Card>
+
+          {/* Deletion Governance Guardrail (FEAT-10.07) */}
+          <Card>
+            <p className="card-title" style={{ color: "var(--spt-danger, #ef4444)" }}>Route Deletion Policy</p>
+            <p className="muted" style={{ marginBottom: 12 }}>
+              Deleting a master corridor or custom route is strictly prohibited while active or scheduled gigs reference it (ROUTE_IN_USE_BY_GIGS).
+            </p>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (!routeId) return;
+                const activeGigs = matchingGigs.filter((g) =>
+                  ["scheduled", "loading", "in_transit"].includes(g.status)
+                );
+                if (activeGigs.length > 0) {
+                  push(
+                    `Cannot delete route: referenced by ${activeGigs.length} active gig(s) (${activeGigs.map((g) => g.id).join(", ")}). Reassign gigs first.`
+                  );
+                  return;
+                }
+                if (!confirm("Are you sure you want to archive/delete this route?")) return;
+                try {
+                  const db = getDb();
+                  await deleteDoc(doc(db, Col.Routes, routeId));
+                  push("Route successfully archived/deleted.");
+                  nav("/x/config/routes");
+                } catch (err: any) {
+                  push(err.message || "Failed to delete route");
+                }
+              }}
+            >
+              Archive / Delete Route
+            </Button>
+          </Card>
         </div>
       )}
     </Chrome>

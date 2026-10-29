@@ -65,7 +65,7 @@
 - **US-02.01.02 [READY]**: *As a rural buyer with a CoD order, I want to pay online via UPI in my app anytime before picking up the parcel, so that I don't have to carry exact cash change to the merchant's store.*
 - **US-02.01.03 [READY]**: *As a rural buyer, I want to browse the live stock currently carried on the delivery truck en-route to my village, so that I can buy items on-the-fly and have them dropped off at my village merchant on the truck's arrival.*
 - **US-02.01.04 [READY]**: *As the platform, I need to verify that a village has an active registered merchant before allowing orders to be placed, so that packages are never dispatched to a village without an authorized pickup/PUDO location.*
-- **US-02.01.05 [PARKED - FUTURE PHASE]**: *As a rural buyer, I want to participate in village group-buying sessions. [Parked for Phase 2]*
+- **US-02.01.05 [READY]  [PARKED - FUTURE PHASE]**: *As a rural buyer, I want to participate in village group-buying sessions. [Parked for Phase 2]*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -87,7 +87,7 @@ Scenario: In-transit order converts truck pamphlet stock dynamically
 - **INT-02.01.02 [READY] (Gigs Service Integration)**: *As the Orders Service, I need to query `gigs-service` (`:4003`) to link orders to the active delivery gig serving the destination village merchant.*
 - **INT-02.01.03 [READY] (Pamphlet Service In-Transit Stock Deduction Integration)**: *As the Orders Service, I need to notify `pamphlet-service` (`:4004`) to atomically decrement rolling vehicle pamphlet stock when an in-transit order is placed.*
 - **INT-02.01.04 [READY] (Firestore Periodic Sync Integration)**: *As the Orders Service, I need to mirror all order state changes to Cloud Firestore collection `/Orders/{orderId}` every 2000ms.*
-- **INT-02.01.05 [PARKED - FUTURE PHASE] (Group Session Alerts)**: *[Parked for Phase 2]*
+- **INT-02.01.05 [READY]  [PARKED - FUTURE PHASE] (Group Session Alerts)**: *[Parked for Phase 2]*
 
 ### 5. Multi-Client Implementation Stories
 - **PWA-02.01.01 [READY] (Web PWA — Buyer Catalog & Merchant Hub Pickup)**: *Implement Catalog browsing (`BUY-03`), live truck pamphlet stock view, merchant pickup point display, and checkout (`BUY-04`) with UPI Intent / CoD in `web/`.*

@@ -1,0 +1,185 @@
+[
+  {
+    "id": "CAMP-FB-MKT-001",
+    "name": "Kirana Merchant Direct Supply Sourcing - Marketplace Boost",
+    "medium": ["Facebook Marketplace", "Facebook Feed"],
+    "channel_type": "paid_social",
+    "target_audience": "Local Kirana & Retail Shop Owners (Tier 2/3 corridors)",
+    "target_role": "merchant",
+    "entry_point": {
+      "base_path": "/merchants",
+      "full_url": "http://localhost:5173/merchants?utm_source=facebook&utm_medium=marketplace&utm_campaign=kirana_direct_supply&utm_content=fb_marketplace_card_01",
+      "alternative_entry_points": [
+        "http://localhost:5173/how-it-works?utm_source=facebook&utm_medium=marketplace&ref=merch_learn",
+        "http://localhost:5173/download?utm_source=facebook&utm_medium=marketplace&ref=merch_app"
+      ]
+    },
+    "cost": {
+      "currency": "INR",
+      "budget_allocated": 45000,
+      "spent_to_date": 18500,
+      "cost_model": "CPC",
+      "avg_cpc": 3.70
+    },
+    "estimated_revenue_inflow": {
+      "currency": "INR",
+      "projected_gmv": 1250000,
+      "projected_platform_net_fee": 62500,
+      "roi_multiple": 2.78,
+      "expected_new_merchants": 150
+    },
+    "content_file": "ads/CAMP-FB-MKT-001.html",
+    "attachments": [
+      "attachments/fb_marketplace_kirana_banner_1080x1080.svg",
+      "attachments/brief_kirana_marketplace_ad.md"
+    ],
+    "status": "active",
+    "created_at": "2026-10-29T00:00:00Z"
+  },
+  {
+    "id": "CAMP-YT-INF-002",
+    "name": "Tech & Logistics Creator Deep-Dive: How Bharat Corridor Works",
+    "medium": ["YouTube Video Sponsor", "YouTube Shorts"],
+    "channel_type": "creator_influencer",
+    "target_audience": "Rural entrepreneurs, logistics operators, tech-savvy youth",
+    "target_role": "general_onboarding",
+    "creator_partner": "Bharat Supply Chain Explorer (@BharatLogisticsTech)",
+    "entry_point": {
+      "base_path": "/how-it-works",
+      "full_url": "http://localhost:5173/how-it-works?utm_source=youtube&utm_medium=influencer&utm_campaign=how_it_works_creator_review&utm_content=pinned_comment_link&creator_id=bharat_logistics_tech",
+      "alternative_entry_points": [
+        "http://localhost:5173/download?utm_source=youtube&utm_medium=influencer&utm_campaign=how_it_works_creator_review&utm_content=desc_download_link"
+      ]
+    },
+    "cost": {
+      "currency": "INR",
+      "budget_allocated": 75000,
+      "spent_to_date": 75000,
+      "cost_model": "Fixed Creator Fee + CPM",
+      "avg_cpc": 6.25
+    },
+    "estimated_revenue_inflow": {
+      "currency": "INR",
+      "projected_gmv": 2100000,
+      "projected_platform_net_fee": 105000,
+      "roi_multiple": 2.40,
+      "expected_new_users": 1200
+    },
+    "content_file": "ads/CAMP-YT-INF-002.html",
+    "attachments": [
+      "attachments/yt_creator_talking_points.md",
+      "attachments/yt_thumbnail_mockup_1920x1080.svg"
+    ],
+    "status": "active",
+    "created_at": "2026-10-29T00:00:00Z"
+  },
+  {
+    "id": "CAMP-IG-REEL-003",
+    "name": "Fleet Rider & Delivery Partner Instant Payouts Reel",
+    "medium": ["Instagram Reels", "Instagram Stories"],
+    "channel_type": "paid_social",
+    "target_audience": "Gig workers, 2-wheeler & 3-wheeler vehicle owners aged 19-35",
+    "target_role": "rider",
+    "entry_point": {
+      "base_path": "/riders",
+      "full_url": "http://localhost:5173/riders?utm_source=instagram&utm_medium=reels&utm_campaign=rider_daily_cash_payouts&utm_content=reel_instant_payout_cta",
+      "alternative_entry_points": [
+        "http://localhost:5173/download?utm_source=instagram&utm_medium=reels&utm_campaign=rider_daily_cash_payouts&ref=rider_apk"
+      ]
+    },
+    "cost": {
+      "currency": "INR",
+      "budget_allocated": 30000,
+      "spent_to_date": 12000,
+      "cost_model": "CPC",
+      "avg_cpc": 2.40
+    },
+    "estimated_revenue_inflow": {
+      "currency": "INR",
+      "projected_gmv": 980000,
+      "projected_platform_net_fee": 49000,
+      "roi_multiple": 2.63,
+      "expected_new_riders": 220
+    },
+    "content_file": "ads/CAMP-IG-REEL-003.html",
+    "attachments": [
+      "attachments/ig_story_rider_callout_1080x1920.svg",
+      "attachments/reel_storyboard_script.md"
+    ],
+    "status": "active",
+    "created_at": "2026-10-29T00:00:00Z"
+  },
+  {
+    "id": "CAMP-GG-SEARCH-004",
+    "name": "B2B Agro & FMCG Wholesale Bulk Sourcing - Search Intent",
+    "medium": ["Google Search Ads", "Google Performance Max"],
+    "channel_type": "paid_search",
+    "target_audience": "Wholesale Distributors, FMCG Millers, Commodity Aggregators",
+    "target_role": "supplier",
+    "entry_point": {
+      "base_path": "/suppliers",
+      "full_url": "http://localhost:5173/suppliers?utm_source=google&utm_medium=cpc&utm_campaign=bulk_fmcg_agro_wholesale&utm_content=headline_wholesale_supply_direct",
+      "alternative_entry_points": [
+        "http://localhost:5173/how-it-works?utm_source=google&utm_medium=cpc&utm_campaign=bulk_fmcg_agro_wholesale&ref=supplier_overview"
+      ]
+    },
+    "cost": {
+      "currency": "INR",
+      "budget_allocated": 60000,
+      "spent_to_date": 24500,
+      "cost_model": "CPC",
+      "avg_cpc": 12.20
+    },
+    "estimated_revenue_inflow": {
+      "currency": "INR",
+      "projected_gmv": 3500000,
+      "projected_platform_net_fee": 175000,
+      "roi_multiple": 3.91,
+      "expected_new_suppliers": 45
+    },
+    "content_file": "ads/CAMP-GG-SEARCH-004.html",
+    "attachments": [
+      "attachments/google_search_ad_copy_variations.md"
+    ],
+    "status": "active",
+    "created_at": "2026-10-29T00:00:00Z"
+  },
+  {
+    "id": "CAMP-APP-DOWNLOAD-005",
+    "name": "Consumer & Neighborhood Buyer Quick Ordering App Launch",
+    "medium": ["Instagram Feed", "Google Universal App Campaigns", "YouTube Shorts"],
+    "channel_type": "omnichannel",
+    "target_audience": "Urban and semi-urban household buyers seeking local farm-fresh prices",
+    "target_role": "buyer",
+    "entry_point": {
+      "base_path": "/download",
+      "full_url": "http://localhost:5173/download?utm_source=omnichannel&utm_medium=app_promo&utm_campaign=download_and_save_100&utm_content=install_app_direct_btn",
+      "alternative_entry_points": [
+        "http://localhost:5173/how-it-works?utm_source=omnichannel&utm_medium=app_promo&ref=app_guide",
+        "http://localhost:5173/login?signup=true&utm_source=omnichannel&utm_medium=app_promo&ref=quick_signup"
+      ]
+    },
+    "cost": {
+      "currency": "INR",
+      "budget_allocated": 50000,
+      "spent_to_date": 21000,
+      "cost_model": "CPI / CPC",
+      "avg_cpc": 4.10
+    },
+    "estimated_revenue_inflow": {
+      "currency": "INR",
+      "projected_gmv": 1800000,
+      "projected_platform_net_fee": 90000,
+      "roi_multiple": 2.80,
+      "expected_new_app_installs": 3500
+    },
+    "content_file": "ads/CAMP-APP-DOWNLOAD-005.html",
+    "attachments": [
+      "attachments/app_download_promo_banner.svg",
+      "attachments/influencer_app_promo_kit.md"
+    ],
+    "status": "active",
+    "created_at": "2026-10-29T00:00:00Z"
+  }
+]
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ID="${1:-logikchain-dev}"
+PROJECT_ID="${1:-logikchaindevelopment}"
 REGION="${2:-asia-south1}"
 REPO="logikchain-microservices"
 REGISTRY="$REGION-docker.pkg.dev/$PROJECT_ID/$REPO"
@@ -35,6 +35,7 @@ SERVICES=(
   "finance-service"
   "config-service"
   "governance-service"
+  "social-connect-service"
 )
 
 for SVC in "${SERVICES[@]}"; do

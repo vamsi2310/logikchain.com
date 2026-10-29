@@ -435,7 +435,7 @@ app.post('/webhook/whatsapp', async (req, res) => {
   }
 });
 
-app.use(errorHandler);
+app.use(errorHandler as any);
 
 const PORT = process.env.PORT || 4012;
 

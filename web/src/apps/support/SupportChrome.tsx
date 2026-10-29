@@ -78,6 +78,8 @@ const NAV_SECTIONS: NavSection[] = [
       { to: "/x/config/codes", label: "Discount codes" },
       { to: "/x/config/tax", label: "Tax" },
       { to: "/x/config/tds", label: "TDS" },
+      { to: "/x/config/supplier-ingestion", label: "Supplier Bulk Ingestion" },
+      { to: "/x/config/pudo-tiers", label: "PUDO Commissions" },
     ],
   },
   {
@@ -274,6 +276,13 @@ export function SupportChrome({
 
   const [collapsed, setCollapsed] = useState(false);
   const [signoutOpen, setSignoutOpen] = useState(false);
+  const [proxySupplier, setProxySupplier] = useState<string>(() => {
+    try {
+      return localStorage.getItem("lc_support_supplier_context") || "";
+    } catch {
+      return "";
+    }
+  });
 
   const toggleCollapsed = useCallback(() => setCollapsed((v) => !v), []);
 
@@ -301,6 +310,38 @@ export function SupportChrome({
             <h1 className="spt-topbar-title">{title}</h1>
 
             <div className="spt-topbar-actions">
+              {/* Support Proxy Switcher (FEAT-10.04) */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 8 }}>
+                <span style={{ fontSize: 11, color: "var(--spt-ink-muted)", fontWeight: 600 }}>PROXY:</span>
+                <select
+                  value={proxySupplier}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setProxySupplier(val);
+                    try {
+                      if (val) localStorage.setItem("lc_support_supplier_context", val);
+                      else localStorage.removeItem("lc_support_supplier_context");
+                    } catch {}
+                  }}
+                  style={{
+                    fontSize: 12,
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                    border: "1px solid var(--spt-content-border)",
+                    background: proxySupplier ? "#e0e7ff" : "var(--spt-content-surface)",
+                    color: proxySupplier ? "#3730a3" : "inherit",
+                    fontWeight: proxySupplier ? 600 : 400,
+                    cursor: "pointer",
+                  }}
+                  title="Acts as supplier proxy for data management (X-Supplier-Context)"
+                >
+                  <option value="">Direct Support (No Proxy)</option>
+                  <option value="sup_ongole_01">Proxy: Ongole Wholesale (sup_ongole_01)</option>
+                  <option value="sup_krishna_01">Proxy: Krishna Rural (sup_krishna_01)</option>
+                  <option value="sup_guntur_01">Proxy: Guntur Agro (sup_guntur_01)</option>
+                </select>
+              </div>
+
               {env.alias !== "prod" && (
                 <span className="spt-env-chip">{env.alias}</span>
               )}

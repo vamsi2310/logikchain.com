@@ -19,14 +19,14 @@ import {
   SyncScreen,
   InstallScreen,
   HelpScreen,
-} from "./screens/AccountScreens";
+} from "./screens/AccountScreensEnhanced";
 import { AccountGuard } from "@/shared/guard";
 
 /** Auth + account chrome. Lives in the buyer entry so other role apps stay lite. */
 export function shellRoutes() {
   return (
     <>
-      <Route path="/" element={<SplashScreen />} />
+      <Route path="/splash" element={<SplashScreen />} />
       <Route path="/login" element={<LoginScreen />} />
       <Route path="/login/verify" element={<OtpScreen />} />
       <Route path="/language" element={<LanguageScreen />} />

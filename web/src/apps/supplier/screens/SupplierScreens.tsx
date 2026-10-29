@@ -4,6 +4,7 @@ import { where, orderBy } from "firebase/firestore";
 import { doc, setDoc } from "firebase/firestore";
 import { getDb } from "@/firebase/app";
 import { ops } from "@/api/ops";
+import { api } from "@/api/client";
 import { Col } from "@/data/collections";
 import { useDoc, useQuery } from "@/data/hooks";
 import { useSession } from "@/state/session";
@@ -937,4 +938,86 @@ export function SupplierMerchantOrdersHint() {
     [profile?.id],
   );
   return q.rows.length === 0 ? <EmptyState glyph="📦" title="No bulk orders" hint="" /> : null;
+}
+
+export function SupplierPudoTiersScreen() {
+  const { profile } = useSession();
+  const { push } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [tiers, setTiers] = useState([
+    { tier: 1, minParcels: 1, maxParcels: 50, ratePerParcel: 8 },
+    { tier: 2, minParcels: 51, maxParcels: 200, ratePerParcel: 12 },
+    { tier: 3, minParcels: 201, maxParcels: null, ratePerParcel: 15 },
+  ]);
+
+  const updateRate = (idx: number, val: number) => {
+    setTiers((prev) => {
+      const copy = [...prev];
+      const cur = copy[idx];
+      if (cur) copy[idx] = { ...cur, ratePerParcel: val };
+      return copy;
+    });
+  };
+
+  return (
+    <Chrome title="PUDO Commission Tiers" screenId="SUP-12" back>
+      <Card>
+        <p className="card-title">Merchant Parcel Hub Commissions</p>
+        <p className="muted">
+          Configure monthly volume tiers to incentivize kirana merchants acting as package pickup hubs.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
+          {tiers.map((t, idx) => (
+            <div
+              key={t.tier}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "80px 1fr 140px",
+                gap: 12,
+                alignItems: "center",
+                padding: "10px 12px",
+                borderRadius: 6,
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <span style={{ fontWeight: 600 }}>Tier {t.tier}</span>
+              <span className="muted" style={{ fontSize: 13 }}>
+                {t.minParcels} – {t.maxParcels ? `${t.maxParcels} parcels/mo` : "201+ parcels/mo"}
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <span>₹</span>
+                <input
+                  type="number"
+                  value={t.ratePerParcel}
+                  onChange={(e) => updateRate(idx, Number(e.target.value))}
+                  style={{ width: 70, padding: "4px 8px", borderRadius: 4, border: "1px solid #cbd5e1" }}
+                />
+                <span className="muted" style={{ fontSize: 12 }}>/pkg</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <Button
+          style={{ marginTop: 16 }}
+          loading={saving}
+          onClick={async () => {
+            const supId = profile?.id || "sup_01";
+            setSaving(true);
+            try {
+              await api.post(`/v1/config/suppliers/${supId}/pudo-tiers`, { tiers });
+              push("PUDO commission tiers updated & mirrored to Firestore!");
+            } catch (err: any) {
+              push(err.message || "Failed to update tiers");
+            } finally {
+              setSaving(false);
+            }
+          }}
+        >
+          Save Commission Tiers
+        </Button>
+      </Card>
+    </Chrome>
+  );
 }

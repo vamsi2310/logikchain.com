@@ -46,6 +46,12 @@ async function authHeaders(): Promise<Record<string, string>> {
       /* App Check missing is UNAUTHENTICATED on the server for non-public ops */
     }
   }
+  try {
+    const supplierContext = localStorage.getItem("lc_support_supplier_context");
+    if (supplierContext) {
+      headers["X-Supplier-Context"] = supplierContext;
+    }
+  } catch {}
   return headers;
 }
 
