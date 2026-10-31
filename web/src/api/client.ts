@@ -13,6 +13,12 @@ export interface RequestOptions {
 }
 
 function apiRoot(): string {
+  if (typeof localStorage !== "undefined" && localStorage.getItem("lc_gateway_url")) {
+    return localStorage.getItem("lc_gateway_url")!.replace(/\/+$/, "");
+  }
+  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+    return "http://localhost:30080";
+  }
   if (env.apiBaseUrl) return env.apiBaseUrl.replace(/\/+$/, "");
   return "";
 }
@@ -35,7 +41,21 @@ async function authHeaders(): Promise<Record<string, string>> {
   };
   const user = getFirebaseAuth().currentUser;
   if (user) {
-    headers.Authorization = `Bearer ${await getIdToken(user)}`;
+    try {
+      headers.Authorization = `Bearer ${await getIdToken(user)}`;
+    } catch {
+      // fallback to stored dev token
+    }
+  }
+  if (!headers.Authorization && typeof localStorage !== "undefined") {
+    const testRole = localStorage.getItem("lc_test_role");
+    const devToken = localStorage.getItem("lc_dev_token") || (testRole ? `dev-token:test_operator_01:${testRole}` : undefined);
+    if (devToken) {
+      headers.Authorization = `Bearer ${devToken}`;
+    }
+    if (testRole) {
+      headers["X-User-Role"] = testRole;
+    }
   }
   const check = getAppCheck();
   if (check) {

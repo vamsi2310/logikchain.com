@@ -10,18 +10,40 @@ export async function initDb(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query(`
+      CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
       CREATE TABLE IF NOT EXISTS payment_intents (
         intent_id VARCHAR(64) PRIMARY KEY,
         order_id VARCHAR(64) NOT NULL,
+        buyer_id VARCHAR(64),
         buyer_vpa VARCHAR(128),
         amount NUMERIC(12, 2) NOT NULL,
         currency VARCHAR(8) NOT NULL DEFAULT 'INR',
         status VARCHAR(32) NOT NULL DEFAULT 'CREATED',
+        upi_link TEXT,
+        qr_string TEXT,
         gateway_txn_id VARCHAR(128),
         psp_reference VARCHAR(128),
+        idempotency_key VARCHAR(128),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      CREATE INDEX IF NOT EXISTS idx_payment_intents_order ON payment_intents(order_id);
+      CREATE INDEX IF NOT EXISTS idx_payment_intents_idempotency ON payment_intents(idempotency_key);
+
+      CREATE TABLE IF NOT EXISTS payment_refunds (
+        refund_id VARCHAR(64) PRIMARY KEY,
+        payment_id VARCHAR(64) NOT NULL,
+        order_id VARCHAR(64) NOT NULL,
+        amount NUMERIC(12, 2) NOT NULL,
+        reason TEXT,
+        status VARCHAR(32) NOT NULL DEFAULT 'PROCESSED',
+        credit_note_number VARCHAR(64),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_payment_refunds_payment ON payment_refunds(payment_id);
 
       CREATE TABLE IF NOT EXISTS outbox_events (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -41,7 +63,7 @@ export async function initDb(): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_payments_outbox_pending ON outbox_events(created_at) WHERE sync_status = 'PENDING';
     `);
-    logger.info('Payments database initialized');
+    logger.info('Payments database initialized successfully');
   } finally {
     client.release();
   }

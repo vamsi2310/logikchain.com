@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-05`
-- **Epic Status**: [READY]
+- **Epic Status**: [DONE]
 - **Functional Area**: Payments, UPI Collections & Payment Gateway Integration
 - **Bound Microservice**: `microservices/services/payments-service`
 - **Container Port**: `4005`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-05.01`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Dynamic UPI deep-link generation, QR code rendering for UPI apps (GPay, PhonePe, Paytm, BHIM), and transaction session creation.
 - **Service Endpoints**: `POST /v1/payments/intent` (`createPaymentIntent`), `GET /v1/payments/{paymentId}`
 - **UI Screens**: [BUY-04 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-04), [MER-05 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-05)
@@ -101,7 +101,7 @@ Scenario: Buyer initiates UPI Intent payment
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-05.02`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Gateway raw webhook ingress, HMAC-SHA256 signature verification, idempotent transaction capture, and order completion dispatch.
 - **Service Endpoints**: `POST /v1/payments/webhook` (`handlePSPWebhook`)
 - **UI Screens**: Background Platform Ingress (No UI)
@@ -190,7 +190,7 @@ Scenario: Valid webhook transitions payment and order state
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-05.03`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Order cancellation refunds, partial item refund processing, PSP gateway reverse transfers, and GST credit note generation.
 - **Service Endpoints**: `POST /v1/payments/{paymentId}/refund` (`refundOrder`), `POST /v1/payments/{paymentId}/credit-note` (`issueCreditNote`)
 - **UI Screens**: [SPT-04 Support Orders Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-04)

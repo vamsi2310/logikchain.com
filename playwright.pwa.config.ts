@@ -13,8 +13,12 @@ export default defineConfig({
   reporter: 'html',
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:5173',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    trace: 'on',
+    screenshot: 'on',
+    video: {
+      mode: 'on',
+      size: { width: 1280, height: 720 },
+    },
   },
   projects: [
     {

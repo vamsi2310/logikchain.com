@@ -43,6 +43,10 @@ android/local.properties
 android/app/build/
 android/build/
 
+# Runtime PID and temp files
+*.pid
+.db-connector.pid
+
 # Bruno local overlays and run output
 tests/bruno/environments/*.local.bru
 tests/bruno/results/

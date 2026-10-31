@@ -108,7 +108,7 @@ Scenario: Successful phone authentication and claims bootstrap
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.02`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Vetted B2B supplier organization creation, geographical jurisdiction binding, and administrator credentials generation.
 - **Service Endpoints**: `POST /v1/suppliers`, `GET /v1/suppliers/{supplierId}`
 - **UI Screens**: [SPT-02 Supplier Management](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md)
@@ -191,7 +191,7 @@ Scenario: Support provisions valid supplier entity
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.03`
-- **Feature Status**: [READY]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Elevating active buyer accounts to merchant or driver roles and coordinating runtime handoff between PWA, Android, and iOS.
 - **Service Endpoints**: `POST /v1/buyers/{buyerId}/role`, `POST /v1/merchants/{merchantId}:disassociate`
 - **UI Screens**: [SHR-06 Role Splash](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-06), [SUP-08 Member Directory](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md)
@@ -271,7 +271,7 @@ Scenario: Supplier elevates buyer to vehicle driver
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.04`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Temporary or permanent account suspension, fraud lockdown, and reinstatement workflows.
 - **Service Endpoints**: `POST /v1/users/{userId}/suspension`, `DELETE /v1/users/{userId}/suspension`
 - **UI Screens**: [SPT-03 User Detail](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md), [SHR-05 Account Blocked](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-05)
@@ -351,7 +351,7 @@ Scenario: Platform suspension locks client session
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.05`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Subscription-plan-gated delegated administration, supplier-initiated support permission grants, time-bound session lifecycles, and gateway permission verification for `X-Supplier-Context`.
 - **Service Endpoints**:
   - `POST /v1/suppliers/me/delegated-support/grants` (`createDelegatedSupportGrant`)
@@ -431,7 +431,7 @@ Scenario: Support proxy blocked when grant is absent or expired
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.06`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**:
   - Complete user profile query and mutation APIs (`GET /v1/users/me`, `GET /v1/users/{userId}`, `PATCH /v1/users/{userId}`).
   - First-time user onboarding wizard (`setupIncomplete`), capturing display name, village binding (`villageId`), primary Kirana merchant selection (`selectedMerchantId`), and preferred language (`locale`: `te` / `hi` / `en`).

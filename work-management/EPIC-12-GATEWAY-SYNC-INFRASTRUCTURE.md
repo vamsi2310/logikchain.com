@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Platform Metadata
 - **Epic ID**: `EPIC-12`
-- **Epic Status**: `[IN_PROGRESS]`
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: API Gateway Perimeter, Multi-Client Ingress & Bidirectional Data Sync Engine
 - **Bound Platform Modules**: `microservices/services/gateway` & `microservices/devops/docker/Dockerfile.sync-engine`
 - **Container Ports**: `gateway` on `:8080` / `sync-engine` on `:4050`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.01`
-- **Feature Status**: `[IN_PROGRESS]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Perimeter reverse proxy, internal VPC microservice routing, client context header injection, and rate limiting.
 - **Service Endpoints**: `ALL /v1/*` (Proxy Router), `GET /health` (Gateway Health)
 - **UI Screens**: Platform Perimeter (All Client Applications: PWA, Android, iOS)
@@ -104,7 +104,7 @@ Scenario: Gateway injects validated identity headers to downstream service
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.02`
-- **Feature Status**: `[IN_PROGRESS]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Multi-platform hardware-backed device attestation verification: reCAPTCHA Enterprise (PWA), Play Integrity (Android), and DeviceCheck/App Attest (iOS).
 - **Service Endpoints**: Ingress Middleware on API Gateway
 - **UI Screens**: All Client Application Ingress
@@ -188,7 +188,7 @@ Scenario: Bot without App Check token rejected at perimeter
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.03`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: PostgreSQL transactional outbox polling, Change Data Capture (CDC), batch commits to Cloud Firestore collections, and real-time offline mutation ingestion.
 - **Service Endpoints**: `GET /sync/status` (Health/Metrics), `POST /sync/trigger` (Manual Flush)
 - **UI Screens**: Infrastructure Background Worker
@@ -274,7 +274,7 @@ Scenario: Outbox event commits to Cloud Firestore within 2 seconds
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.04`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: Delivery photo uploads, KYC document sync, TDS challan PDFs, and Cloud Storage signed URL generation.
 - **Service Endpoints**: `POST /v1/storage/upload-ticket`, `GET /sync/storage/status`
 - **UI Screens**: Infrastructure Background Pipeline

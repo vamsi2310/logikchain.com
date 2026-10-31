@@ -124,6 +124,33 @@ make up
 # Or: docker compose up -d
 ```
 
+### 🔌 Database Backend Connector for Dev Setup
+For developers running services individually (e.g., `npm run dev`) or running e2e tests outside Kubernetes, use the automated **DB Backend Connector**:
+
+```powershell
+# PowerShell (Windows)
+.\devops\scripts\connect-db-dev.ps1 -Action Start    # Auto-connects port 5432 to K8s / Docker / CloudSQL
+.\devops\scripts\connect-db-dev.ps1 -Action Status   # Audits health of all 13 databases
+.\devops\scripts\connect-db-dev.ps1 -Action Connect -Database orders_db  # Interactive psql shell
+.\devops\scripts\connect-db-dev.ps1 -Action Stop     # Stop background connector
+```
+
+```bash
+# Bash (Linux / macOS / WSL)
+./devops/scripts/connect-db-dev.sh start
+./devops/scripts/connect-db-dev.sh status
+./devops/scripts/connect-db-dev.sh connect orders_db
+./devops/scripts/connect-db-dev.sh stop
+```
+
+Or via `npm` / `make`:
+```bash
+npm run db:start     # Start dev DB backend connector
+npm run db:status    # Inspect PostgreSQL mesh status
+npm run db:connect   # Open interactive psql
+# Or: make db-start, make db-status, make db-connect
+```
+
 Check the health status of all services:
 ```bash
 curl http://localhost:8080/health

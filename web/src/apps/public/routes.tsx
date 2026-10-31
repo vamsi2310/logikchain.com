@@ -40,6 +40,8 @@ export function publicRoutes() {
       <Route path="/shop" element={<PublicHomeScreen />} />
       <Route path="/download" element={<PublicDownloadScreen />} />
       <Route path="/status" element={<PublicStatusScreen />} />
+      <Route path="/status/tests" element={<PublicStatusScreen defaultTab="tests" />} />
+      <Route path="/status/usecases" element={<PublicStatusScreen defaultTab="tests" />} />
       <Route path="/roadmap" element={<PublicRoadmapScreen />} />
       <Route path="/changelog" element={<PublicRoadmapScreen />} />
       <Route path="/about" element={<PublicAboutScreen />} />

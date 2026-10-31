@@ -31,6 +31,7 @@ export interface UserProfile {
   phone?: string;
   email?: string;
   createdAt?: string;
+  updatedAt?: string;
   address?: string;
   countryId?: string;
   selectedMerchantId?: string;

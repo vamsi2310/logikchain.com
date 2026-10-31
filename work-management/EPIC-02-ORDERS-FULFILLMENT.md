@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-02`
-- **Epic Status**: [READY]
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: Orders, Purchasing & Commerce Fulfillment
 - **Bound Microservice**: `microservices/services/orders-service`
 - **Container Port**: `4002`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.01`
-- **Feature Status**: [READY]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Rural consumer cart checkout, village merchant hub delivery (PUDO), village serviceability check (requires registered merchant), dynamic order capture from in-transit truck pamphlet stock, and prepaid/CoD order creation. *(Group-buying demand pooling is PARKED for a future phase).*
 - **Bound Microservice**: `orders-service` (`:4002`) — also reads `config-service` (`:4010`) for village serviceability and `pamphlet-service` (`:4004`) for live truck inventory.
 - **Service Endpoints**:
@@ -144,7 +144,7 @@ Scenario: In-transit order converts truck pamphlet stock dynamically
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.02`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Village merchant wholesale bulk restocking, case-tier quantity discounts, and revolving credit line authorization.
 - **Service Endpoints**: `POST /v1/merchant-orders` (`placeMerchantOrder`), `POST /v1/merchant-orders/{id}:cancel`
 - **UI Screens**: [MER-02 Merchant Gigs](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-02), [MER-04 Bulk Catalog](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-04), [MER-05 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-05)
@@ -229,7 +229,7 @@ Scenario: Merchant places bulk order on credit
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.03`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Field delivery confirmation at village merchant location (PUDO), buyer collection OTP verification, partial delivery line-item rejection, doorstep invoice adjustment, cash custody linkage, and return inventory logging.
 - **Service Endpoints**:
   - `POST /v1/orders/{orderId}/delivered` (`markOrderDelivered`)
@@ -346,7 +346,7 @@ Scenario: Partial delivery acceptance with line-item rejection
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.04`
-- **Feature Status**: [READY]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Formal order deliverable specifications, village merchant PUDO 72-hour retention window, doorstep line-item rejection policy, non-returnable categories, automated Return-to-Origin (RTO) execution, and buyer refund triggers.
 - **Service Endpoints**:
   - `POST /v1/orders/{orderId}/returns/initiate` (`initiateOrderReturn`)
@@ -381,9 +381,9 @@ Scenario: Partial delivery acceptance with line-item rejection
 - **Postconditions**: Merchant shop uncluttered; parcel returned to supplier; outbox event emitted for finance reversal.
 
 ### 3. User Journey Stories
-- **US-02.04.01 [READY]**: *As a rural buyer, I want clear contractual policies on order deliverables, holding windows (72 hours at my village shop), and return rights displayed before I place an order, so that I understand my pickup deadlines and guarantees.*
-- **US-02.04.02 [READY]**: *As a village merchant, I want packages uncollected after 72 hours automatically flagged for RTO and collected by the next visiting truck, so that my shop storage space is protected from abandoned parcels.*
-- **US-02.04.03 [READY]**: *As a supplier, I want non-returnable categories (such as opened agrochemicals and perishables) strictly enforced by the system, so that fraudulent returns are prevented after goods leave physical custody.*
+- **US-02.04.01 [DONE]**: *As a rural buyer, I want clear contractual policies on order deliverables, holding windows (72 hours at my village shop), and return rights displayed before I place an order, so that I understand my pickup deadlines and guarantees.*
+- **US-02.04.02 [DONE]**: *As a village merchant, I want packages uncollected after 72 hours automatically flagged for RTO and collected by the next visiting truck, so that my shop storage space is protected from abandoned parcels.*
+- **US-02.04.03 [DONE]**: *As a supplier, I want non-returnable categories (such as opened agrochemicals and perishables) strictly enforced by the system, so that fraudulent returns are prevented after goods leave physical custody.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin

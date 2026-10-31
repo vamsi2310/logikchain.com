@@ -48,7 +48,7 @@ The table below reflects the canonical status of all 13 platform Epics and their
 
 | Epic ID | Title | Functional Service | Port | Epic Status | Features | Total Stories | Multi-Client Scope | Cloud Test Project |
 | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| **`EPIC-10`** | Master Platform Configuration | `config-service` | `:4010` | **`[IN_PROGRESS]`** | 7 | 42 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-10`** | Master Platform Configuration | `config-service` | `:4010` | **`[COMPLETED]`** | 8 | 82 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-12`** | API Gateway & CDC Sync Engine | `gateway` / `sync-engine` | `:8080 / :4050` | **`[IN_PROGRESS]`** | 4 | 43 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-13`** | Social Connect & Orchestrator | `social-connect-service` | `:4012` | **`[IN_PROGRESS]`** | 4 | 44 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-01`** | Identity, Roles & Auth | `identity-service` | `:4001` | **`[IN_PROGRESS]`** | 6 | 56 | Web PWA, Android, iOS | `logikchain-test` |
@@ -57,8 +57,8 @@ The table below reflects the canonical status of all 13 platform Epics and their
 | **`EPIC-08`** | Merchant Trade Credit & Limits| `credit-service` | `:4008` | **`[READY]`** | 4 | 33 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-05`** | Payments & UPI Ingress | `payments-service` | `:4005` | **`[READY]`** | 3 | 33 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-02`** | Orders & Delivery Handover | `orders-service` | `:4002` | **`[READY]`** | 4 | 42 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-07`** | Cash Custody & Rural CoD | `cash-service` | `:4007` | **`[READY]`** | 3 | 35 | Web PWA, Android, iOS | `logikchain-test` |
-| **`EPIC-06`** | Payouts & Cloud Tasks Bank | `payouts-service` | `:4006` | **`[READY]`** | 4 | 36 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-07`** | Cash Custody & Rural CoD | `cash-service` | `:4007` | **`[DONE]`** | 3 | 35 | Web PWA, Android, iOS | `logikchain-test` |
+| **`EPIC-06`** | Payouts & Cloud Tasks Bank | `payouts-service` | `:4006` | **`[DONE]`** | 4 | 36 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-11`** | Platform Governance & AML | `governance-service` | `:4011` | **`[READY]`** | 4 | 34 | Web PWA, Android, iOS | `logikchain-test` |
 | **`EPIC-09`** | General Ledger & Tax Accounting| `finance-service` | `:4009` | **`[READY]`** | 3 | 31 | Web PWA, Android, iOS | `logikchain-test` |
 | **TOTALS** | **13 Platform Epics** | **13 Microservices** | — | — | **50** | **479** | **100% 3-Tier Client Scope** | **Cloud Run & Firebase Hosting** |

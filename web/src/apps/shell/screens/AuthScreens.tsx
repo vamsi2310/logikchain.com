@@ -4,7 +4,7 @@ import { RecaptchaVerifier } from "firebase/auth";
 import { getFirebaseAuth } from "@/firebase/app";
 import { ops } from "@/api/ops";
 import { useI18n, LOCALES } from "@/state/locale";
-import { useSession } from "@/state/session";
+import { useSession, roleHome } from "@/state/session";
 import { useOnline } from "@/state/offline";
 import { useToast } from "@/state/toast";
 import { PublicLayout } from "@/apps/public/PublicLayout";
@@ -183,7 +183,7 @@ export function LanguageScreen() {
 export function LoginScreen() {
   const { t, locale } = useI18n();
   const nav = useNavigate();
-  const { sendOtp, google } = useSession();
+  const { sendOtp, google, user, profile, logout, refreshProfile } = useSession();
   const { online } = useOnline();
   const { push } = useToast();
 
@@ -195,6 +195,10 @@ export function LoginScreen() {
   const [pincode, setPincode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showRoleForm, setShowRoleForm] = useState(false);
+  const [supportTargetRole, setSupportTargetRole] = useState<UserRole>("merchant");
+  const [supportReason, setSupportReason] = useState("");
+  const [supportSubmitting, setSupportSubmitting] = useState(false);
   const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
 
   useEffect(() => {
@@ -331,6 +335,215 @@ export function LoginScreen() {
               boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05)"
             }}
           >
+            {user ? (
+              <div>
+                <div style={{ display: "inline-block", background: "#f0fdf4", color: "#16a34a", fontSize: "0.8rem", fontWeight: 700, padding: "4px 10px", borderRadius: "9999px", marginBottom: "1rem" }}>
+                  ● Active Session
+                </div>
+                <h2 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.5rem 0" }}>
+                  You are Signed In
+                </h2>
+                <p style={{ color: "#64748b", fontSize: "0.95rem", margin: "0 0 1.5rem 0" }}>
+                  Currently authenticated as <strong style={{ color: "#0f172a" }}>{profile?.name || user.displayName || user.phoneNumber || user.email || "Member"}</strong>.
+                </p>
+
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#64748b" }}>Assigned Role:</span>
+                    <span style={{ fontWeight: 700, color: "#16a34a", fontSize: "0.95rem" }} data-testid="assigned-role-text">
+                      {roleOptions.find(r => r.id === (profile?.role || "buyer"))?.title || "Consumer / Buyer"}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#64748b" }}>Assigned Village:</span>
+                    <span style={{ fontWeight: 600, color: "#0f172a", fontSize: "0.9rem" }} data-testid="user-village-text">
+                      {profile?.villageId || "village_peridepi_523273"}
+                    </span>
+                  </div>
+                  {(profile?.address || profile?.phone) && (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
+                      <span style={{ fontSize: "0.85rem", color: "#64748b" }}>Contact:</span>
+                      <span style={{ fontWeight: 600, color: "#0f172a", fontSize: "0.9rem" }}>{profile.address || profile.phone}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Contact Support to Switch Role Action & Form */}
+                <div style={{ marginBottom: "1.25rem" }}>
+                  <button
+                    type="button"
+                    data-testid="contact-support-role-btn"
+                    onClick={() => setShowRoleForm((prev) => !prev)}
+                    style={{
+                      width: "100%",
+                      padding: "0.85rem",
+                      borderRadius: "12px",
+                      border: "1px solid #0284c7",
+                      background: showRoleForm ? "#f0f9ff" : "#ffffff",
+                      color: "#0369a1",
+                      fontSize: "0.95rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <span>🎧 Contact Support to Switch Role</span>
+                    <span>{showRoleForm ? "▲" : "▼"}</span>
+                  </button>
+
+                  {/* Role Switch Form */}
+                  {showRoleForm && (
+                    <div
+                      data-testid="role-switch-form"
+                      style={{
+                        marginTop: "0.85rem",
+                        padding: "1.25rem",
+                        background: "#f0f9ff",
+                        borderRadius: "12px",
+                        border: "1px solid #bae6fd",
+                      }}
+                    >
+                      <h4 style={{ margin: "0 0 0.4rem 0", color: "#0369a1", fontSize: "1.05rem", fontWeight: 800 }}>
+                        Support Role Conversion Request
+                      </h4>
+                      <p style={{ margin: "0 0 1rem 0", color: "#0c4a6e", fontSize: "0.82rem" }}>
+                        Contact operations support to switch platform role and update permissions via Identity Microservice.
+                      </p>
+
+                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#0369a1", marginBottom: "0.35rem" }}>
+                        Target Role to Switch
+                      </label>
+                      <select
+                        data-testid="role-switch-select"
+                        value={supportTargetRole}
+                        onChange={(e) => setSupportTargetRole(e.target.value as UserRole)}
+                        style={{
+                          width: "100%",
+                          padding: "0.65rem 0.75rem",
+                          borderRadius: "8px",
+                          border: "1px solid #7dd3fc",
+                          marginBottom: "0.85rem",
+                          fontSize: "0.9rem",
+                          background: "#ffffff",
+                          fontWeight: 600,
+                        }}
+                      >
+                        <option value="merchant">Kirana Merchant (🏪 Wholesale sourcing & credit)</option>
+                        <option value="vehicle">Fleet Rider (🛵 Logistics delivery & payouts)</option>
+                        <option value="supplier">Depot / Supplier (🏭 Bulk mill catalogue & settlement)</option>
+                        <option value="support">Platform Operations (🛡️ AML, KYC & governance)</option>
+                        <option value="buyer">Consumer / Buyer (🛒 Mandi grocery ordering)</option>
+                      </select>
+
+                      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#0369a1", marginBottom: "0.35rem" }}>
+                        Reason for Role Switch
+                      </label>
+                      <textarea
+                        data-testid="role-switch-reason"
+                        value={supportReason}
+                        onChange={(e) => setSupportReason(e.target.value)}
+                        placeholder="e.g. Registered kirana store owner in Kandukur requesting merchant terminal privileges."
+                        rows={2}
+                        style={{
+                          width: "100%",
+                          boxSizing: "border-box",
+                          padding: "0.6rem 0.75rem",
+                          borderRadius: "8px",
+                          border: "1px solid #7dd3fc",
+                          marginBottom: "0.85rem",
+                          fontSize: "0.85rem",
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        data-testid="submit-role-switch-btn"
+                        disabled={supportSubmitting}
+                        onClick={async () => {
+                          if (!user) return;
+                          setSupportSubmitting(true);
+                          try {
+                            await ops.convertBuyerToRole(user.uid, {
+                              targetRole: supportTargetRole,
+                              reason: supportReason.trim() || "User requested role change via Support Desk",
+                            });
+                            await refreshProfile();
+                            push(`Role updated to ${supportTargetRole.toUpperCase()} successfully via Support`);
+                            setShowRoleForm(false);
+                          } catch (err) {
+                            push((err as Error).message);
+                          } finally {
+                            setSupportSubmitting(false);
+                          }
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "0.8rem",
+                          borderRadius: "8px",
+                          border: "none",
+                          background: supportSubmitting ? "#94a3b8" : "#0284c7",
+                          color: "#ffffff",
+                          fontWeight: 800,
+                          fontSize: "0.95rem",
+                          cursor: supportSubmitting ? "not-allowed" : "pointer",
+                          boxShadow: "0 2px 8px rgba(2, 132, 199, 0.3)",
+                        }}
+                      >
+                        {supportSubmitting ? "Updating Role via Microservice..." : "Submit Role Switch Request ➔"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                  <button
+                    type="button"
+                    data-testid="open-app-btn"
+                    onClick={() => window.location.assign(roleHome(profile?.role ?? "buyer"))}
+                    style={{
+                      width: "100%",
+                      padding: "0.95rem",
+                      borderRadius: "12px",
+                      border: "none",
+                      background: "#16a34a",
+                      color: "#ffffff",
+                      fontSize: "1.05rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      boxShadow: "0 4px 10px rgba(22, 163, 74, 0.3)"
+                    }}
+                  >
+                    Open App ➔
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await logout();
+                      push("Signed out successfully");
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "0.8rem",
+                      borderRadius: "12px",
+                      border: "1px solid #cbd5e1",
+                      background: "#ffffff",
+                      color: "#475569",
+                      fontSize: "0.95rem",
+                      fontWeight: 600,
+                      cursor: "pointer"
+                    }}
+                  >
+                    Sign Out & Switch Account
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
                 Sign In or Register
@@ -577,6 +790,8 @@ export function LoginScreen() {
             <div style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.85rem", color: "#64748b" }}>
               Are you a bulk depot or FMCG mill? <Link to="/suppliers" style={{ color: "#0284c7", fontWeight: 600 }}>Explore Supplier Portal ➔</Link>
             </div>
+            </>
+            )}
 
             <div id="recaptcha-host" />
           </div>
@@ -639,7 +854,7 @@ export function OtpScreen() {
         console.warn("Could not sync pre-signup onboarding info", err);
       }
 
-      nav("/home");
+      nav("/login");
     } catch (e) {
       push((e as Error).message);
     } finally {
@@ -693,6 +908,7 @@ export function OtpScreen() {
             {digits.map((d, i) => (
               <input
                 key={i}
+                data-testid={`otp-digit-${i}`}
                 ref={(el) => { inputsRef.current[i] = el; }}
                 type="text"
                 inputMode="numeric"
@@ -717,6 +933,7 @@ export function OtpScreen() {
 
           <button
             type="button"
+            data-testid="verify-otp-btn"
             disabled={code.length !== 6 || busy}
             onClick={() => void verify()}
             style={{

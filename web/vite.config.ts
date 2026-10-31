@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { fileURLToPath, URL } from "node:url";
+import { testRunnerPlugin } from "./vite-plugin-test-runner";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 
@@ -50,6 +51,7 @@ export default defineConfig({
   plugins: [
     react(),
     roleAppFallback(),
+    testRunnerPlugin(),
     VitePWA({
       registerType: "prompt",
       includeAssets: ["icon.svg"],

@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-03`
-- **Epic Status**: [READY]
+- **Epic Status**: [DONE]
 - **Functional Area**: Gig Logistics, Fleet Dispatch & Real-Time Routing
 - **Bound Microservice**: `microservices/services/gigs-service`
 - **Container Port**: `4003`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.01`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Route assembly, multi-stop village merchant sequencing, vehicle assignment, surrogate gig ID creation, and mid-route vehicle/driver reassignment.
 - **Service Endpoints**: `POST /v1/gigs` (`composeGig`), `GET /v1/gigs/{gigId}`, `PATCH /v1/gigs/{gigId}/reassign-vehicle`, `PATCH /v1/gigs/{gigId}/reassign-driver`
 - **UI Screens**: [SUP-02 Gig Scheduler](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-02), [SUP-03 Route Planner](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-03)
@@ -41,9 +41,9 @@
 - **Postconditions**: Gig created with status `scheduled`; driver notified on Android app; matching pamphlet initialized.
 
 ### 3. User Journey Stories
-- **US-03.01.01 [READY]**: *As a supplier logistics manager (or Support operator acting as proxy), I want to automatically optimize waypoints across registered merchant locations, so that our delivery vehicles minimize fuel consumption and transit delays.*
-- **US-03.01.02 [READY]**: *As a delivery driver, I want to receive my daily scheduled route with merchant stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch.*
-- **US-03.01.03 [READY]**: *As a Support operator or Supplier manager, I want to reassign a broken-down vehicle to a replacement truck without altering the underlying gig ID or canceling customer orders, so that rural deliveries can proceed with minimal disruption.*
+- **US-03.01.01 [DONE]**: *As a supplier logistics manager (or Support operator acting as proxy), I want to automatically optimize waypoints across registered merchant locations, so that our delivery vehicles minimize fuel consumption and transit delays.*
+- **US-03.01.02 [DONE]**: *As a delivery driver, I want to receive my daily scheduled route with merchant stops and order summaries on my Android device, so that I can prepare my vehicle before dispatch.*
+- **US-03.01.03 [DONE]**: *As a Support operator or Supplier manager, I want to reassign a broken-down vehicle to a replacement truck without altering the underlying gig ID or canceling customer orders, so that rural deliveries can proceed with minimal disruption.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -63,22 +63,22 @@ Scenario: Mid-route vehicle reassignment maintains gig continuity
 ```
 
 ### 4. Integration Stories
-- **INT-03.01.01 [READY] (Google Maps Distance Matrix Integration)**: *As the Gigs Service, I need to integrate with Google Maps Distance Matrix and Routes API to compute road distances, optimal waypoint ordering, and travel durations.*
-- **INT-03.01.02 [READY] (Pamphlet Service Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest (`pamphletId` bound to `gigId`).*
-- **INT-03.01.03 [READY] (Firestore Periodic Sync Integration)**: *As the Gigs Service, I need to synchronize all gig state changes to Cloud Firestore collection `/Gigs/{gigId}` every 2000ms.*
+- **INT-03.01.01 [DONE] (Google Maps Distance Matrix Integration)**: *As the Gigs Service, I need to integrate with Google Maps Distance Matrix and Routes API to compute road distances, optimal waypoint ordering, and travel durations.*
+- **INT-03.01.02 [DONE] (Pamphlet Service Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) via internal REST on `composeGig` to automatically initialize the dynamic manifest (`pamphletId` bound to `gigId`).*
+- **INT-03.01.03 [DONE] (Firestore Periodic Sync Integration)**: *As the Gigs Service, I need to synchronize all gig state changes to Cloud Firestore collection `/Gigs/{gigId}` every 2000ms.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-03.01.01 [READY] (Web PWA Client)**: *Implement Supplier Gig Scheduler (`SUP-02`) and Route Planner (`SUP-03`) with interactive village waypoint selection, Google Maps route visualizer, and departure schedule configuration in `web/`.*
-- **AND-03.01.01 [READY] (Android Native Client)**: *Implement Driver Scheduled Route view with offline waypoint caching and push notification listener for newly assigned gigs in `android/`.*
-- **IOS-03.01.01 [READY] (iOS Native Client)**: *Implement Supplier Route Monitoring view in iOS management app with route sequence cards and transit time estimates.*
+- **PWA-03.01.01 [DONE] (Web PWA Client)**: *Implement Supplier Gig Scheduler (`SUP-02`) and Route Planner (`SUP-03`) with interactive village waypoint selection, Google Maps route visualizer, and departure schedule configuration in `web/`.*
+- **AND-03.01.01 [DONE] (Android Native Client)**: *Implement Driver Scheduled Route view with offline waypoint caching and push notification listener for newly assigned gigs in `android/`.*
+- **IOS-03.01.01 [DONE] (iOS Native Client)**: *Implement Supplier Route Monitoring view in iOS management app with route sequence cards and transit time estimates.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-03.01.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating gig composition on `SUP-03`, Google Maps distance calculation, and automatic pamphlet instantiation against `gigs-service` and `pamphlet-service` on `logikchain-test`.*
+- **TEST-03.01.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating gig composition on `SUP-03`, Google Maps distance calculation, and automatic pamphlet instantiation against `gigs-service` and `pamphlet-service` on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-03.01.01 [READY] (DevOps & Database Migrations)**: *Deploy `gigs-service` container on Kubernetes (`03-gigs.yaml`), configure database migrations for `gigs_db`, and establish secret bindings for Google Maps API keys.*
-- **DOC-03.01.01 [READY] (Route Computation & Surrogate Gig Specs)**: *Document surrogate `gig_{id}` generation, mutable vehicle/driver reassignments, and Google Maps API quota policies in `microservices/` docs.*
-- **TEST-03.01.01 [READY] (Bruno API Automation)**: *Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying surrogate key generation and vehicle reassignment.*
+- **OPS-03.01.01 [DONE] (DevOps & Database Migrations)**: *Deploy `gigs-service` container on Kubernetes (`03-gigs.yaml`), configure database migrations for `gigs_db`, and establish secret bindings for Google Maps API keys.*
+- **DOC-03.01.01 [DONE] (Route Computation & Surrogate Gig Specs)**: *Document surrogate `gig_{id}` generation, mutable vehicle/driver reassignments, and Google Maps API quota policies in `microservices/` docs.*
+- **TEST-03.01.01 [DONE] (Bruno API Automation)**: *Create automated test collection `tests/bruno/03-gigs/composeGig/` verifying surrogate key generation and vehicle reassignment.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -113,7 +113,7 @@ Scenario: Mid-route vehicle reassignment maintains gig continuity
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.02`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Gig start attestation, background GPS ping ingestion, real-time driver tracking, and Play Integrity verification.
 - **Service Endpoints**: `POST /v1/gigs/{gigId}:start`, `POST /v1/gigs/{gigId}/location`
 - **UI Screens**: [VEH-02 Active Gig](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-02), [BUY-05 Live Tracking](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05)
@@ -133,7 +133,7 @@ Scenario: Mid-route vehicle reassignment maintains gig continuity
 - **Postconditions**: Gig marked `in_progress`; buyers and suppliers observe live vehicle pin on map.
 
 ### 3. User Journey Stories
-- **US-03.02.01 [READY]**: *As a driver on the road, I want my Android app to continuously stream GPS coordinates in the background, so that villagers are notified ahead of my arrival without my manual intervention.*
+- **US-03.02.01 [DONE]**: *As a driver on the road, I want my Android app to continuously stream GPS coordinates in the background, so that villagers are notified ahead of my arrival without my manual intervention.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -145,23 +145,23 @@ Scenario: Driver starts gig with Play Integrity token
 ```
 
 ### 4. Integration Stories
-- **INT-03.02.01 [READY] (Play Integrity App Check Integration)**: *As the Gigs Service, I need to reject `startGig` and `updateGigLocation` requests that do not provide a valid Android Google Play Integrity token to prevent fake GPS injection.*
-- **INT-03.02.02 [READY] (Firestore Telemetry Sync Integration)**: *As the Gigs Service, I need to stream driver GPS coordinates to Firestore collection `/DriverLocations/{vehicleId}` for ultra-low latency client map rendering.*
+- **INT-03.02.01 [DONE] (Play Integrity App Check Integration)**: *As the Gigs Service, I need to reject `startGig` and `updateGigLocation` requests that do not provide a valid Android Google Play Integrity token to prevent fake GPS injection.*
+- **INT-03.02.02 [DONE] (Firestore Telemetry Sync Integration)**: *As the Gigs Service, I need to stream driver GPS coordinates to Firestore collection `/DriverLocations/{vehicleId}` for ultra-low latency client map rendering.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-03.02.01 [READY] (Web PWA Client)**: *Implement Buyer Live Tracking map (`BUY-05`) with smooth vehicle pin animation reacting to Firestore `/DriverLocations` stream.*
-- **AND-03.02.01 [READY] (Android Native — Driver Navigation UI Layout)**: *Implement Jetpack Compose active navigation screen (`VEH-02`) with waypoint sequence cards, turn-by-turn banner, and gig status control buttons.*
-- **AND-03.02.02 [READY] (Android Native — Foreground GPS Location Service)**: *Build Android Foreground Service with continuous background GPS pinging (30s interval), battery optimization whitelist request, and Google Play Integrity token attestation.*
-- **AND-03.02.03 [READY] (Android Native — Room DB Offline Waypoint & Telemetry Cache)**: *Implement local Room database entities and DAOs for caching route waypoints and queueing GPS telemetry points during cellular dead zones.*
-- **IOS-03.02.01 [READY] (iOS Native Client)**: *Implement Buyer Live Tracking map using MapKit with real-time Firestore vehicle coordinate binding.*
+- **PWA-03.02.01 [DONE] (Web PWA Client)**: *Implement Buyer Live Tracking map (`BUY-05`) with smooth vehicle pin animation reacting to Firestore `/DriverLocations` stream.*
+- **AND-03.02.01 [DONE] (Android Native — Driver Navigation UI Layout)**: *Implement Jetpack Compose active navigation screen (`VEH-02`) with waypoint sequence cards, turn-by-turn banner, and gig status control buttons.*
+- **AND-03.02.02 [DONE] (Android Native — Foreground GPS Location Service)**: *Build Android Foreground Service with continuous background GPS pinging (30s interval), battery optimization whitelist request, and Google Play Integrity token attestation.*
+- **AND-03.02.03 [DONE] (Android Native — Room DB Offline Waypoint & Telemetry Cache)**: *Implement local Room database entities and DAOs for caching route waypoints and queueing GPS telemetry points during cellular dead zones.*
+- **IOS-03.02.01 [DONE] (iOS Native Client)**: *Implement Buyer Live Tracking map using MapKit with real-time Firestore vehicle coordinate binding.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-03.02.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying that when synthetic telemetry is pushed to `gigs-service`, the buyer PWA tracking view updates the delivery vehicle position smoothly on `logikchain-test`.*
+- **TEST-03.02.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test verifying that when synthetic telemetry is pushed to `gigs-service`, the buyer PWA tracking view updates the delivery vehicle position smoothly on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-03.02.01 [READY] (High-Throughput Ingestion Tuning)**: *Configure connection pooling and write-batching in `gigs-service` to efficiently handle 10,000 concurrent driver GPS pings per minute.*
-- **DOC-03.02.01 [READY] (Telemetry Pipeline Documentation)**: *Publish sequence diagrams showing GPS ping ingestion, validation, and real-time distribution.*
-- **TEST-03.02.01 [READY] (Bruno & Performance Tests)**: *Execute automated Bruno test `tests/bruno/03-gigs/locationPing/` and load test endpoint with synthetic vehicle telemetry.*
+- **OPS-03.02.01 [DONE] (High-Throughput Ingestion Tuning)**: *Configure connection pooling and write-batching in `gigs-service` to efficiently handle 10,000 concurrent driver GPS pings per minute.*
+- **DOC-03.02.01 [DONE] (Telemetry Pipeline Documentation)**: *Publish sequence diagrams showing GPS ping ingestion, validation, and real-time distribution.*
+- **TEST-03.02.01 [DONE] (Bruno & Performance Tests)**: *Execute automated Bruno test `tests/bruno/03-gigs/locationPing/` and load test endpoint with synthetic vehicle telemetry.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -197,7 +197,7 @@ Scenario: Driver starts gig with Play Integrity token
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.03`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: End-of-day gig audit, completion sign-off, route mileage reconciliation, and driver handoff readiness.
 - **Service Endpoints**: `POST /v1/gigs/{gigId}:complete`, `POST /v1/gigs/{gigId}:suspend`
 - **UI Screens**: [VEH-06 Gig Summary](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-06), [SUP-05 Route Monitoring](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-05)
@@ -215,7 +215,7 @@ Scenario: Driver starts gig with Play Integrity token
 - **Postconditions**: Gig status set to `completed`; driver unlocked to settle physical cash at cashier desk.
 
 ### 3. User Journey Stories
-- **US-03.03.01 [READY]**: *As a driver finishing my shift, I want a complete operational summary of my day's deliveries, returns, and mileage, so that I can verify my performance before heading to cash settlement.*
+- **US-03.03.01 [DONE]**: *As a driver finishing my shift, I want a complete operational summary of my day's deliveries, returns, and mileage, so that I can verify my performance before heading to cash settlement.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -227,21 +227,21 @@ Scenario: Driver completes gig after all deliveries finished
 ```
 
 ### 4. Integration Stories
-- **INT-03.03.01 [READY] (Pamphlet Service Close Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) on gig completion to trigger stock unload auditing.*
-- **INT-03.03.02 [READY] (Cash Service Verification Integration)**: *As the Gigs Service, I need to query `cash-service` (`:4007`) to verify if any cash collected during the gig remains outstanding.*
+- **INT-03.03.01 [DONE] (Pamphlet Service Close Integration)**: *As the Gigs Service, I need to call `pamphlet-service` (`:4004`) on gig completion to trigger stock unload auditing.*
+- **INT-03.03.02 [DONE] (Cash Service Verification Integration)**: *As the Gigs Service, I need to query `cash-service` (`:4007`) to verify if any cash collected during the gig remains outstanding.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-03.03.01 [READY] (Web PWA Client)**: *Implement Supplier Route Monitoring summary dashboard (`SUP-05`) with gig completion status, total mileage, and return auditing.*
-- **AND-03.03.01 [READY] (Android Native Client)**: *Implement Driver End-of-Day Summary screen (`VEH-06`) showing delivered count, cash collected total, and "Proceed to Cashier" prompt.*
-- **IOS-03.03.01 [READY] (iOS Native Client)**: *Implement Supplier route audit cards with actual vs estimated mileage comparison.*
+- **PWA-03.03.01 [DONE] (Web PWA Client)**: *Implement Supplier Route Monitoring summary dashboard (`SUP-05`) with gig completion status, total mileage, and return auditing.*
+- **AND-03.03.01 [DONE] (Android Native Client)**: *Implement Driver End-of-Day Summary screen (`VEH-06`) showing delivered count, cash collected total, and "Proceed to Cashier" prompt.*
+- **IOS-03.03.01 [DONE] (iOS Native Client)**: *Implement Supplier route audit cards with actual vs estimated mileage comparison.*
 
 ### 6. PWA Cloud Testing Story
-- **TEST-03.03.PWA [READY] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating gig completion audit on Supplier PWA console and verifying status updates against `gigs-service` on `logikchain-test`.*
+- **TEST-03.03.PWA [DONE] (PWA Cloud E2E Test on Test Project)**: *Automated Playwright test validating gig completion audit on Supplier PWA console and verifying status updates against `gigs-service` on `logikchain-test`.*
 
 ### 7. Independent Support Stories
-- **OPS-03.03.01 [READY] (DevOps & Reporting Queries)**: *Create optimized SQL aggregation views in `gigs_db` for driver daily and monthly performance metrics.*
-- **DOC-03.03.01 [READY] (End-of-Gig Settlement Runbook)**: *Document standard operating procedures for handling stranded vehicles or premature gig suspensions.*
-- **TEST-03.03.01 [READY] (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/03-gigs/completeGig/` validating that gigs with open orders cannot be finalized.*
+- **OPS-03.03.01 [DONE] (DevOps & Reporting Queries)**: *Create optimized SQL aggregation views in `gigs_db` for driver daily and monthly performance metrics.*
+- **DOC-03.03.01 [DONE] (End-of-Gig Settlement Runbook)**: *Document standard operating procedures for handling stranded vehicles or premature gig suspensions.*
+- **TEST-03.03.01 [DONE] (Bruno API Automation)**: *Create Bruno automated test `tests/bruno/03-gigs/completeGig/` validating that gigs with open orders cannot be finalized.*
 
 ### 8. Deployment & Cloud Verification (Acceptance Criteria & Commands)
 - **Cloud Run Microservice Deployment Command**:
@@ -277,7 +277,7 @@ Scenario: Driver completes gig after all deliveries finished
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.04`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: Route catalog presentation on `SUP-07`, universal ability for all suppliers to author custom routes from scratch or clone existing corridors/custom routes (`cloneRoute`), zero route-count caps (no separate or combined route quotas), enforcement of subscription **monthly gig execution limits** (`monthlyGigLimit` / `maxGigsPerMonth`) during gig scheduling on any route, interactive route builder on `SUP-07.1`, and deletion protection while referenced by active or upcoming gigs.
 - **Service Endpoints**:
   - `POST /v1/routes/{routeId}/clone` (`cloneRoute` on `gigs-service`)
@@ -321,9 +321,9 @@ Scenario: Driver completes gig after all deliveries finished
 - **Postconditions**: Monthly gig volume governed by subscription tier; field deliveries safeguarded against route deletion.
 
 ### 3. User Journey Stories
-- **US-03.04.01 [READY]**: *As a regional supplier, I want to create custom routes freely or clone existing corridors without being constrained by route-count quotas, so that my logistics team can map any necessary village delivery circuits.*
-- **US-03.04.02 [READY]**: *As a regional supplier, I want clear visibility into my monthly gig allowance and usage across all my routes, so that I can manage my delivery schedule within my subscription plan tier.*
-- **US-03.04.03 [READY]**: *As a regional supplier, I want the system to warn and block deletion of any route that has active or scheduled gigs, so that drivers in transit are never disrupted by accidental route removals.*
+- **US-03.04.01 [DONE]**: *As a regional supplier, I want to create custom routes freely or clone existing corridors without being constrained by route-count quotas, so that my logistics team can map any necessary village delivery circuits.*
+- **US-03.04.02 [DONE]**: *As a regional supplier, I want clear visibility into my monthly gig allowance and usage across all my routes, so that I can manage my delivery schedule within my subscription plan tier.*
+- **US-03.04.03 [DONE]**: *As a regional supplier, I want the system to warn and block deletion of any route that has active or scheduled gigs, so that drivers in transit are never disrupted by accidental route removals.*
 
 #### Acceptance Criteria (Gherkin)
 ```gherkin
@@ -349,18 +349,18 @@ Scenario: Supplier cannot delete route referenced by upcoming gigs
 ```
 
 ### 4. Integration Stories
-- **INT-03.04.01 [READY] (Subscription Monthly Gig Quota Gate)**: *As the Gigs Service, I need to evaluate the supplier's current monthly gig execution count against their active subscription `monthlyGigLimit` in `config_db.subscription_plans` before accepting `composeGig`.*
-- **INT-03.04.02 [READY] (Google Maps Distance Matrix Routing Integration)**: *As the Gigs Service, I need to call Google Maps Distance Matrix to compute turnarounds and kilometer lengths when suppliers reorder or edit custom route stops.*
-- **INT-03.04.03 [READY] (Active Gig Route Reference Validation)**: *As the Gigs Service, I need to verify that zero active (`in_progress`) or upcoming (`scheduled`) gigs reference a route before processing any route deletion.*
+- **INT-03.04.01 [DONE] (Subscription Monthly Gig Quota Gate)**: *As the Gigs Service, I need to evaluate the supplier's current monthly gig execution count against their active subscription `monthlyGigLimit` in `config_db.subscription_plans` before accepting `composeGig`.*
+- **INT-03.04.02 [DONE] (Google Maps Distance Matrix Routing Integration)**: *As the Gigs Service, I need to call Google Maps Distance Matrix to compute turnarounds and kilometer lengths when suppliers reorder or edit custom route stops.*
+- **INT-03.04.03 [DONE] (Active Gig Route Reference Validation)**: *As the Gigs Service, I need to verify that zero active (`in_progress`) or upcoming (`scheduled`) gigs reference a route before processing any route deletion.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-03.04.01 [READY] (Web PWA Route Catalog & Builder)**: *Build route catalog on `SUP-07` with 1-click clone and new route creation, interactive drag-and-drop waypoint editor on `SUP-07.1`, monthly gig quota consumption bar on `SUP-02`, and gig-dependency delete blocker in `web/s/`.*
-- **AND-03.04.01 [READY] (Android Native Route Catalog & Stop Inspector)**: *Build native Android route catalog and stop inspection cards for supplier management app.*
-- **IOS-03.04.01 [READY] (iOS Native Route Catalog & Stop Inspector)**: *Build native iOS route catalog and stop inspection view for supplier management app.*
+- **PWA-03.04.01 [DONE] (Web PWA Route Catalog & Builder)**: *Build route catalog on `SUP-07` with 1-click clone and new route creation, interactive drag-and-drop waypoint editor on `SUP-07.1`, monthly gig quota consumption bar on `SUP-02`, and gig-dependency delete blocker in `web/s/`.*
+- **AND-03.04.01 [DONE] (Android Native Route Catalog & Stop Inspector)**: *Build native Android route catalog and stop inspection cards for supplier management app.*
+- **IOS-03.04.01 [DONE] (iOS Native Route Catalog & Stop Inspector)**: *Build native iOS route catalog and stop inspection view for supplier management app.*
 
 ### 6. Independent Support Stories
-- **DOC-03.04.01 [READY] (Supplier Route Playbook & Monthly Gig Quota Guide)**: *Publish operational documentation explaining standard corridor benefits, route authoring and cloning workflows, and subscription monthly gig quota rules in `docs/playbooks/supplier_route_management.md`.*
-- **OPS-03.04.01 [READY] (Gigs Service Route Schema Migration)**: *Create migration for `gigs_db.routes` and configure monthly gig aggregation query index in `gigs_db.gigs`.*
-- **TEST-03.04.01 [READY] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/03-gigs/routeGovernance/` validating route cloning without route caps, 403 rejection on exceeding monthly gig limit, and 409 rejection on deleting routes in use.*
+- **DOC-03.04.01 [DONE] (Supplier Route Playbook & Monthly Gig Quota Guide)**: *Publish operational documentation explaining standard corridor benefits, route authoring and cloning workflows, and subscription monthly gig quota rules in `docs/playbooks/supplier_route_management.md`.*
+- **OPS-03.04.01 [DONE] (Gigs Service Route Schema Migration)**: *Create migration for `gigs_db.routes` and configure monthly gig aggregation query index in `gigs_db.gigs`.*
+- **TEST-03.04.01 [DONE] (Bruno API Automation)**: *Create automated Bruno test `tests/bruno/03-gigs/routeGovernance/` validating route cloning without route caps, 403 rejection on exceeding monthly gig limit, and 409 rejection on deleting routes in use.*
 
 

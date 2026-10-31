@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-06`
-- **Epic Status**: [READY]
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: Payouts, Disbursements & Field Remuneration
 - **Bound Microservice**: `microservices/services/payouts-service`
 - **Container Port**: `4006`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-06.01`
-- **Feature Status**: [READY]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Secure bank account & UPI VPA onboarding, Penny-drop validation, and Cloud KMS envelope encryption at rest.
 - **Service Endpoints**: `POST /v1/payouts/beneficiaries` (`registerPayoutBeneficiary`), `POST /v1/payouts/beneficiaries/{id}:block`
 - **UI Screens**: [VEH-07 Driver Earnings](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-07), [SUP-08 Bank Profile](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-08)
@@ -102,7 +102,7 @@ Scenario: Driver registers bank account with KMS encryption
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-06.02`
-- **Feature Status**: [READY]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Driver earnings balance validation, withdrawal request creation, threshold validation, and Support review workflow.
 - **Service Endpoints**: `POST /v1/payouts/requests` (`requestPayout`), `POST /v1/payouts/requests/{id}/review` (`reviewPayoutRequest`)
 - **UI Screens**: [VEH-07 Driver Wallet](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-07), [SPT-05 Payout Review](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-05)
@@ -184,7 +184,7 @@ Scenario: Driver requests payout with pending cash discrepancy
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-06.03`
-- **Feature Status**: [READY]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Rate-limited payout queue execution, Cloud Tasks worker integration, RazorpayX payout disbursement, and settlement logging.
 - **Service Endpoints**: `POST /v1/payouts/tasks/transfer` (`initiatePayoutTransfer`), `POST /v1/payouts/settlement`
 - **UI Screens**: [VEH-07 Driver Wallet](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-07), [SPT-05 Support Payout Details](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-05)
@@ -270,7 +270,7 @@ Scenario: Cloud Task executes bank payout transfer
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-06.04`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: End-to-end supplier funds tracking, platform escrow visibility, fund allocation breakdown (merchant handling commissions, driver trip compensation, platform take-rate), supplier bank withdrawal authorization, and Support financial monitoring dashboard.
 - **Service Endpoints**:
   - `GET /v1/payouts/suppliers/{supplierId}/funds-summary` (`getSupplierFundsSummary`)
@@ -319,8 +319,8 @@ Scenario: Support audits supplier money and fund allocations
 ```
 
 ### 4. Integration Stories
-- **INT-06.04.01 [READY] (Finance Service Real-Time Ledger Summary Integration)**: *As the Payouts Service, I need to call `finance-service` (`:4009`) to compute immutable account balances across Merchant Clearing, Driver Clearing, and Supplier Equity accounts.*
-- **INT-06.04.02 [READY] (Firestore Supplier Balance Sync)**: *As the Payouts Service, I need to synchronize supplier financial balances to Firestore collection `/SupplierFinancials/{supplierId}` every 2000ms.*
+- **INT-06.04.01 [DONE] (Finance Service Real-Time Ledger Summary Integration)**: *As the Payouts Service, I need to call `finance-service` (`:4009`) to compute immutable account balances across Merchant Clearing, Driver Clearing, and Supplier Equity accounts.*
+- **INT-06.04.02 [DONE] (Firestore Supplier Balance Sync)**: *As the Payouts Service, I need to synchronize supplier financial balances to Firestore collection `/SupplierFinancials/{supplierId}` every 2000ms.*
 
 ### 5. Multi-Client Implementation Stories
-- **PWA-06.04.01 [READY] (Web PWA Supplier Financial Monitor & Support Console)**: *Build `SUP-11` (Supplier Financial Overview) and `SPT-12` (Support Supplier Financial Monitor) in `web/` with visual allocation progress rings, payout ledger tables, and bank disbursement triggers.*
+- **PWA-06.04.01 [DONE] (Web PWA Supplier Financial Monitor & Support Console)**: *Build `SUP-11` (Supplier Financial Overview) and `SPT-12` (Support Supplier Financial Monitor) in `web/` with visual allocation progress rings, payout ledger tables, and bank disbursement triggers.*

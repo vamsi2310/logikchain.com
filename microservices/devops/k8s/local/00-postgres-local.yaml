@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: logikchain-backend
+spec:
+  serviceName: postgres-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+      volumes:
+        - name: pgdata
+          emptyDir: {}
+        - name: init-sql
+          configMap:
+            name: postgres-init-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: logikchain-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: logikchain-backend
+data:
+  init.sql: |
+    CREATE DATABASE identity_db;
+    CREATE DATABASE orders_db;
+    CREATE DATABASE gigs_db;
+    CREATE DATABASE pamphlet_db;
+    CREATE DATABASE payments_db;
+    CREATE DATABASE payouts_db;
+    CREATE DATABASE cash_db;
+    CREATE DATABASE credit_db;
+    CREATE DATABASE finance_db;
+    CREATE DATABASE config_db;
+    CREATE DATABASE governance_db;
+    CREATE DATABASE social_connect_db;
+    CREATE DATABASE sync_db;
+
+    GRANT ALL PRIVILEGES ON DATABASE identity_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE orders_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE gigs_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE pamphlet_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE payments_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE payouts_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE cash_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE credit_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE finance_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE config_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE governance_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE social_connect_db TO postgres;
+    GRANT ALL PRIVILEGES ON DATABASE sync_db TO postgres;
+

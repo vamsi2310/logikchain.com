@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-13`
-- **Epic Status**: `[IN_PROGRESS]`
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: Social Media Connect, Multi-Channel User Notifications & Interaction Orchestration
 - **Bound Microservice**: `microservices/services/social-connect-service`
 - **Container Port**: `4012`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.01`
-- **Feature Status**: `[IN_PROGRESS]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: User preference management (WhatsApp, In-App Push, SMS), notification categories (OTPs, Orders, Bills, Ownership Alerts), local database preference cache, and Cloud Firestore synchronization.
 - **Service Endpoints**: `GET /api/v1/preferences/{userId}`, `PUT /api/v1/preferences/{userId}`
 - **UI Screens**: [SHR-07 Profile Settings](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-07), [SHR-12 Notification Center](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-12)
@@ -103,7 +103,7 @@ Scenario: Update user notification preferences
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.02`
-- **Feature Status**: `[IN_PROGRESS]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: WhatsApp Cloud API authentication message dispatch, one-tap copyable OTP buttons, delivery receipt tracking, and automatic SMS fallback.
 - **Service Endpoints**: `POST /api/v1/interaction/otp`, `POST /api/v1/social/webhook` (Meta Webhook)
 - **UI Screens**: [SHR-02 Login](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-02), [SHR-04 OTP](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-04)
@@ -190,7 +190,7 @@ Scenario: WhatsApp OTP dispatch with one-tap copy
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.03`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: Real-time order placement, dispatch, out-for-delivery, and delivery completion notifications with live tracking links via WhatsApp and FCM Push.
 - **Service Endpoints**: `POST /api/v1/interaction/order-update`
 - **UI Screens**: [BUY-05 Order Tracking](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05), [MER-02 Orders](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-02)
@@ -271,7 +271,7 @@ Scenario: Order out-for-delivery notification dispatched
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-13.04`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: Automated delivery of PDF tax invoices, merchant bulk order bills, TDS deduction certificates, and business ownership notifications (daily payout confirmations, credit limit updates).
 - **Service Endpoints**: `POST /api/v1/interaction/bill`, `POST /api/v1/interaction/ownership-alert`
 - **UI Screens**: [MER-07 Financial Hub](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-07), [SUP-08 Fleet Admin](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-08)

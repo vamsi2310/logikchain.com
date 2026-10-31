@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useI18n, LOCALES } from "@/state/locale";
 import { useSession } from "@/state/session";
@@ -7,8 +7,12 @@ import { PublicLayout } from "@/apps/public/PublicLayout";
 export function ProfileScreen() {
   const { locale } = useI18n();
   const nav = useNavigate();
-  const { profile, logout } = useSession();
+  const { profile, logout, refreshProfile } = useSession();
   const [out, setOut] = useState(false);
+
+  useEffect(() => {
+    void refreshProfile();
+  }, [refreshProfile]);
 
   const defaultRole = { label: "Consumer / Buyer", color: "#0369a1", bg: "#e0f2fe" };
   const roleBadgeMap: Record<string, { label: string; color: string; bg: string }> = {
@@ -81,6 +85,9 @@ export function ProfileScreen() {
               </div>
               <div style={{ color: "#94a3b8", fontSize: "0.95rem" }}>
                 📞 {profile?.phone || "Phone verified"} • UID: <code style={{ color: "#38bdf8", fontSize: "0.85rem" }}>{profile?.id?.slice(0, 12) || "usr_verified"}...</code>
+              </div>
+              <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "4px" }}>
+                📍 Village: <strong style={{ color: "#38bdf8" }} data-testid="profile-village-display">{profile?.villageId || "village_peridepi_523273"}</strong>
               </div>
             </div>
           </div>

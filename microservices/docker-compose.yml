@@ -8,25 +8,7 @@ x-microservice-env: &service-env
   SYNC_INTERVAL_MS: "2000"
 
 services:
-  # ─── CORE DATA INFRASTRUCTURE ─────────────────────────────────────────────
-  postgres:
-    image: postgres:16-alpine
-    container_name: logikchain-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./devops/scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
+  # ─── OPTIONAL CACHE INFRASTRUCTURE ───────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: logikchain-redis
@@ -66,7 +48,7 @@ services:
       - payments-service
       - social-connect-service
 
-  # ─── DOMAIN MICROSERVICES (INDEPENDENT FIREBASE & STORAGE SYNCS) ───────────
+  # ─── DOMAIN MICROSERVICES (CONTAINER-LOCAL POSTGRES & FIREBASE SYNC) ─────
   identity-service:
     build:
       context: .
@@ -80,10 +62,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4001
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/identity_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: identity-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/identity_db
+    volumes:
+      - identity-pgdata:/var/lib/postgresql/data
 
   orders-service:
     build:
@@ -98,10 +80,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4002
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/orders_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: orders-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/orders_db
+    volumes:
+      - orders-pgdata:/var/lib/postgresql/data
 
   gigs-service:
     build:
@@ -116,10 +98,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4003
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/gigs_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: gigs-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/gigs_db
+    volumes:
+      - gigs-pgdata:/var/lib/postgresql/data
 
   pamphlet-service:
     build:
@@ -134,10 +116,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4004
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/pamphlet_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: pamphlet-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/pamphlet_db
+    volumes:
+      - pamphlet-pgdata:/var/lib/postgresql/data
 
   payments-service:
     build:
@@ -152,11 +134,11 @@ services:
     environment:
       <<: *service-env
       PORT: 4005
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/payments_db
+      SERVICE_NAME: payments-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/payments_db
       PSP_WEBHOOK_SECRET: dev_secret_key
-    depends_on:
-      postgres:
-        condition: service_healthy
+    volumes:
+      - payments-pgdata:/var/lib/postgresql/data
 
   payouts-service:
     build:
@@ -171,10 +153,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4006
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/payouts_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: payouts-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/payouts_db
+    volumes:
+      - payouts-pgdata:/var/lib/postgresql/data
 
   cash-service:
     build:
@@ -189,10 +171,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4007
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/cash_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: cash-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/cash_db
+    volumes:
+      - cash-pgdata:/var/lib/postgresql/data
 
   credit-service:
     build:
@@ -207,10 +189,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4008
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/credit_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: credit-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/credit_db
+    volumes:
+      - credit-pgdata:/var/lib/postgresql/data
 
   finance-service:
     build:
@@ -225,10 +207,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4009
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/finance_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: finance-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/finance_db
+    volumes:
+      - finance-pgdata:/var/lib/postgresql/data
 
   config-service:
     build:
@@ -243,10 +225,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4010
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/config_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: config-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/config_db
+    volumes:
+      - config-pgdata:/var/lib/postgresql/data
 
   governance-service:
     build:
@@ -261,10 +243,10 @@ services:
     environment:
       <<: *service-env
       PORT: 4011
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/governance_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: governance-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/governance_db
+    volumes:
+      - governance-pgdata:/var/lib/postgresql/data
 
   social-connect-service:
     build:
@@ -279,10 +261,21 @@ services:
     environment:
       <<: *service-env
       PORT: 4012
-      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/social_connect_db
-    depends_on:
-      postgres:
-        condition: service_healthy
+      SERVICE_NAME: social-connect-service
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/social_connect_db
+    volumes:
+      - social-connect-pgdata:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  identity-pgdata:
+  orders-pgdata:
+  gigs-pgdata:
+  pamphlet-pgdata:
+  payments-pgdata:
+  payouts-pgdata:
+  cash-pgdata:
+  credit-pgdata:
+  finance-pgdata:
+  config-pgdata:
+  governance-pgdata:
+  social-connect-pgdata:

@@ -46,6 +46,7 @@ export function ProfileScreen() {
         <p className="card-title">{profile?.name ?? "—"}</p>
         <p className="muted">{profile?.phone ?? profile?.email}</p>
         <p className="muted">{profile?.role}</p>
+        <p className="muted" data-testid="profile-village-badge">Village: {profile?.villageId ?? "None"}</p>
       </Card>
       {rows.map((r) => (
         <button key={r.to} type="button" className="list-row" style={{ marginTop: 12 }} onClick={() => nav(r.to)}>
@@ -72,24 +73,39 @@ export function EditProfileScreen() {
   const { push } = useToast();
   const [name, setName] = useState(profile?.name ?? "");
   const [address, setAddress] = useState(profile?.address ?? "");
+  const [villageId, setVillageId] = useState(profile?.villageId ?? "village_peridepi_523273");
   const [busy, setBusy] = useState(false);
   return (
     <Chrome title={t("editProfile")} screenId="SHR-07.1" back>
       <Field label={t("name")}>
-        <input value={name} onChange={(e) => setName(e.target.value)} />
+        <input data-testid="profile-name-input" value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
+      <Field label="Assigned Village">
+        <select
+          data-testid="profile-village-select"
+          value={villageId}
+          onChange={(e) => setVillageId(e.target.value)}
+          style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "0.95rem" }}
+        >
+          <option value="village_peridepi_523273">Peridepi (523273) - Kandukur Corridor</option>
+          <option value="village_kandukur_523105">Kandukur (523105) - Mandi Central Hub</option>
+          <option value="village_ponnaluru_523109">Ponnaluru (523109) - Rural Depot</option>
+          <option value="village_singarayakonda_523101">Singarayakonda (523101) - Coastal Junction</option>
+        </select>
       </Field>
       <Field label={t("address")}>
-        <textarea value={address} onChange={(e) => setAddress(e.target.value)} />
+        <textarea data-testid="profile-address-input" value={address} onChange={(e) => setAddress(e.target.value)} />
       </Field>
       <Button
+        data-testid="save-profile-btn"
         loading={busy}
         onClick={async () => {
           if (!user) return;
           setBusy(true);
           try {
-            await ops.updateUserProfile(user.uid, { name, address });
+            await ops.updateUserProfile(user.uid, { name, address, villageId });
             await refreshProfile();
-            push("Saved");
+            push("Saved village & profile successfully");
           } catch (e) {
             push((e as Error).message);
           } finally {

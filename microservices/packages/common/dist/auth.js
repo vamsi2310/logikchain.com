@@ -111,6 +111,24 @@ function authMiddleware(requiredRoles) {
             return;
         }
         const token = authHeader.substring(7);
+        // Development & Testing Token Bypass for local integration testing
+        if (process.env.NODE_ENV !== 'production' && token.startsWith('dev-token')) {
+            const parts = token.split(':');
+            const uid = parts[1] || 'dev-user-001';
+            const role = parts[2] || req.header('X-User-Role') || 'buyer';
+            const user = {
+                uid,
+                email: `${uid}@logikchain.dev`,
+                role,
+                status: 'active',
+                claims: { uid, role, status: 'active' },
+            };
+            const context = req.clientContext || extractClientContext(req);
+            context.user = user;
+            req.clientContext = context;
+            req.user = user;
+            return next();
+        }
         try {
             const adminApp = getFirebaseAdmin();
             const decoded = await adminApp.auth().verifyIdToken(token);

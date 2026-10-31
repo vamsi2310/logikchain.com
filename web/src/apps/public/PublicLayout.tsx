@@ -1,9 +1,26 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useSession, roleHome } from "@/state/session";
 import "@/styles/public.css";
+
+const ROLE_DISPLAY_NAMES: Record<string, string> = {
+  buyer: "Consumer",
+  merchant: "Kirana Merchant",
+  vehicle: "Fleet Rider",
+  driver: "Fleet Rider",
+  supplier: "Depot Supplier",
+  support: "Operations",
+};
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   const loc = useLocation();
+  const { user, profile, logout } = useSession();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const currentRole = profile?.role ?? "buyer";
+  const appDestination = roleHome(currentRole);
+  const displayName = profile?.name || user?.displayName || user?.phoneNumber || user?.email || "My Account";
+  const roleTitle = ROLE_DISPLAY_NAMES[currentRole] || "Member";
 
   useEffect(() => {
     // Capture marketing & referral attribution parameters on first touch
@@ -34,12 +51,17 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     }
   }, [loc.search, loc.pathname]);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [loc.pathname]);
+
   const isRoleActive = (path: string) => loc.pathname === path;
 
   return (
     <div className="public-page-wrapper">
       {/* Global Public Navigation Header */}
-      <header className="pub-header">
+      <header className="pub-header" data-testid="pub-header">
         <div className="pub-nav-container">
           <Link to="/" className="pub-logo-link">
             <span>🌾 LOGIKCHAIN</span>
@@ -68,24 +90,123 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <Link to="/status" className={`pub-nav-link ${isRoleActive("/status") ? "active" : ""}`}>
               System Status
             </Link>
+            <Link to="/status/tests" className={`pub-nav-link ${isRoleActive("/status/tests") ? "active" : ""}`} style={{ color: "#0284c7", fontWeight: 700 }}>
+              🧪 Tests & Videos
+            </Link>
           </nav>
 
           <div className="pub-nav-actions">
-            <Link to="/login" className="pub-btn pub-btn-outline pub-btn-sm">
-              Sign In
-            </Link>
-            <Link to="/download" className="pub-btn pub-btn-primary pub-btn-sm">
-              Get App
-            </Link>
+            {user ? (
+              <div className="pub-auth-logged-in">
+                <Link to="/profile" className="pub-user-pill" title="View Account Profile">
+                  <span className="pub-user-avatar">👤</span>
+                  <span className="pub-user-name">{displayName}</span>
+                  <span className="pub-role-tag">{roleTitle}</span>
+                </Link>
+                <a href={appDestination} className="pub-btn pub-btn-primary pub-btn-sm" data-testid="open-app-btn">
+                  Open App →
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="pub-btn pub-btn-outline pub-btn-sm"
+                  title="Sign out of current account"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="pub-auth-logged-out">
+                <Link to="/login" className="pub-btn pub-btn-outline pub-btn-sm">
+                  Sign In
+                </Link>
+                <Link to="/download" className="pub-btn pub-btn-primary pub-btn-sm">
+                  Get App
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile menu hamburger toggle */}
+            <button
+              type="button"
+              className="pub-mobile-toggle"
+              aria-label="Toggle Navigation Menu"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+            >
+              {mobileMenuOpen ? "✕" : "☰"}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Drawer */}
+        {mobileMenuOpen && (
+          <div className="pub-mobile-drawer">
+            <nav className="pub-mobile-nav">
+              <Link to="/how-it-works" className={`pub-mobile-link ${isRoleActive("/how-it-works") ? "active" : ""}`}>
+                How It Works
+              </Link>
+              <Link to="/merchants" className={`pub-mobile-link ${isRoleActive("/merchants") ? "active" : ""}`}>
+                For Merchants
+              </Link>
+              <Link to="/suppliers" className={`pub-mobile-link ${isRoleActive("/suppliers") ? "active" : ""}`}>
+                For Suppliers
+              </Link>
+              <Link to="/riders" className={`pub-mobile-link ${isRoleActive("/riders") ? "active" : ""}`}>
+                For Fleet & Drivers
+              </Link>
+              <Link to="/help" className={`pub-mobile-link ${isRoleActive("/help") ? "active" : ""}`}>
+                Help & Support
+              </Link>
+              <Link to="/work-management" className={`pub-mobile-link ${isRoleActive("/work-management") ? "active" : ""}`}>
+                Work Management
+              </Link>
+              <Link to="/status" className={`pub-mobile-link ${isRoleActive("/status") ? "active" : ""}`}>
+                System Status
+              </Link>
+              <Link to="/status/tests" className={`pub-mobile-link ${isRoleActive("/status/tests") ? "active" : ""}`}>
+                🧪 Tests & Videos
+              </Link>
+            </nav>
+
+            <div className="pub-mobile-actions">
+              {user ? (
+                <>
+                  <Link to="/profile" className="pub-user-pill pub-user-pill-mobile">
+                    <span className="pub-user-avatar">👤</span>
+                    <span className="pub-user-name">{displayName}</span>
+                    <span className="pub-role-tag">{roleTitle}</span>
+                  </Link>
+                  <Link to={appDestination} className="pub-btn pub-btn-primary pub-btn-block">
+                    Open App →
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => void logout()}
+                    className="pub-btn pub-btn-outline pub-btn-block"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="pub-btn pub-btn-primary pub-btn-block">
+                    Sign In
+                  </Link>
+                  <Link to="/download" className="pub-btn pub-btn-outline pub-btn-block">
+                    Get Mobile App
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Body */}
       <main className="pub-main">{children}</main>
 
       {/* Global Comprehensive Footer */}
-      <footer className="pub-footer">
+      <footer className="pub-footer" data-testid="pub-footer">
         <div className="pub-footer-container">
           <div className="pub-footer-col">
             <div style={{ color: "#ffffff", fontWeight: "800", fontSize: "1.2rem", marginBottom: "0.75rem" }}>
@@ -132,6 +253,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               <li><Link to="/roadmap">Public Roadmap</Link></li>
               <li><Link to="/changelog">Release Notes</Link></li>
               <li><Link to="/status">Network Status</Link></li>
+              <li><Link to="/status/tests" style={{ color: "#38bdf8" }}>🧪 Test Results & Videos</Link></li>
               <li><Link to="/pricing">Pricing & Transparencies</Link></li>
             </ul>
           </div>

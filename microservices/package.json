@@ -10,7 +10,14 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "db:start": "powershell -ExecutionPolicy Bypass -File devops/scripts/connect-db-dev.ps1 -Action Start",
+    "db:stop": "powershell -ExecutionPolicy Bypass -File devops/scripts/connect-db-dev.ps1 -Action Stop",
+    "db:restart": "powershell -ExecutionPolicy Bypass -File devops/scripts/connect-db-dev.ps1 -Action Restart",
+    "db:status": "ts-node devops/scripts/db-connector-dev.ts status",
+    "db:init": "powershell -ExecutionPolicy Bypass -File devops/scripts/connect-db-dev.ps1 -Action Init",
+    "db:connect": "powershell -ExecutionPolicy Bypass -File devops/scripts/connect-db-dev.ps1 -Action Connect",
+    "db:env": "powershell -ExecutionPolicy Bypass -File devops/scripts/connect-db-dev.ps1 -Action ExportEnv"
   },
   "engines": {
     "node": ">=22"

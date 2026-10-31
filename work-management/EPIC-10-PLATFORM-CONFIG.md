@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-10`
-- **Epic Status**: `[IN_PROGRESS]`
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: Master Configuration, Geo-Hierarchy, Subscriptions & Tax Profiles
 - **Bound Microservice**: `microservices/services/config-service`
 - **Container Port**: `4010`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.01`
-- **Feature Status**: `[IN_PROGRESS]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Hierarchical spatial registry (Country $\rightarrow$ State $\rightarrow$ District $\rightarrow$ Village), Google Maps Geocoding integration, pin-code resolution, and boundary polygons.
 - **Service Endpoints**: `POST /v1/config/villages` (`upsertVillage`), `GET /v1/config/villages/{villageId}`, `POST /v1/config/geocode`
 - **UI Screens**: [SPT-10 Geo Registry](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-10), [SUP-03 Route Planner](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-03)
@@ -107,7 +107,7 @@ Scenario: Village serviceability gated by registered merchant
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.02`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: SaaS subscription plan definition, feature flag entitlements, multi-tier pricing, and platform service fees.
 - **Service Endpoints**: `GET /v1/config/plans` (`listSubscriptionPlans`), `POST /v1/config/plans` (`upsertSubscriptionPlan`), `POST /v1/suppliers/{supplierId}/subscription` (`updateSupplierSubscriptionPlan`), `GET /v1/config/catalog` (`listConfigurationCatalog`)
 - **UI Screens**: [SPT-11 Subscription Admin](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-11)
@@ -185,7 +185,7 @@ Scenario: Admin creates new subscription plan tier with monthly gig limit
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.03`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: GST rate slabs (0%, 5%, 12%, 18%), HSN/SAC code mapping, and Section 194C / 194O TDS percentage configurations.
 - **Service Endpoints**: `POST /v1/config/tax-profiles` (`upsertTaxProfile`), `POST /v1/config/tds-configs` (`upsertTdsConfiguration`)
 - **UI Screens**: [SPT-12 Tax Config Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-12)
@@ -263,7 +263,7 @@ Scenario: Compliance officer configures versioned tax profile
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.04`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Cross-cutting capability allowing Support operators to act on behalf of any supplier for data management tasks — gig scheduling, fleet management, route planning, member directory, and subscription administration — when a supplier outsources platform operations to the Support team.
 - **Service Endpoints**: All supplier-scoped endpoints accept `role: support` claims as an authorized proxy actor when `X-Supplier-Context` header is present.
 - **UI Screens**: [SPT-10 Geo Registry](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-10), [SPT-11 Subscription Admin](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-11), Support proxy mirrors of `SUP-02`, `SUP-03`, `SUP-05`, `SUP-08`
@@ -360,7 +360,7 @@ Scenario: Support operator attempts proxy without selecting supplier context
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.05`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: Bulk ingestion, polygon topological validation (`ST_MakeValid`), CSV post office + GeoJSON boundary superimposition, missing coordinate interpolation, and Firestore read-projection batch compilation.
 - **Service Endpoints**: `POST /v1/config/geo/bulk-import`, `GET /v1/config/geo/import-jobs/{jobId}`
 - **UI Screens**: [SPT-10 Geo Registry](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-10)
@@ -389,7 +389,7 @@ Scenario: Support operator attempts proxy without selecting supplier context
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.06`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**: Merchant village home delivery configuration (enable/disable, working days, delivery days, delivery charge), supplier tiered PUDO parcel handling commission configuration, Support proxy override, and notification dispatch.
 - **Service Endpoints**:
   - `POST /v1/config/merchants/{merchantId}/village-delivery` (`setMerchantVillageDeliveryConfig`)
@@ -466,7 +466,7 @@ Scenario: Supplier configures tiered PUDO commissions
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.07`
-- **Feature Status**: `[READY]`
+- **Feature Status**: [DONE]
 - **Functional Scope**:
   - Authoring and maintaining standard master corridors (`supplierId: "GLOBAL"`, `isPreConfigured: true`) tied to Hubs/Districts with village stops, geocodes, and transit turnaround times.
   - Universal Support Visibility: Support operators can view all standard master corridors and all custom routes across all suppliers from `SPT-09.4` and `SPT-02.4`.
@@ -557,7 +557,7 @@ Scenario: Route deletion blocked while referenced by upcoming gigs
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-10.08`
-- **Feature Status**: [COMPLETED]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**:
   - Platform Support operational console tooling for bulk onboarding legacy and active supplier operational datasets into Logikchain.
   - Modular Checkbox Selection UI: Supports a master "Select All" toggle alongside granular checkboxes allowing the Support team to load either the complete dataset package at once or selectively ingest any single operational category:

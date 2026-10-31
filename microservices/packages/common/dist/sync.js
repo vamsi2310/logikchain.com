@@ -38,6 +38,9 @@ exports.createPeriodicSyncer = createPeriodicSyncer;
 const admin = __importStar(require("firebase-admin"));
 const logger_1 = require("./logger");
 const auth_1 = require("./auth");
+function camelToSnake(str) {
+    return str.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+}
 class PeriodicServiceSyncer {
     serviceName;
     pool;
@@ -47,12 +50,14 @@ class PeriodicServiceSyncer {
     storageBucketName;
     syncIntervalMs;
     batchSize;
+    autoHydrateOnStart;
     firestore;
     storage;
     timer = null;
     isRunning = false;
     unsubscribeInbound = null;
     stats;
+    columnCache = new Map();
     constructor(options) {
         this.serviceName = options.serviceName;
         this.pool = options.pool;
@@ -61,6 +66,7 @@ class PeriodicServiceSyncer {
         this.idColumn = options.idColumn || 'id';
         this.syncIntervalMs = options.syncIntervalMs || 2500;
         this.batchSize = options.batchSize || 50;
+        this.autoHydrateOnStart = options.autoHydrateOnStart !== false;
         const adminApp = (0, auth_1.getFirebaseAdmin)();
         this.firestore = adminApp.firestore();
         this.storage = adminApp.storage();
@@ -68,12 +74,197 @@ class PeriodicServiceSyncer {
         this.stats = {
             serviceName: this.serviceName,
             lastSyncAt: null,
+            initialHydrationCompleted: false,
+            totalHydrated: 0,
+            hydratedAt: null,
             totalOutboxSynced: 0,
             totalStorageSynced: 0,
             totalInboundSynced: 0,
             errorsCount: 0,
             isListening: false,
         };
+    }
+    /**
+     * Ensures essential synchronization and outbox schema tables exist in the container-local database
+     */
+    async ensureSyncTables() {
+        const client = await this.pool.connect();
+        try {
+            await client.query(`
+        CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+        CREATE TABLE IF NOT EXISTS outbox_events (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          service VARCHAR(64) NOT NULL,
+          aggregate_type VARCHAR(64) NOT NULL,
+          aggregate_id VARCHAR(64) NOT NULL,
+          operation VARCHAR(16) NOT NULL,
+          payload JSONB NOT NULL,
+          firestore_collection VARCHAR(64) NOT NULL,
+          firestore_doc_id VARCHAR(64) NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          synced_at TIMESTAMPTZ,
+          sync_status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+          retry_count INT NOT NULL DEFAULT 0,
+          last_error TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS storage_sync_events (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          service VARCHAR(64) NOT NULL,
+          bucket_name VARCHAR(128) NOT NULL,
+          storage_path VARCHAR(256) NOT NULL,
+          mime_type VARCHAR(64) NOT NULL,
+          metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+          file_data_base64 TEXT,
+          operation VARCHAR(16) NOT NULL DEFAULT 'UPLOAD',
+          sync_status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          synced_at TIMESTAMPTZ
+        );
+
+        CREATE TABLE IF NOT EXISTS inbound_firestore_events (
+          collection VARCHAR(64) NOT NULL,
+          doc_id VARCHAR(64) NOT NULL,
+          payload JSONB NOT NULL,
+          received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          PRIMARY KEY (collection, doc_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_outbox_pending_status
+          ON outbox_events(created_at) WHERE sync_status = 'PENDING';
+      `);
+        }
+        catch (err) {
+            logger_1.logger.warn({ service: this.serviceName, err: err.message }, 'Failed verifying sync tables (non-fatal if already present)');
+        }
+        finally {
+            client.release();
+        }
+    }
+    /**
+     * Retrieves and caches table column names and types from PostgreSQL schema
+     */
+    async getTableColumns(tableName) {
+        if (this.columnCache.has(tableName)) {
+            return this.columnCache.get(tableName);
+        }
+        const cols = new Map();
+        try {
+            const res = await this.pool.query(`SELECT column_name, data_type
+         FROM information_schema.columns
+         WHERE table_name = $1 AND table_schema = current_schema()`, [tableName]);
+            for (const row of res.rows) {
+                cols.set(row.column_name.toLowerCase(), row.data_type.toLowerCase());
+            }
+            this.columnCache.set(tableName, cols);
+        }
+        catch (err) {
+            logger_1.logger.warn({ service: this.serviceName, tableName, err: err.message }, 'Could not introspect table columns');
+        }
+        return cols;
+    }
+    /**
+     * Dynamically upserts a Firestore document into a specific PostgreSQL domain table
+     */
+    async upsertDocumentToTable(tableName, idColumn, docId, data) {
+        const tableCols = await this.getTableColumns(tableName);
+        if (tableCols.size === 0)
+            return;
+        const columnValues = new Map();
+        // 1. Map document fields (direct column name or snake_case conversion)
+        for (const [key, rawVal] of Object.entries(data)) {
+            if (key === '_syncMetadata')
+                continue;
+            const directCol = key.toLowerCase();
+            const snakeCol = camelToSnake(key);
+            const targetCol = tableCols.has(directCol) ? directCol : (tableCols.has(snakeCol) ? snakeCol : null);
+            if (!targetCol)
+                continue;
+            const dataType = tableCols.get(targetCol) || '';
+            let val = rawVal;
+            // Handle Firestore Timestamp or Date objects
+            if (val && typeof val === 'object') {
+                if (typeof val.toDate === 'function') {
+                    val = val.toDate();
+                }
+                else if (val._seconds !== undefined) {
+                    val = new Date(val._seconds * 1000);
+                }
+            }
+            // Handle JSON / JSONB types
+            if (dataType.includes('json')) {
+                val = typeof val === 'object' && val !== null ? JSON.stringify(val) : val;
+            }
+            else if (dataType.includes('boolean')) {
+                val = Boolean(val);
+            }
+            else if (dataType.includes('int') || dataType.includes('numeric')) {
+                if (typeof val === 'string' && val.trim() !== '') {
+                    val = Number(val);
+                }
+            }
+            columnValues.set(targetCol, val);
+        }
+        // 2. Ensure Primary Key ID column is present
+        const lowerIdCol = idColumn.toLowerCase();
+        if (tableCols.has(lowerIdCol) && !columnValues.has(lowerIdCol)) {
+            columnValues.set(lowerIdCol, docId);
+        }
+        // 3. Set updated_at if column exists
+        if (tableCols.has('updated_at') && !columnValues.has('updated_at')) {
+            columnValues.set('updated_at', new Date());
+        }
+        if (columnValues.size === 0)
+            return;
+        const cols = Array.from(columnValues.keys());
+        const placeholders = cols.map((_, i) => `$${i + 1}`);
+        const values = cols.map((col) => columnValues.get(col));
+        const updateCols = cols.filter((col) => col !== lowerIdCol);
+        const updateClauses = updateCols.length > 0
+            ? `DO UPDATE SET ${updateCols.map((c) => `"${c}" = EXCLUDED."${c}"`).join(', ')}`
+            : 'DO NOTHING';
+        const sql = `
+      INSERT INTO "${tableName}" (${cols.map((c) => `"${c}"`).join(', ')})
+      VALUES (${placeholders.join(', ')})
+      ON CONFLICT ("${lowerIdCol}") ${updateClauses}
+    `;
+        await this.pool.query(sql, values);
+    }
+    /**
+     * Startup Hydration: Loads all domain data from Firebase Firestore into container-local PostgreSQL
+     */
+    async hydrateFromFirebase() {
+        await this.ensureSyncTables();
+        if (!this.firestore || !this.firestoreCollection) {
+            logger_1.logger.info({ service: this.serviceName }, 'No firestore collection configured for startup hydration');
+            return 0;
+        }
+        let loadedCount = 0;
+        try {
+            logger_1.logger.info({ service: this.serviceName, collection: this.firestoreCollection }, 'Startup data hydration: querying Firebase Firestore...');
+            const snapshot = await this.firestore.collection(this.firestoreCollection).get();
+            if (snapshot.empty) {
+                logger_1.logger.info({ service: this.serviceName, collection: this.firestoreCollection }, 'Startup data hydration: Firestore collection is empty, proceeding with clean database');
+                this.stats.initialHydrationCompleted = true;
+                this.stats.hydratedAt = new Date().toISOString();
+                return 0;
+            }
+            for (const doc of snapshot.docs) {
+                const docData = doc.data();
+                await this.ingestInboundDocument(doc.id, docData);
+                loadedCount++;
+            }
+            this.stats.totalHydrated += loadedCount;
+            this.stats.initialHydrationCompleted = true;
+            this.stats.hydratedAt = new Date().toISOString();
+            logger_1.logger.info({ service: this.serviceName, collection: this.firestoreCollection, loadedCount }, 'Startup data hydration: successfully loaded and synced data from Firebase');
+        }
+        catch (err) {
+            this.stats.errorsCount++;
+            logger_1.logger.warn({ service: this.serviceName, collection: this.firestoreCollection, err: err.message }, 'Startup data hydration from Firebase encountered an error (continuing service initialization)');
+        }
+        return loadedCount;
     }
     /**
      * Outbound Firestore sync: Flushes outbox_events to Cloud Firestore
@@ -140,7 +331,7 @@ class PeriodicServiceSyncer {
      * Outbound Firebase Storage sync: Flushes pending local storage attachments to Cloud Storage
      */
     async syncStorage() {
-        let client;
+        let client = null;
         try {
             client = await this.pool.connect();
         }
@@ -149,14 +340,12 @@ class PeriodicServiceSyncer {
         }
         let processed = 0;
         try {
-            // Check if storage_sync_events table exists
             const tableCheck = await client.query(`
         SELECT EXISTS (
           SELECT FROM information_schema.tables WHERE table_name = 'storage_sync_events'
         )
       `);
             if (!tableCheck.rows[0].exists) {
-                client.release();
                 return 0;
             }
             await client.query('BEGIN');
@@ -170,7 +359,6 @@ class PeriodicServiceSyncer {
       `);
             if (res.rows.length === 0) {
                 await client.query('COMMIT');
-                client.release();
                 return 0;
             }
             for (const row of res.rows) {
@@ -237,34 +425,48 @@ class PeriodicServiceSyncer {
             logger_1.logger.warn({ service: this.serviceName, err: err.message }, 'Could not attach inbound Firestore listener');
         }
     }
+    /**
+     * Ingests a single Firestore document into local PostgreSQL storage:
+     * 1. Preserves raw payload in inbound_firestore_events table
+     * 2. Maps and upserts columns into domain inboundTable
+     */
     async ingestInboundDocument(docId, data) {
-        if (!this.inboundTable)
-            return;
         try {
-            const query = `
-        INSERT INTO ${this.inboundTable} (${this.idColumn}, status, updated_at)
-        VALUES ($1, $2, NOW())
-        ON CONFLICT (${this.idColumn}) DO UPDATE
-        SET status = EXCLUDED.status, updated_at = NOW()
+            // 1. Raw event log persistence
+            const rawQuery = `
+        INSERT INTO inbound_firestore_events (collection, doc_id, payload, received_at)
+        VALUES ($1, $2, $3, NOW())
+        ON CONFLICT (collection, doc_id) DO UPDATE
+        SET payload = EXCLUDED.payload, received_at = NOW();
       `;
-            await this.pool.query(query, [docId, data.status || 'SYNCED_FROM_CLIENT']);
+            await this.pool.query(rawQuery, [this.firestoreCollection, docId, JSON.stringify(data)]);
+            // 2. Domain table upsert
+            if (this.inboundTable) {
+                await this.upsertDocumentToTable(this.inboundTable, this.idColumn, docId, data);
+            }
             this.stats.totalInboundSynced++;
-            logger_1.logger.debug({ service: this.serviceName, docId }, 'Ingested inbound client document to local PostgreSQL');
+            logger_1.logger.debug({ service: this.serviceName, docId }, 'Ingested inbound Firestore document into local PostgreSQL');
         }
         catch (err) {
+            this.stats.errorsCount++;
             logger_1.logger.error({ service: this.serviceName, docId, err: err.message }, 'Failed to ingest inbound document');
         }
     }
     /**
-     * Start independent periodic background sync loop
+     * Start independent periodic background sync loop and startup hydration
      */
-    start() {
+    async start(options) {
         if (this.isRunning)
             return;
         this.isRunning = true;
-        // Start real-time inbound listener
+        await this.ensureSyncTables();
+        // 1. Startup load from Firebase
+        if (this.autoHydrateOnStart && !options?.skipHydration && !this.stats.initialHydrationCompleted) {
+            await this.hydrateFromFirebase();
+        }
+        // 2. Real-time inbound updates
         this.startInboundListener();
-        // Start quick periodic outbound polling loop
+        // 3. Periodic outbound sync loop
         const loop = async () => {
             if (!this.isRunning)
                 return;
@@ -280,7 +482,7 @@ class PeriodicServiceSyncer {
             }
         };
         this.timer = setTimeout(loop, 1000);
-        logger_1.logger.info({ service: this.serviceName, intervalMs: this.syncIntervalMs }, 'Independent periodic sync engine started');
+        logger_1.logger.info({ service: this.serviceName, intervalMs: this.syncIntervalMs }, 'Independent periodic sync engine active');
     }
     /**
      * Stop syncer gracefully

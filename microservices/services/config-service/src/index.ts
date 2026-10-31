@@ -28,15 +28,32 @@ const syncer = createPeriodicSyncer({
 // Health check
 app.get('/health', async (req, res) => {
   try {
+    const dbStart = Date.now();
     await pool.query('SELECT 1');
+    const dbLatencyMs = Date.now() - dbStart;
     res.json({
       status: 'ok',
       service: 'config-service',
+      database: {
+        name: 'config_db',
+        type: 'PostgreSQL 16',
+        status: 'connected',
+        latencyMs: dbLatencyMs,
+      },
       timestamp: new Date().toISOString(),
       sync: syncer.getStats(),
     });
   } catch (err: any) {
-    res.status(500).json({ status: 'degraded', error: err.message });
+    res.status(500).json({
+      status: 'degraded',
+      database: {
+        name: 'config_db',
+        type: 'PostgreSQL 16',
+        status: 'disconnected',
+        error: err.message,
+      },
+      error: err.message,
+    });
   }
 });
 

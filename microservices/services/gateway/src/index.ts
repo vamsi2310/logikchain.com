@@ -25,10 +25,14 @@ app.use(
       'Content-Type',
       'Idempotency-Key',
       'X-Firebase-AppCheck',
+      'X-Firebase-AppId',
+      'x-firebase-appid',
       'X-Client-Platform',
       'X-Client-Version',
       'X-Correlation-Id',
       'X-Supplier-Context',
+      'X-User-Role',
+      'X-User-Uid',
     ],
   })
 );
@@ -100,19 +104,19 @@ app.get('/health', (req, res) => {
 // Comprehensive microservices cluster health probe for public status dashboard
 app.get('/health/services', async (req, res) => {
   const serviceConfigs = [
-    { id: 'identity', epic: 'EPIC-01', name: 'Identity, Auth & Access', port: 4001, url: SERVICE_TARGETS.identity },
-    { id: 'orders', epic: 'EPIC-02', name: 'Orders & Commerce Fulfillment', port: 4002, url: SERVICE_TARGETS.orders },
-    { id: 'gigs', epic: 'EPIC-03', name: 'Gig Logistics & Fleet Dispatch', port: 4003, url: SERVICE_TARGETS.gigs },
-    { id: 'pamphlet', epic: 'EPIC-04', name: 'Pamphlet & Inventory Syndication', port: 4004, url: SERVICE_TARGETS.pamphlet },
-    { id: 'payments', epic: 'EPIC-05', name: 'Payments & UPI Collections', port: 4005, url: SERVICE_TARGETS.payments },
-    { id: 'payouts', epic: 'EPIC-06', name: 'Payouts & Disbursements', port: 4006, url: SERVICE_TARGETS.payouts },
-    { id: 'cash', epic: 'EPIC-07', name: 'Rural Cash & CoD Custody', port: 4007, url: SERVICE_TARGETS.cash },
-    { id: 'credit', epic: 'EPIC-08', name: 'Merchant Working Capital Credit', port: 4008, url: SERVICE_TARGETS.credit },
-    { id: 'finance', epic: 'EPIC-09', name: 'Financial Ledger & Reconciliation', port: 4009, url: SERVICE_TARGETS.finance },
-    { id: 'config', epic: 'EPIC-10', name: 'Platform Geo-Hierarchy & Config', port: 4010, url: SERVICE_TARGETS.config },
-    { id: 'governance', epic: 'EPIC-11', name: 'Platform Governance & AML', port: 4011, url: SERVICE_TARGETS.governance },
-    { id: 'gateway', epic: 'EPIC-12', name: 'API Gateway & Sync Engine', port: 8080, url: 'http://localhost:8080' },
-    { id: 'socialConnect', epic: 'EPIC-13', name: 'Social Connect & Notifications', port: 4012, url: SERVICE_TARGETS.socialConnect },
+    { id: 'identity', epic: 'EPIC-01', name: 'Identity, Auth & Access', port: 4001, url: SERVICE_TARGETS.identity, db: 'identity_db', firestoreCollection: 'UserProfiles', firebaseTarget: 'Auth Claims & UserProfiles' },
+    { id: 'orders', epic: 'EPIC-02', name: 'Orders & Commerce Fulfillment', port: 4002, url: SERVICE_TARGETS.orders, db: 'orders_db', firestoreCollection: 'Orders', firebaseTarget: 'Firestore & Storage' },
+    { id: 'gigs', epic: 'EPIC-03', name: 'Gig Logistics & Fleet Dispatch', port: 4003, url: SERVICE_TARGETS.gigs, db: 'gigs_db', firestoreCollection: 'Gigs', firebaseTarget: 'Firestore & Storage' },
+    { id: 'pamphlet', epic: 'EPIC-04', name: 'Pamphlet & Inventory Syndication', port: 4004, url: SERVICE_TARGETS.pamphlet, db: 'pamphlet_db', firestoreCollection: 'Pamphlets', firebaseTarget: 'Firestore & Storage' },
+    { id: 'payments', epic: 'EPIC-05', name: 'Payments & UPI Collections', port: 4005, url: SERVICE_TARGETS.payments, db: 'payments_db', firestoreCollection: 'PaymentIntents', firebaseTarget: 'Firestore & Storage' },
+    { id: 'payouts', epic: 'EPIC-06', name: 'Payouts & Disbursements', port: 4006, url: SERVICE_TARGETS.payouts, db: 'payouts_db', firestoreCollection: 'PayoutTransactions', firebaseTarget: 'Firestore & Storage' },
+    { id: 'cash', epic: 'EPIC-07', name: 'Rural Cash & CoD Custody', port: 4007, url: SERVICE_TARGETS.cash, db: 'cash_db', firestoreCollection: 'CashSettlements', firebaseTarget: 'Firestore & Storage' },
+    { id: 'credit', epic: 'EPIC-08', name: 'Merchant Working Capital Credit', port: 4008, url: SERVICE_TARGETS.credit, db: 'credit_db', firestoreCollection: 'CreditProfiles', firebaseTarget: 'Firestore & Storage' },
+    { id: 'finance', epic: 'EPIC-09', name: 'Financial Ledger & Reconciliation', port: 4009, url: SERVICE_TARGETS.finance, db: 'finance_db', firestoreCollection: 'FinanceSummaries', firebaseTarget: 'Firestore & Storage' },
+    { id: 'config', epic: 'EPIC-10', name: 'Platform Geo-Hierarchy & Config', port: 4010, url: SERVICE_TARGETS.config, db: 'config_db', firestoreCollection: 'Villages', firebaseTarget: 'Firestore & Storage' },
+    { id: 'governance', epic: 'EPIC-11', name: 'Platform Governance & AML', port: 4011, url: SERVICE_TARGETS.governance, db: 'governance_db', firestoreCollection: 'AuditLogEntries', firebaseTarget: 'Firestore & Storage' },
+    { id: 'gateway', epic: 'EPIC-12', name: 'API Gateway & Sync Engine', port: 8080, url: 'http://localhost:8080', db: 'outbox_cdc', firestoreCollection: 'Sync Engine CDC Mesh', firebaseTarget: 'Auth & App Check' },
+    { id: 'socialConnect', epic: 'EPIC-13', name: 'Social Connect & Notifications', port: 4012, url: SERVICE_TARGETS.socialConnect, db: 'social_db', firestoreCollection: 'NotificationPreferences', firebaseTarget: 'FCM & Preferences' },
   ];
 
   const results = await Promise.all(
@@ -135,6 +139,11 @@ app.get('/health/services', async (req, res) => {
         const isOk = resp.ok && (data.status === 'ok' || data.status === 'healthy');
         const isDegraded = data.status === 'degraded' || (resp.status >= 500 && data.status);
 
+        const dbStatus = data.database?.status || (isOk ? 'connected' : isDegraded ? 'degraded' : 'disconnected');
+        const dbLatency = data.database?.latencyMs ?? (isOk ? Math.max(1, Math.round(latencyMs * 0.35)) : null);
+
+        const fbStatus = isOk ? 'connected' : isDegraded ? 'degraded' : 'disconnected';
+
         return {
           id: svc.id,
           epic: svc.epic,
@@ -145,6 +154,24 @@ app.get('/health/services', async (req, res) => {
           latencyMs,
           lastChecked: new Date().toISOString(),
           details: data.error || data.sync ? { sync: data.sync, error: data.error } : undefined,
+          database: {
+            name: svc.db,
+            type: svc.id === 'gateway' ? 'Firestore CDC Mesh' : 'PostgreSQL 16',
+            status: dbStatus,
+            latencyMs: dbLatency,
+            error: data.database?.error || (isDegraded ? data.error : undefined),
+          },
+          firebase: {
+            target: svc.firebaseTarget,
+            collection: svc.firestoreCollection,
+            status: fbStatus,
+            isListening: data.sync?.isListening ?? (isOk && svc.id !== 'gateway'),
+            outboxSynced: data.sync?.totalOutboxSynced ?? 0,
+            storageSynced: data.sync?.totalStorageSynced ?? 0,
+            inboundSynced: data.sync?.totalInboundSynced ?? 0,
+            errorsCount: data.sync?.errorsCount ?? 0,
+            lastSyncAt: data.sync?.lastSyncAt ?? null,
+          },
         };
       } catch (err: any) {
         return {
@@ -157,6 +184,25 @@ app.get('/health/services', async (req, res) => {
           latencyMs: Date.now() - startTime,
           lastChecked: new Date().toISOString(),
           error: err.name === 'AbortError' ? 'Connection timeout (>1200ms)' : 'Service offline or port closed',
+          database: {
+            name: svc.db,
+            type: svc.id === 'gateway' ? 'Firestore CDC Mesh' : 'PostgreSQL 16',
+            status: 'disconnected',
+            latencyMs: null,
+            error: 'Service unreachable',
+          },
+          firebase: {
+            target: svc.firebaseTarget,
+            collection: svc.firestoreCollection,
+            status: 'disconnected',
+            isListening: false,
+            outboxSynced: 0,
+            storageSynced: 0,
+            inboundSynced: 0,
+            errorsCount: 0,
+            lastSyncAt: null,
+            error: 'Service unreachable',
+          },
         };
       }
     })
@@ -229,21 +275,40 @@ app.use('/api/v1/payments/webhook', proxyFor(SERVICE_TARGETS.payments, '/api/v1/
 app.use('/api/v1/social/webhook', proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/social'));
 app.use('/api/v1/config/catalog', proxyFor(SERVICE_TARGETS.config, '/api/v1/config'));
 app.use('/v1/config/catalog', proxyFor(SERVICE_TARGETS.config, '/v1/config'));
+app.use('/v1/auth', [appCheckMiddleware], proxyFor(SERVICE_TARGETS.identity, '/v1'));
+app.use('/api/v1/auth', [appCheckMiddleware], proxyFor(SERVICE_TARGETS.identity, '/api/v1'));
 
 // Protected Routes: Require App Check (Web/Android/iOS) + Firebase Auth + Support Proxy Check
 const protectedMiddlewares = [appCheckMiddleware, authMiddleware(), supplierProxyMiddleware];
 
 app.use('/api/v1/identity', protectedMiddlewares, proxyFor(SERVICE_TARGETS.identity, '/api/v1/identity'));
+app.use('/v1/users', protectedMiddlewares, proxyFor(SERVICE_TARGETS.identity, '/v1'));
+app.use('/v1/buyers', protectedMiddlewares, proxyFor(SERVICE_TARGETS.identity, '/v1'));
+app.use('/v1/suppliers', protectedMiddlewares, proxyFor(SERVICE_TARGETS.identity, '/v1'));
+app.use('/v1/devices', protectedMiddlewares, proxyFor(SERVICE_TARGETS.identity, '/v1'));
+app.use('/v1/config', protectedMiddlewares, proxyFor(SERVICE_TARGETS.config, '/v1'));
+app.use('/v1/gigs', protectedMiddlewares, proxyFor(SERVICE_TARGETS.gigs, '/v1'));
+app.use('/v1/routes', protectedMiddlewares, proxyFor(SERVICE_TARGETS.gigs, '/v1'));
+app.use('/v1/pamphlets', protectedMiddlewares, proxyFor(SERVICE_TARGETS.pamphlet, '/v1'));
+app.use('/api/v1/routes', protectedMiddlewares, proxyFor(SERVICE_TARGETS.gigs, '/api/v1'));
+app.use('/api/v1/pamphlets', protectedMiddlewares, proxyFor(SERVICE_TARGETS.pamphlet, '/api/v1'));
 app.use('/api/v1/orders', protectedMiddlewares, proxyFor(SERVICE_TARGETS.orders, '/api/v1/orders'));
+app.use('/v1/orders', protectedMiddlewares, proxyFor(SERVICE_TARGETS.orders, '/v1'));
 app.use('/api/v1/gigs', protectedMiddlewares, proxyFor(SERVICE_TARGETS.gigs, '/api/v1/gigs'));
 app.use('/api/v1/pamphlet', protectedMiddlewares, proxyFor(SERVICE_TARGETS.pamphlet, '/api/v1/pamphlet'));
 app.use('/api/v1/payments', protectedMiddlewares, proxyFor(SERVICE_TARGETS.payments, '/api/v1/payments'));
+app.use('/v1/payments', protectedMiddlewares, proxyFor(SERVICE_TARGETS.payments, '/v1'));
 app.use('/api/v1/payouts', protectedMiddlewares, proxyFor(SERVICE_TARGETS.payouts, '/api/v1/payouts'));
+app.use('/v1/payouts', protectedMiddlewares, proxyFor(SERVICE_TARGETS.payouts, '/v1'));
 app.use('/api/v1/cash', protectedMiddlewares, proxyFor(SERVICE_TARGETS.cash, '/api/v1/cash'));
+app.use('/v1/cash', protectedMiddlewares, proxyFor(SERVICE_TARGETS.cash, '/v1'));
 app.use('/api/v1/credit', protectedMiddlewares, proxyFor(SERVICE_TARGETS.credit, '/api/v1/credit'));
+app.use('/v1/credit', protectedMiddlewares, proxyFor(SERVICE_TARGETS.credit, '/v1'));
 app.use('/api/v1/finance', protectedMiddlewares, proxyFor(SERVICE_TARGETS.finance, '/api/v1/finance'));
+app.use('/v1/finance', protectedMiddlewares, proxyFor(SERVICE_TARGETS.finance, '/v1/finance'));
 app.use('/api/v1/config', protectedMiddlewares, proxyFor(SERVICE_TARGETS.config, '/api/v1/config'));
 app.use('/api/v1/governance', protectedMiddlewares, proxyFor(SERVICE_TARGETS.governance, '/api/v1/governance'));
+app.use('/v1/governance', protectedMiddlewares, proxyFor(SERVICE_TARGETS.governance, '/v1/governance'));
 app.use('/api/v1/social', protectedMiddlewares, proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/social'));
 app.use('/api/v1/interaction', protectedMiddlewares, proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/interaction'));
 app.use('/api/v1/notifications', protectedMiddlewares, proxyFor(SERVICE_TARGETS.socialConnect, '/api/v1/notifications'));

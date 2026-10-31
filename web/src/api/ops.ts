@@ -9,8 +9,14 @@ export const ops = {
   listConfigurationCatalog: (query?: Record<string, string | number | boolean | undefined>) =>
     api.get<CatalogResponse>("/v1/config/catalog", query),
 
+  getUserProfile: (userId: string) =>
+    api.get<{ success: boolean; user: Record<string, unknown> }>(path("/v1/users/{userId}", { userId })),
+
+  getMe: () =>
+    api.get<{ success: boolean; user: Record<string, unknown> }>("/v1/users/me"),
+
   updateUserProfile: (userId: string, body: Record<string, unknown>) =>
-    api.patch<{ success: boolean; userId: string; updatedFields: string[] }>(
+    api.patch<{ success: boolean; userId: string; updatedFields: string[]; user?: Record<string, unknown> }>(
       path("/v1/users/{userId}", { userId }),
       body,
     ),

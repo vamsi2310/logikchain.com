@@ -1,0 +1,652 @@
+# ==============================================================================
+# All 12 Logikchain Domain Microservices (EPIC-01 through EPIC-13)
+# ==============================================================================
+
+# --- EPIC-01: Identity Service (:4001) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity-service
+  template:
+    metadata:
+      labels:
+        app: identity-service
+    spec:
+      containers:
+        - name: identity-service
+          image: logikchain/identity-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4001
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4001"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/identity_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: identity-service
+  ports:
+    - port: 4001
+      targetPort: 4001
+---
+# --- EPIC-02: Orders Service (:4002) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-service
+  template:
+    metadata:
+      labels:
+        app: orders-service
+    spec:
+      containers:
+        - name: orders-service
+          image: logikchain/orders-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4002
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4002"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/orders_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: orders-service
+  ports:
+    - port: 4002
+      targetPort: 4002
+---
+# --- EPIC-03: Gigs Service (:4003) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gigs-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gigs-service
+  template:
+    metadata:
+      labels:
+        app: gigs-service
+    spec:
+      containers:
+        - name: gigs-service
+          image: logikchain/gigs-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4003
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4003"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/gigs_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gigs-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: gigs-service
+  ports:
+    - port: 4003
+      targetPort: 4003
+---
+# --- EPIC-04: Pamphlet Service (:4004) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pamphlet-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pamphlet-service
+  template:
+    metadata:
+      labels:
+        app: pamphlet-service
+    spec:
+      containers:
+        - name: pamphlet-service
+          image: logikchain/pamphlet-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4004
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4004"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/pamphlet_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pamphlet-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: pamphlet-service
+  ports:
+    - port: 4004
+      targetPort: 4004
+---
+# --- EPIC-05: Payments Service (:4005) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payments-service
+  template:
+    metadata:
+      labels:
+        app: payments-service
+    spec:
+      containers:
+        - name: payments-service
+          image: logikchain/payments-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4005
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4005"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/payments_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: payments-service
+  ports:
+    - port: 4005
+      targetPort: 4005
+---
+# --- EPIC-06: Payouts Service (:4006) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payouts-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payouts-service
+  template:
+    metadata:
+      labels:
+        app: payouts-service
+    spec:
+      containers:
+        - name: payouts-service
+          image: logikchain/payouts-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4006
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4006"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/payouts_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4006
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payouts-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: payouts-service
+  ports:
+    - port: 4006
+      targetPort: 4006
+---
+# --- EPIC-07: Cash Service (:4007) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cash-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cash-service
+  template:
+    metadata:
+      labels:
+        app: cash-service
+    spec:
+      containers:
+        - name: cash-service
+          image: logikchain/cash-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4007
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4007"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/cash_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4007
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cash-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: cash-service
+  ports:
+    - port: 4007
+      targetPort: 4007
+---
+# --- EPIC-08: Credit Service (:4008) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credit-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: credit-service
+  template:
+    metadata:
+      labels:
+        app: credit-service
+    spec:
+      containers:
+        - name: credit-service
+          image: logikchain/credit-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4008
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4008"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/credit_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4008
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: credit-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: credit-service
+  ports:
+    - port: 4008
+      targetPort: 4008
+---
+# --- EPIC-09: Finance Service (:4009) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finance-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: finance-service
+  template:
+    metadata:
+      labels:
+        app: finance-service
+    spec:
+      containers:
+        - name: finance-service
+          image: logikchain/finance-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4009
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4009"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/finance_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4009
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: finance-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: finance-service
+  ports:
+    - port: 4009
+      targetPort: 4009
+---
+# --- EPIC-10: Config Service (:4010) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-service
+  template:
+    metadata:
+      labels:
+        app: config-service
+    spec:
+      containers:
+        - name: config-service
+          image: logikchain/config-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4010
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4010"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/config_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4010
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: config-service
+  ports:
+    - port: 4010
+      targetPort: 4010
+---
+# --- EPIC-11: Governance Service (:4011) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: governance-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: governance-service
+  template:
+    metadata:
+      labels:
+        app: governance-service
+    spec:
+      containers:
+        - name: governance-service
+          image: logikchain/governance-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4011
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4011"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/governance_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4011
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: governance-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: governance-service
+  ports:
+    - port: 4011
+      targetPort: 4011
+---
+# --- EPIC-13: Social Connect Service (:4012) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-connect-service
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-connect-service
+  template:
+    metadata:
+      labels:
+        app: social-connect-service
+    spec:
+      containers:
+        - name: social-connect-service
+          image: logikchain/social-connect-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4012
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4012"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/social_connect_db"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: logikchain-secrets
+                  key: DB_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4012
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-connect-service
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: social-connect-service
+  ports:
+    - port: 4012
+      targetPort: 4012
+

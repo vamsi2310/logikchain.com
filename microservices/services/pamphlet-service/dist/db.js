@@ -15,14 +15,33 @@ async function initDb() {
         await client.query(`
       CREATE TABLE IF NOT EXISTS gig_pamphlets (
         pamphlet_id VARCHAR(128) PRIMARY KEY,
+        gig_id VARCHAR(128) NOT NULL UNIQUE,
         vehicle_id VARCHAR(64) NOT NULL,
-        start_datetime TIMESTAMPTZ NOT NULL,
         supplier_id VARCHAR(64) NOT NULL,
-        status VARCHAR(32) NOT NULL DEFAULT 'OPEN',
-        stock_items JSONB NOT NULL DEFAULT '[]'::jsonb,
-        linked_orders JSONB NOT NULL DEFAULT '[]'::jsonb,
+        start_datetime TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        status VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+        rolling_stock JSONB NOT NULL DEFAULT '[]'::jsonb,
+        pre_booked_orders JSONB NOT NULL DEFAULT '[]'::jsonb,
+        loaded_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+        unloaded_items JSONB NOT NULL DEFAULT '[]'::jsonb,
+        total_cargo_value NUMERIC(12, 2) DEFAULT 0,
+        gate_seal JSONB,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS damage_claims (
+        claim_id VARCHAR(128) PRIMARY KEY,
+        pamphlet_id VARCHAR(128) NOT NULL,
+        sku_id VARCHAR(64) NOT NULL,
+        damaged_qty INT NOT NULL,
+        unit_price NUMERIC(10, 2) DEFAULT 0,
+        total_damaged_value NUMERIC(10, 2) DEFAULT 0,
+        reason VARCHAR(128) NOT NULL,
+        photo_url TEXT,
+        claim_status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+        liability VARCHAR(32),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
       CREATE TABLE IF NOT EXISTS outbox_events (
@@ -41,9 +60,12 @@ async function initDb() {
         last_error TEXT
       );
 
+      CREATE INDEX IF NOT EXISTS idx_pamphlets_gig ON gig_pamphlets(gig_id);
+      CREATE INDEX IF NOT EXISTS idx_pamphlets_supplier ON gig_pamphlets(supplier_id);
+      CREATE INDEX IF NOT EXISTS idx_claims_pamphlet ON damage_claims(pamphlet_id);
       CREATE INDEX IF NOT EXISTS idx_pamphlet_outbox_pending ON outbox_events(created_at) WHERE sync_status = 'PENDING';
     `);
-        common_1.logger.info('Pamphlet database initialized');
+        common_1.logger.info('Pamphlet database initialized successfully');
     }
     finally {
         client.release();

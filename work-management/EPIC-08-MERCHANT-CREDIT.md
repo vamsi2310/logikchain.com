@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-08`
-- **Epic Status**: [READY]
+- **Epic Status**: [DONE]
 - **Functional Area**: Merchant Credit Facilities, Limits & Risk Underwriting
 - **Bound Microservice**: `microservices/services/credit-service`
 - **Container Port**: `4008`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-08.01`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Merchant trade credit underwriting, supplier-specific credit limit assignment, limit increase requests, and Supplier/Support review. *(Credit headroom is strictly isolated per supplier: a merchant may hold ₹10,000 with Supplier A, ₹30,000 with Supplier B, and ₹0 with Supplier C).*
 - **Service Endpoints**: `POST /v1/credit/limits` (`setMerchantCreditLimit`), `POST /v1/credit/requests` (`requestCreditIncrease`), `POST /v1/credit/requests/{id}/review`, `GET /v1/credit/profiles/{merchantId}/supplier/{supplierId}`
 - **UI Screens**: [MER-07 Credit Line](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-07), [SUP-10 Credit Governance](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-10)
@@ -101,7 +101,7 @@ Scenario: Supplier grants isolated credit limit to verified merchant
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-08.02`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Real-time synchronous credit availability evaluation against the specific ordering supplier's headroom, order balance hold, and commit/release rollback protocol (including partial delivery credit releases).
 - **Service Endpoints**: `POST /v1/credit/holds`, `POST /v1/credit/holds/{id}/commit`, `POST /v1/credit/holds/{id}/release`
 - **UI Screens**: [MER-05 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-05)
@@ -184,7 +184,7 @@ Scenario: Synchronous credit hold against target supplier headroom
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-08.03`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Partial/full credit repayments (via visiting driver cash or online UPI), scheduled overdue relief, and credit freezing.
 - **Service Endpoints**: `POST /v1/credit/repayments/initiate` (`initiateCreditRepayment`), `POST /v1/credit/repayments/confirm` (`confirmCreditRepayment`), `POST /v1/credit/relief:run` (`postDueCreditRelief`)
 - **UI Screens**: [MER-07 Repayments](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-07), [VEH-05 In-Person Repayment](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-05)
@@ -265,7 +265,7 @@ Scenario: In-person credit repayment restores available headroom
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-08.04`
-- **Feature Status**: [READY]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Contractual B2B trade credit terms, supplier-isolated credit limits, mandatory 7-day or 14-day repayment schedules, aging buckets (0-14d Current, 15-30d Grace, 30+d Default), automated ordering freezes, statement dispute logging, and default debt recovery protocols.
 - **Service Endpoints**:
   - `GET /v1/credit/merchants/{merchantId}/suppliers/{supplierId}/terms` (`getCreditAgreementTerms`)

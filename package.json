@@ -1,4 +1,14 @@
 {
+  "name": "logikchain-root",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:status": "playwright test tests/e2e/pwa/status-services.spec.ts",
+    "test:commerce": "playwright test tests/e2e/pwa/usecases-commerce.spec.ts",
+    "test:usecases": "playwright test tests/e2e/pwa/",
+    "test:report": "playwright show-report"
+  },
   "devDependencies": {
     "@playwright/test": "^1.63.0"
   }

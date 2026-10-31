@@ -19,19 +19,19 @@ param (
 )
 
 $services = @(
-    @{ Epic = "EPIC-01"; Name = "identity-service";       Port = 4001; Db = "identity_db";       Desc = "Identity, Auth & Access" },
-    @{ Epic = "EPIC-02"; Name = "orders-service";         Port = 4002; Db = "orders_db";         Desc = "Orders & Commerce Fulfillment" },
-    @{ Epic = "EPIC-03"; Name = "gigs-service";           Port = 4003; Db = "gigs_db";           Desc = "Gig Logistics & Fleet Dispatch" },
-    @{ Epic = "EPIC-04"; Name = "pamphlet-service";       Port = 4004; Db = "pamphlet_db";       Desc = "Pamphlet & Inventory Distribution" },
-    @{ Epic = "EPIC-05"; Name = "payments-service";       Port = 4005; Db = "payments_db";       Desc = "Payments, UPI & Collections" },
-    @{ Epic = "EPIC-06"; Name = "payouts-service";        Port = 4006; Db = "payouts_db";        Desc = "Payouts & Disbursements" },
-    @{ Epic = "EPIC-07"; Name = "cash-service";           Port = 4007; Db = "cash_db";           Desc = "Rural Cash & CoD Custody" },
-    @{ Epic = "EPIC-08"; Name = "credit-service";         Port = 4008; Db = "credit_db";         Desc = "Merchant Working Capital Credit" },
-    @{ Epic = "EPIC-09"; Name = "finance-service";        Port = 4009; Db = "finance_db";        Desc = "Financial Ledger & Reconciliation" },
-    @{ Epic = "EPIC-10"; Name = "config-service";         Port = 4010; Db = "config_db";         Desc = "Platform Geo-Hierarchy & Config" },
-    @{ Epic = "EPIC-11"; Name = "governance-service";     Port = 4011; Db = "governance_db";     Desc = "Platform Governance & AML" },
-    @{ Epic = "EPIC-12"; Name = "gateway";                Port = 8080; Db = "sync_db";           Desc = "API Gateway & Bidirectional Sync" },
-    @{ Epic = "EPIC-13"; Name = "social-connect-service"; Port = 4012; Db = "social_connect_db"; Desc = "Social Connect & Notifications" }
+    @{ Epic = "EPIC-01"; Name = "identity-service";       Port = 4001; Db = "identity_db";       Firebase = "UserProfiles (Auth+Sync)";       Desc = "Identity, Auth & Access" },
+    @{ Epic = "EPIC-02"; Name = "orders-service";         Port = 4002; Db = "orders_db";         Firebase = "Orders (Sync)";                  Desc = "Orders & Commerce Fulfillment" },
+    @{ Epic = "EPIC-03"; Name = "gigs-service";           Port = 4003; Db = "gigs_db";           Firebase = "Gigs (Sync)";                    Desc = "Gig Logistics & Fleet Dispatch" },
+    @{ Epic = "EPIC-04"; Name = "pamphlet-service";       Port = 4004; Db = "pamphlet_db";       Firebase = "Pamphlets (Sync)";               Desc = "Pamphlet & Inventory Distribution" },
+    @{ Epic = "EPIC-05"; Name = "payments-service";       Port = 4005; Db = "payments_db";       Firebase = "PaymentIntents (Sync)";          Desc = "Payments, UPI & Collections" },
+    @{ Epic = "EPIC-06"; Name = "payouts-service";        Port = 4006; Db = "payouts_db";        Firebase = "PayoutTransactions (Sync)";      Desc = "Payouts & Disbursements" },
+    @{ Epic = "EPIC-07"; Name = "cash-service";           Port = 4007; Db = "cash_db";           Firebase = "CashSettlements (Sync)";         Desc = "Rural Cash & CoD Custody" },
+    @{ Epic = "EPIC-08"; Name = "credit-service";         Port = 4008; Db = "credit_db";         Firebase = "CreditProfiles (Sync)";          Desc = "Merchant Working Capital Credit" },
+    @{ Epic = "EPIC-09"; Name = "finance-service";        Port = 4009; Db = "finance_db";        Firebase = "FinanceSummaries (Sync)";        Desc = "Financial Ledger & Reconciliation" },
+    @{ Epic = "EPIC-10"; Name = "config-service";         Port = 4010; Db = "config_db";         Firebase = "Villages (Sync)";                Desc = "Platform Geo-Hierarchy & Config" },
+    @{ Epic = "EPIC-11"; Name = "governance-service";     Port = 4011; Db = "governance_db";     Firebase = "AuditLogEntries (Sync)";         Desc = "Platform Governance & AML" },
+    @{ Epic = "EPIC-12"; Name = "gateway";                Port = 8080; Db = "sync_db";           Firebase = "CDC Mesh (Auth+AppCheck)";       Desc = "API Gateway & Bidirectional Sync" },
+    @{ Epic = "EPIC-13"; Name = "social-connect-service"; Port = 4012; Db = "social_connect_db"; Firebase = "NotificationPreferences (FCM)";  Desc = "Social Connect & Notifications" }
 )
 
 function Test-MicroserviceHealth {
@@ -139,6 +139,7 @@ function Audit-AllServices {
                 Latency      = if ($health.LatencyMs -gt 0) { "$($health.LatencyMs)ms" } else { "-" }
                 HealthState  = $state
                 Database     = $s.Db
+                Firebase     = $s.Firebase
             }
         } else {
             $results += [PSCustomObject]@{
@@ -152,6 +153,7 @@ function Audit-AllServices {
                 Latency      = "-"
                 HealthState  = "OFFLINE"
                 Database     = $s.Db
+                Firebase     = $s.Firebase
             }
         }
     }
@@ -182,9 +184,8 @@ function Audit-AllServices {
         @{ Label = "HTTP"; Expression = { $_.HttpStatus }; Width = 6 },
         @{ Label = "Latency"; Expression = { $_.Latency }; Width = 9 },
         @{ Label = "PID"; Expression = { $_.PID }; Width = 7 },
-        @{ Label = "Process"; Expression = { $_.Process }; Width = 10 },
-        @{ Label = "RAM"; Expression = { $_.Memory }; Width = 10 },
-        @{ Label = "Database"; Expression = { $_.Database }; Width = 18 }
+        @{ Label = "Database"; Expression = { $_.Database }; Width = 18 },
+        @{ Label = "Firebase Target"; Expression = { $_.Firebase }; Width = 32 }
     )
 
     $onlineCount = @($results | Where-Object { $_.HealthState -eq "ONLINE" }).Count

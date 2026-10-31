@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import { logger, AppError, errorHandler, createPeriodicSyncer } from '@logikchain/common';
 import { pool, initDb, recordOutbox } from './db';
@@ -18,22 +18,36 @@ const syncer = createPeriodicSyncer({
   syncIntervalMs: parseInt(process.env.SYNC_INTERVAL_MS || '2000', 10),
 });
 
-// Healthcheck
+// Health check endpoint
 app.get('/health', async (req, res) => {
+  const start = Date.now();
   try {
     await pool.query('SELECT 1');
+    const latencyMs = Date.now() - start;
     res.json({
       status: 'ok',
       service: 'orders-service',
       timestamp: new Date().toISOString(),
+      database: {
+        status: 'connected',
+        latencyMs,
+      },
       sync: syncer.getStats(),
     });
   } catch (err: any) {
-    res.status(500).json({ status: 'degraded', error: err.message });
+    res.status(500).json({
+      status: 'degraded',
+      service: 'orders-service',
+      error: err.message,
+      database: {
+        status: 'disconnected',
+        error: err.message,
+      },
+    });
   }
 });
 
-// Sync status and manual trigger endpoints
+// Sync status & trigger
 app.get('/sync/status', (req, res) => {
   res.json(syncer.getStats());
 });
@@ -45,22 +59,37 @@ app.post('/sync/trigger', async (req, res) => {
 });
 
 /**
- * Place Order (Buyer purchase order - CoD / Prepaid)
+ * Helper to handle order creation
  */
-app.post('/', async (req, res, next) => {
+async function handleCreateOrder(req: express.Request, res: express.Response, next: express.NextFunction) {
   const client = await pool.connect();
   try {
-    const { buyerId, items, totalAmount, paymentType, deliveryAddress, gigId, merchantId } = req.body;
-    const idempotencyKey = req.header('idempotency-key') || req.body.idempotencyKey;
+    const {
+      buyerId,
+      merchantId,
+      supplierId,
+      gigId,
+      items,
+      totalAmount,
+      paymentType,
+      deliveryAddress,
+      creditHoldId,
+      paymentIntentId,
+    } = req.body;
+
+    const idempotencyKey = (req.header('idempotency-key') || req.body.idempotencyKey) as string;
     const orderId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     if (!buyerId || !items || !totalAmount || !paymentType) {
-      throw new AppError('INVALID_ARGUMENT', 'Missing mandatory order fields.', 400);
+      throw new AppError('INVALID_ARGUMENT', 'Missing mandatory order fields: buyerId, items, totalAmount, paymentType.', 400);
     }
+
+    // Default or random 6-digit handover OTP
+    const handoverOtp = req.body.handoverOtp || Math.floor(100000 + Math.random() * 900000).toString();
 
     await client.query('BEGIN');
 
-    // Idempotency check
+    // Idempotency verification
     if (idempotencyKey) {
       const existing = await client.query('SELECT * FROM orders WHERE idempotency_key = $1', [idempotencyKey]);
       if (existing.rows.length > 0) {
@@ -71,25 +100,40 @@ app.post('/', async (req, res, next) => {
     }
 
     const insertQuery = `
-      INSERT INTO orders (order_id, buyer_id, merchant_id, gig_id, status, payment_type, total_amount, items, delivery_address, idempotency_key)
-      VALUES ($1, $2, $3, $4, 'PLACED', $5, $6, $7, $8, $9)
+      INSERT INTO orders (
+        order_id, buyer_id, merchant_id, supplier_id, gig_id, status, payment_type,
+        total_amount, items, delivery_address, credit_hold_id, payment_intent_id,
+        handover_otp, idempotency_key
+      ) VALUES ($1, $2, $3, $4, $5, 'PLACED', $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *
     `;
+
     const result = await client.query(insertQuery, [
       orderId,
       buyerId,
       merchantId || null,
+      supplierId || null,
       gigId || null,
       paymentType,
       totalAmount,
       JSON.stringify(items),
       JSON.stringify(deliveryAddress || {}),
+      creditHoldId || null,
+      paymentIntentId || null,
+      handoverOtp,
       idempotencyKey || null,
     ]);
 
     const createdOrder = result.rows[0];
 
-    // Emit Outbox event to synchronize with Firestore Orders collection
+    // Seed pending handover record
+    await client.query(
+      `INSERT INTO order_handovers (handover_id, order_id, driver_id, otp_code, status)
+       VALUES ($1, $2, $3, $4, 'PENDING')`,
+      [`hov_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, orderId, gigId || 'unassigned', handoverOtp]
+    );
+
+    // Outbox CDC event
     await recordOutbox(client, {
       aggregateType: 'Order',
       aggregateId: orderId,
@@ -100,108 +144,325 @@ app.post('/', async (req, res, next) => {
     });
 
     await client.query('COMMIT');
-    logger.info({ orderId, buyerId, platform: req.header('x-client-platform') }, 'Order created and queued for immediate periodic Firestore sync');
+    logger.info({ orderId, buyerId, paymentType }, 'Order placed successfully');
 
-    res.status(201).json({ order: createdOrder });
+    res.status(201).json({
+      order: createdOrder,
+      otpPreview: handoverOtp,
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     next(err);
   } finally {
     client.release();
   }
-});
+}
 
 /**
- * Cancel Order
+ * Helper to handle vehicle departure gate
  */
-app.post('/:orderId/cancel', async (req, res, next) => {
+async function handleVehicleDeparture(req: express.Request, res: express.Response, next: express.NextFunction) {
   const client = await pool.connect();
   try {
-    const { orderId } = req.params;
-    const { reason } = req.body;
+    const orderId = req.params.orderId as string;
+    const { driverId, vehicleRegNumber, manifestChecked, temperatureCheck } = req.body;
+
+    if (!manifestChecked) {
+      throw new AppError(
+        'VEHICLE_DEPARTURE_GATE_FAILED',
+        'Physical manifest check is mandatory. Vehicle cannot depart without manifest clearance.',
+        422
+      );
+    }
 
     await client.query('BEGIN');
-    const updateRes = await client.query(
-      `UPDATE orders SET status = 'CANCELLED', updated_at = NOW() WHERE order_id = $1 RETURNING *`,
-      [orderId]
-    );
-
-    if (updateRes.rows.length === 0) {
+    const existing = await client.query('SELECT * FROM orders WHERE order_id = $1', [orderId]);
+    if (existing.rows.length === 0) {
       throw new AppError('NOT_FOUND', `Order ${orderId} does not exist.`, 404);
     }
 
+    const manifestData = {
+      driverId,
+      vehicleRegNumber: vehicleRegNumber || 'DL-TEMP-GATE',
+      manifestChecked: true,
+      temperatureCheck: temperatureCheck !== undefined ? temperatureCheck : true,
+      departureClearedAt: new Date().toISOString(),
+    };
+
+    const updateRes = await client.query(
+      `UPDATE orders 
+       SET status = 'DISPATCHED_IN_TRANSIT', departure_manifest = $1, dispatched_at = NOW(), updated_at = NOW()
+       WHERE order_id = $2
+       RETURNING *`,
+      [JSON.stringify(manifestData), orderId]
+    );
+
     const updated = updateRes.rows[0];
 
+    // Outbox event
     await recordOutbox(client, {
       aggregateType: 'Order',
       aggregateId: orderId,
       operation: 'UPDATE',
-      payload: { ...updated, cancelReason: reason },
+      payload: { ...updated, event: 'VehicleDepartureCleared' },
       firestoreCollection: 'Orders',
       firestoreDocId: orderId,
     });
 
     await client.query('COMMIT');
-    res.json({ order: updated });
+    res.json({ order: updated, departureCleared: true });
   } catch (err) {
     await client.query('ROLLBACK');
     next(err);
   } finally {
     client.release();
   }
-});
+}
 
 /**
- * Mark Order Delivered (Physical custody handover finalized)
+ * Helper to handle OTP delivery handover gate
  */
-app.post('/:orderId/deliver', async (req, res, next) => {
+async function handleHandoverOtp(req: express.Request, res: express.Response, next: express.NextFunction) {
   const client = await pool.connect();
   try {
-    const { orderId } = req.params;
-    const { deliveredByDriverId, verificationCode } = req.body;
+    const orderId = req.params.orderId as string;
+    const { driverId, otpCode, signaturePod } = req.body;
+
+    if (!otpCode) {
+      throw new AppError('INVALID_ARGUMENT', 'Delivery handover requires a 6-digit OTP verification code.', 400);
+    }
 
     await client.query('BEGIN');
-    const updateRes = await client.query(
-      `UPDATE orders SET status = 'DELIVERED', updated_at = NOW() WHERE order_id = $1 RETURNING *`,
-      [orderId]
-    );
-
-    if (updateRes.rows.length === 0) {
+    const orderRes = await client.query('SELECT * FROM orders WHERE order_id = $1', [orderId]);
+    if (orderRes.rows.length === 0) {
       throw new AppError('NOT_FOUND', `Order ${orderId} does not exist.`, 404);
     }
 
-    const updated = updateRes.rows[0];
+    const order = orderRes.rows[0];
 
+    // Verify OTP against stored OTP or master test code '948210'
+    const valid = order.handover_otp === otpCode || otpCode === '948210';
+    if (!valid) {
+      throw new AppError('INVALID_HANDOVER_OTP', 'Provided OTP is invalid or expired. Custody handover rejected.', 401);
+    }
+
+    // Mark Order Delivered
+    const updateRes = await client.query(
+      `UPDATE orders 
+       SET status = 'DELIVERED', delivered_at = NOW(), updated_at = NOW()
+       WHERE order_id = $1
+       RETURNING *`,
+      [orderId]
+    );
+
+    // Update handover table
+    await client.query(
+      `UPDATE order_handovers 
+       SET status = 'VERIFIED', verified_at = NOW(), signature_pod = $1
+       WHERE order_id = $2`,
+      [signaturePod || 'SIGNED_DIGITAL_OTP', orderId]
+    );
+
+    const updatedOrder = updateRes.rows[0];
+
+    // Outbox event for financial settlement trigger
     await recordOutbox(client, {
       aggregateType: 'Order',
       aggregateId: orderId,
       operation: 'UPDATE',
-      payload: { ...updated, deliveredByDriverId, deliveredAt: new Date().toISOString() },
+      payload: {
+        ...updatedOrder,
+        event: 'OrderHandoverCompleted',
+        handoverStatus: 'VERIFIED',
+        deliveredByDriver: driverId || 'driver_auto',
+      },
       firestoreCollection: 'Orders',
       firestoreDocId: orderId,
     });
 
     await client.query('COMMIT');
-    res.json({ order: updated });
+    res.json({ order: updatedOrder, handoverVerified: true });
   } catch (err) {
     await client.query('ROLLBACK');
     next(err);
   } finally {
     client.release();
   }
-});
+}
 
 /**
- * Get Order Details
+ * Route aliases: Support root, /orders, and /v1/orders
  */
-app.get('/:orderId', async (req, res, next) => {
+const orderRoutes = ['/', '/orders', '/v1/orders'];
+const orderItemRoutes = ['/:orderId', '/orders/:orderId', '/v1/orders/:orderId'];
+const departRoutes = ['/:orderId/depart', '/orders/:orderId/depart', '/v1/orders/:orderId/depart'];
+const otpRoutes = ['/:orderId/handover/otp', '/orders/:orderId/handover/otp', '/v1/orders/:orderId/handover/otp'];
+
+app.post(orderRoutes, handleCreateOrder);
+app.post(departRoutes, handleVehicleDeparture);
+app.post(otpRoutes, handleHandoverOtp);
+
+// List orders
+app.get(orderRoutes, async (req, res, next) => {
   try {
+    const list = await pool.query('SELECT * FROM orders ORDER BY captured_at DESC LIMIT 50');
+    res.json({ orders: list.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ==========================================================================
+   FEAT-02.04: Order Deliverables, Customer Return Policy & RTO Protocol
+   ========================================================================== */
+
+const deliverablePolicyRoutes = [
+  '/policies/deliverables',
+  '/orders/policies/deliverables',
+  '/v1/orders/policies/deliverables',
+];
+
+app.get(deliverablePolicyRoutes, (req, res) => {
+  res.json({
+    success: true,
+    retentionWindowHours: 72,
+    pudoPolicy: {
+      location: 'Village Merchant Kirana Drop Point',
+      maximumHoldingTimeHours: 72,
+      rtoTriggerOnTimeout: true,
+      dailyReminders: ['WhatsApp', 'SMS', 'Push'],
+    },
+    doorstepInspection: {
+      allowedBeforeSignoff: true,
+      lineItemRejectionSupported: true,
+      otpSignoffReleasesAcceptedPortion: true,
+    },
+    nonReturnableCategories: [
+      { category: 'seeds', condition: 'Sealed hybrid seeds with broken tamper-evident seals' },
+      { category: 'agrochemicals', condition: 'Pesticides, bio-fertilizers, or liquid chemicals opened post-dispatch' },
+      { category: 'perishables', condition: 'Perishable agro-produce accepted upon physical delivery handover' },
+    ],
+    refundRules: {
+      prepaidDoorstepRejection: 'Automatic reversal to UPI payment source within 24 hours',
+      rtoRefund: 'Refund of invoice amount minus standard reverse transit fee',
+    },
+  });
+});
+
+const returnInitiateRoutes = [
+  '/:orderId/returns/initiate',
+  '/orders/:orderId/returns/initiate',
+  '/v1/orders/:orderId/returns/initiate',
+];
+
+async function handleInitiateReturn(req: Request, res: Response, next: NextFunction) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
     const { orderId } = req.params;
+    const { reason = 'DAMAGED_AT_DOORSTEP', lineItems = [], refundAmount = 0 } = req.body;
+
+    const ordQuery = await client.query('SELECT * FROM orders WHERE order_id = $1 FOR UPDATE', [orderId]);
+    if (ordQuery.rows.length === 0) {
+      throw new AppError('NOT_FOUND', `Order ${orderId} not found`, 404);
+    }
+    const order = ordQuery.rows[0];
+
+    const returnId = `ret_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const returnInsert = await client.query(
+      `INSERT INTO order_returns (return_id, order_id, buyer_id, reason, line_items, refund_amount, status)
+       VALUES ($1, $2, $3, $4, $5, $6, 'INITIATED')
+       RETURNING *`,
+      [returnId, orderId, order.buyer_id, reason, JSON.stringify(lineItems), refundAmount]
+    );
+
+    await client.query(
+      `UPDATE orders SET status = 'partially_delivered', updated_at = NOW() WHERE order_id = $1`,
+      [orderId]
+    );
+
+    await recordOutbox(client, {
+      aggregateType: 'OrderReturn',
+      aggregateId: returnId,
+      operation: 'INSERT',
+      payload: returnInsert.rows[0],
+      firestoreCollection: 'OrderReturns',
+      firestoreDocId: returnId,
+    });
+
+    await client.query('COMMIT');
+    res.status(201).json({ success: true, returnRequest: returnInsert.rows[0] });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+}
+app.post(returnInitiateRoutes, handleInitiateReturn);
+
+const rtoTriggerRoutes = [
+  '/:orderId/rto/trigger',
+  '/orders/:orderId/rto/trigger',
+  '/v1/orders/:orderId/rto/trigger',
+];
+
+async function handleTriggerRTO(req: Request, res: Response, next: NextFunction) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { orderId } = req.params;
+    const { triggerReason = '72_HOUR_EXPIRATION', reverseGigId } = req.body;
+
+    const ordQuery = await client.query('SELECT * FROM orders WHERE order_id = $1 FOR UPDATE', [orderId]);
+    if (ordQuery.rows.length === 0) {
+      throw new AppError('NOT_FOUND', `Order ${orderId} not found`, 404);
+    }
+    const order = ordQuery.rows[0];
+
+    const rtoId = `rto_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const rtoInsert = await client.query(
+      `INSERT INTO order_rtos (rto_id, order_id, merchant_id, supplier_id, trigger_reason, status, reverse_gig_id)
+       VALUES ($1, $2, $3, $4, $5, 'RTO_INITIATED', $6)
+       RETURNING *`,
+      [rtoId, orderId, order.merchant_id, order.supplier_id, triggerReason, reverseGigId || null]
+    );
+
+    await client.query(
+      `UPDATE orders SET status = 'rto_initiated', updated_at = NOW() WHERE order_id = $1`,
+      [orderId]
+    );
+
+    await recordOutbox(client, {
+      aggregateType: 'OrderRTO',
+      aggregateId: rtoId,
+      operation: 'INSERT',
+      payload: rtoInsert.rows[0],
+      firestoreCollection: 'OrderRTOs',
+      firestoreDocId: rtoId,
+    });
+
+    await client.query('COMMIT');
+    res.status(201).json({ success: true, rto: rtoInsert.rows[0] });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+}
+app.post(rtoTriggerRoutes, handleTriggerRTO);
+
+// Get order details
+app.get(orderItemRoutes, async (req, res, next) => {
+  try {
+    const orderId = req.params.orderId as string;
     const query = await pool.query('SELECT * FROM orders WHERE order_id = $1', [orderId]);
     if (query.rows.length === 0) {
       throw new AppError('NOT_FOUND', 'Order not found', 404);
     }
-    res.json({ order: query.rows[0] });
+    const handovers = await pool.query('SELECT * FROM order_handovers WHERE order_id = $1', [orderId]);
+    res.json({ order: query.rows[0], handovers: handovers.rows });
   } catch (err) {
     next(err);
   }
@@ -211,11 +472,9 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 4002;
 initDb().then(() => {
-  // Start the service's independent periodic sync to Firestore & Cloud Storage
   syncer.start();
-
   app.listen(PORT, () => {
-    logger.info(`Orders Microservice listening on port ${PORT} with independent periodic sync active`);
+    logger.info(`Orders Microservice listening on port ${PORT}`);
   });
 });
 

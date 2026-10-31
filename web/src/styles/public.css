@@ -74,6 +74,140 @@
   gap: 0.75rem;
 }
 
+.pub-auth-logged-in {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pub-auth-logged-out {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pub-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  text-decoration: none;
+  color: #0f172a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.pub-user-pill:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.pub-user-avatar {
+  font-size: 0.95rem;
+}
+
+.pub-user-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pub-role-tag {
+  background: #e8f3eb;
+  color: #1b7f3b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pub-mobile-toggle {
+  display: none;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  font-size: 1.1rem;
+  color: #0f172a;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.pub-mobile-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.pub-mobile-drawer {
+  display: none;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+}
+
+.pub-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pub-mobile-link {
+  color: #334155;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  transition: color 0.15s ease;
+}
+
+.pub-mobile-link.active,
+.pub-mobile-link:hover {
+  color: #1b7f3b;
+}
+
+.pub-mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pub-user-pill-mobile {
+  justify-content: center;
+  width: 100%;
+  padding: 0.55rem;
+}
+
+.pub-btn-block {
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .pub-mobile-toggle {
+    display: inline-flex;
+  }
+  .pub-mobile-drawer {
+    display: block;
+  }
+  .pub-auth-logged-in .pub-user-pill,
+  .pub-auth-logged-in .pub-btn-outline {
+    display: none;
+  }
+}
+
 .pub-btn {
   display: inline-flex;
   align-items: center;
@@ -188,6 +322,129 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+/* Authenticated Hero & Role Hub */
+.pub-hero-auth {
+  background: linear-gradient(180deg, #f0fdf4 0%, #fafbfc 100%);
+  padding: 3.5rem 1.5rem 2.5rem;
+}
+
+.pub-auth-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  color: #334155;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.pub-auth-status-dot {
+  color: #16a34a;
+  font-size: 0.8rem;
+}
+
+.pub-auth-phone {
+  color: #64748b;
+  border-left: 1px solid #cbd5e1;
+  padding-left: 0.6rem;
+}
+
+.pub-account-context-strip {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.pub-context-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: #475569;
+}
+
+.pub-context-item strong {
+  color: #0f172a;
+}
+
+.pub-role-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 3.5rem;
+}
+
+.pub-role-hub-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.pub-role-hub-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+  border-color: #1b7f3b;
+}
+
+.pub-role-hub-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.pub-role-hub-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem 0;
+}
+
+.pub-role-hub-card p {
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 1.25rem 0;
+  flex: 1;
+}
+
+.pub-card-active {
+  border: 2px solid #1b7f3b !important;
+  background: #fdfefe !important;
+  box-shadow: 0 4px 12px rgba(27, 127, 59, 0.08) !important;
+  position: relative;
+}
+
+.pub-card-active-tag {
+  position: absolute;
+  top: -11px;
+  right: 16px;
+  background: #1b7f3b;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* Actor Gateway Cards Grid */

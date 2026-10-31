@@ -39,6 +39,14 @@ const TABS: Record<UserRole, Array<{ to: string; key: string; icon: string }>> =
   ],
 };
 
+const ROLE_BADGES: Record<UserRole, { label: string; icon: string }> = {
+  buyer: { label: "Consumer", icon: "🛒" },
+  merchant: { label: "Kirana", icon: "🏪" },
+  vehicle: { label: "Rider", icon: "🛵" },
+  supplier: { label: "Depot", icon: "🏭" },
+  support: { label: "Operations", icon: "🛡️" },
+};
+
 function speak(text: string) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -75,47 +83,118 @@ export function Chrome({
   const tabs = TABS[role];
   const audioOn = profile?.permissions?.audio !== false;
   const supportXl = role === "support";
+  const roleBadge = ROLE_BADGES[role] ?? { label: role, icon: "👤" };
 
   const header = useMemo(
     () => (
       <header className="app-header">
-        {back ? (
-          <button className="icon-btn" type="button" onClick={() => nav(-1)} aria-label={t("back")}>
-            ←
+        <div className="app-header-left">
+          {back ? (
+            <button className="icon-btn app-back-btn" type="button" onClick={() => nav(-1)} aria-label={t("back")}>
+              ←
+            </button>
+          ) : null}
+          <NavLink to="/" className="app-brand-logo" title="Back to Logikchain Home">
+            <span className="app-brand-icon">🌾</span>
+            <span className="app-brand-name">LOGIKCHAIN</span>
+          </NavLink>
+          <div className="app-header-divider" />
+          <div className="app-header-title-group">
+            <h1>{title}</h1>
+            <span className="app-role-chip">{roleBadge.icon} {roleBadge.label}</span>
+            {env.alias !== "prod" ? <span className="env-chip">{env.alias}</span> : null}
+          </div>
+        </div>
+
+        {/* Desktop Navigation Tabs for regular apps */}
+        {!supportXl && (
+          <nav className="desktop-nav-tabs" aria-label="Desktop primary navigation">
+            {tabs.map((tab) => (
+              <NavLink key={tab.to} to={tab.to} className={({ isActive }) => (isActive ? "tab-link active" : "tab-link")}>
+                <span className="tab-icon" aria-hidden>{tab.icon}</span>
+                <span className="tab-label">
+                  {t(tab.key)}
+                  {tab.key === "cart" && count > 0 ? ` (${count})` : ""}
+                </span>
+              </NavLink>
+            ))}
+          </nav>
+        )}
+
+        <div className="app-header-right">
+          <button
+            type="button"
+            className="app-close-btn"
+            data-testid="close-app-btn"
+            onClick={() => {
+              window.location.assign("/");
+            }}
+            title="Exit App and Return to Website"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "#fee2e2",
+              color: "#b91c1c",
+              border: "1px solid #fca5a5",
+              borderRadius: "8px",
+              padding: "6px 14px",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            ✕ Close App
           </button>
-        ) : null}
-        <h1>{title}</h1>
-        {env.alias !== "prod" ? <span className="env-chip">{env.alias}</span> : null}
-        {audioOn ? (
+
+          <NavLink to="/" className="app-portal-link" title="Explore Logikchain Portal">
+            🌐 Portal
+          </NavLink>
+
+          {audioOn ? (
+            <button
+              className="icon-btn"
+              type="button"
+              aria-label={t("speak")}
+              onClick={() => speak(speakText ?? `${title}. ${t("appName")}`)}
+            >
+              🔊
+            </button>
+          ) : null}
+
           <button
             className="icon-btn"
             type="button"
-            aria-label={t("speak")}
-            onClick={() => speak(speakText ?? `${title}. ${t("appName")}`)}
+            aria-label={t("bell")}
+            onClick={() => nav(supportXl ? "/x/notifications" : "/notifications")}
           >
-            🔊
+            🔔
+            {unread > 0 ? <span className="badge">{unread > 99 ? "99+" : unread > 9 ? "9+" : unread}</span> : null}
           </button>
-        ) : null}
-        <button
-          className="icon-btn"
-          type="button"
-          aria-label={t("bell")}
-          onClick={() => nav(supportXl ? "/x/notifications" : "/notifications")}
-        >
-          🔔
-          {unread > 0 ? <span className="badge">{unread > 99 ? "99+" : unread > 9 ? "9+" : unread}</span> : null}
-        </button>
-        <button
-          className="icon-btn"
-          type="button"
-          aria-label={t("avatar")}
-          onClick={() => nav(supportXl ? "/x/profile" : "/profile")}
-        >
-          👤
-        </button>
+
+          <button
+            className="app-user-capsule"
+            type="button"
+            aria-label={t("avatar")}
+            onClick={() => nav(supportXl ? "/x/profile" : "/profile")}
+            title="Account Profile & Settings"
+          >
+            <span className="app-avatar-circle">👤</span>
+            <span className="app-avatar-name">{profile?.name || profile?.phone || t("avatar")}</span>
+          </button>
+
+          <button
+            type="button"
+            className="app-signout-btn"
+            onClick={() => setSignoutOpen(true)}
+            title={t("logout")}
+          >
+            🚪
+          </button>
+        </div>
       </header>
     ),
-    [audioOn, back, nav, speakText, supportXl, t, title, unread],
+    [audioOn, back, count, nav, profile?.name, profile?.phone, roleBadge, speakText, supportXl, t, tabs, title, unread],
   );
 
   const navBar = (
@@ -147,6 +226,28 @@ export function Chrome({
         </button>
       ) : null}
       {!noNav ? navBar : null}
+
+      {/* Global Signout Confirmation Sheet */}
+      {signoutOpen ? (
+        <Sheet
+          title={t("logout")}
+          onClose={() => setSignoutOpen(false)}
+          footer={
+            <Button
+              variant="danger"
+              onClick={async () => {
+                setSignoutOpen(false);
+                await logout();
+                nav("/");
+              }}
+            >
+              {t("confirm")}
+            </Button>
+          }
+        >
+          <p>{t("logoutConfirm")}</p>
+        </Sheet>
+      ) : null}
     </>
   );
 
@@ -188,6 +289,26 @@ export function Chrome({
             </NavLink>
             <button
               type="button"
+              className="btn"
+              data-testid="close-app-rail-btn"
+              style={{
+                width: "100%",
+                justifyContent: "center",
+                marginBottom: "8px",
+                background: "#fee2e2",
+                color: "#b91c1c",
+                border: "1px solid #fca5a5",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                window.location.assign("/");
+              }}
+            >
+              ✕ Close App
+            </button>
+            <button
+              type="button"
               className="btn btn-secondary"
               style={{ width: "100%", justifyContent: "center" }}
               onClick={() => setSignoutOpen(true)}
@@ -197,19 +318,6 @@ export function Chrome({
           </div>
         </aside>
         <div className="app-shell">{body}</div>
-        {signoutOpen ? (
-          <Sheet
-            title={t("logout")}
-            onClose={() => setSignoutOpen(false)}
-            footer={
-              <Button variant="danger" onClick={() => void logout()}>
-                {t("confirm")}
-              </Button>
-            }
-          >
-            <p>{t("logoutConfirm")}</p>
-          </Sheet>
-        ) : null}
       </div>
     );
   }
@@ -224,14 +332,21 @@ export function AuthChrome({ children, speakText }: { children: ReactNode; speak
   return (
     <div className="app-shell">
       <header className="app-header">
-        <button className="icon-btn" type="button" aria-label={t("speak")} onClick={() => speak(speakText ?? t("tagline"))}>
-          🔊
-        </button>
-        <h1 />
-        {env.alias !== "prod" ? <span className="env-chip">{env.alias}</span> : null}
-        <button className="icon-btn" type="button" onClick={() => nav("/language")} aria-label={t("language")}>
-          {locale === "en" ? "A/अ" : "अ"}
-        </button>
+        <div className="app-header-left">
+          <NavLink to="/" className="app-brand-logo" title="Back to Logikchain Home">
+            <span className="app-brand-icon">🌾</span>
+            <span className="app-brand-name">LOGIKCHAIN</span>
+          </NavLink>
+        </div>
+        <div className="app-header-right">
+          <button className="icon-btn" type="button" aria-label={t("speak")} onClick={() => speak(speakText ?? t("tagline"))}>
+            🔊
+          </button>
+          {env.alias !== "prod" ? <span className="env-chip">{env.alias}</span> : null}
+          <button className="icon-btn" type="button" onClick={() => nav("/language")} aria-label={t("language")}>
+            {locale === "en" ? "A/अ" : "अ"}
+          </button>
+        </div>
       </header>
       {!online ? <Banner>⚠ {t("offlineBanner")}</Banner> : null}
       <main className="page no-nav">{children}</main>
