@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-13`
-- **Epic Status**: [IN_PROGRESS]
+- **Epic Status**: [DONE]
 - **Functional Area**: Social Media Connect, Multi-Channel User Notifications & Interaction Orchestration
 - **Bound Microservice**: `microservices/services/social-connect-service`
 - **Container Port**: `4012`

@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Platform Metadata
 - **Epic ID**: `EPIC-12`
-- **Epic Status**: [IN_PROGRESS]
+- **Epic Status**: [DONE]
 - **Functional Area**: API Gateway Perimeter, Multi-Client Ingress & Bidirectional Data Sync Engine
 - **Bound Platform Modules**: `microservices/services/gateway` & `microservices/devops/docker/Dockerfile.sync-engine`
 - **Container Ports**: `gateway` on `:8080` / `sync-engine` on `:4050`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.01`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Perimeter reverse proxy, internal VPC microservice routing, client context header injection, and rate limiting.
 - **Service Endpoints**: `ALL /v1/*` (Proxy Router), `GET /health` (Gateway Health)
 - **UI Screens**: Platform Perimeter (All Client Applications: PWA, Android, iOS)
@@ -104,7 +104,7 @@ Scenario: Gateway injects validated identity headers to downstream service
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.02`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Multi-platform hardware-backed device attestation verification: reCAPTCHA Enterprise (PWA), Play Integrity (Android), and DeviceCheck/App Attest (iOS).
 - **Service Endpoints**: Ingress Middleware on API Gateway
 - **UI Screens**: All Client Application Ingress

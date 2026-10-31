@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-04`
-- **Epic Status**: [DONE]
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: Pamphlet & Dynamic Inventory Manifest Distribution
 - **Bound Microservice**: `microservices/services/pamphlet-service`
 - **Container Port**: `4004`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-04.01`
-- **Feature Status**: [DONE]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Automated manifest initialization, surrogate key binding (`pmp_{id}` linked to `gigId`), dual cargo partitioning (pre-booked customer orders vs. rolling merchant spot-restock stock), and dynamic in-transit order conversion.
 - **Service Endpoints**: `POST /v1/pamphlets` (`createGigPamphlet`), `GET /v1/pamphlets/{pamphletId}`, `POST /v1/pamphlets/{pamphletId}/deduct-transit-stock`
 - **UI Screens**: [SUP-06 Warehouse Loading](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-06), [VEH-03 Vehicle Manifest](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-03)

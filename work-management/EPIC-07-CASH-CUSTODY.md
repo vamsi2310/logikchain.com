@@ -107,7 +107,7 @@ Scenario: Driver collects cash offline and syncs
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-07.02`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: End-of-shift cash turn-in, supplier cashier declaration, 6-digit cryptographic OTP generation, and custody discharge.
 - **Service Endpoints**: `POST /v1/cash/handover/declare` (`declareCashHandover`), `POST /v1/cash/handover/confirm` (`confirmCashSettlement`), `POST /v1/cash/handover/resend`
 - **UI Screens**: [VEH-08 Cash Handover](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-08), [SUP-09 Cashier Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-09)
@@ -194,7 +194,7 @@ Scenario: Successful cash handover via 6-digit OTP
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-07.03`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Cash shortfall/excess recording, dispute documentation, photo attachment of forged bills, and Support resolution.
 - **Service Endpoints**: `POST /v1/cash/discrepancies` (`raiseCashDiscrepancy`), `POST /v1/cash/discrepancies/{id}/resolve` (`resolveCashDiscrepancy`)
 - **UI Screens**: [SUP-09 Cashier Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-09), [SPT-06 Discrepancy Audit](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-06)

@@ -8,16 +8,129 @@ This document provides high-fidelity architectural wireframes and UI mockups for
 
 | Use Case ID | Screen ID | Role & Viewport | Title / Purpose | Key Circuit Breaker / Gate |
 |---|---|---|---|---|
-| **`UC-OBS-01`** | `PUB-01` | Public / SRE (360px & Desktop) | Microservices & Database Mesh Telemetry | Zero-Trust Gateway Perimeter Gate |
-| **`UC-ADM-01`** | `SPT-08` | Support Console (1024px) | Geo-Hierarchy & Village Hub Registry | Unassigned Rural Corridor Gate |
-| **`UC-ADM-02`** | `SPT-10` | Support Console (1024px) | Subscription Plans & Platform Tariffs | Quota Ceiling Overdraft Gate |
-| **`UC-ADM-03`** | `SPT-12` | Support Console (1024px) | Statutory GST & Sec 194-O TDS Rules | Tax Withholding Threshold Gate |
-| **`UC-OPS-01`** | `SPT-02.5`| Support Console (1024px) | Supplier Bulk Ingestion & Dry-Run Gate | Malformed 14-char GSTIN Breaker |
-| **`UC-OPS-02`** | `SPT-01.P`| Support Console (1024px) | Support-as-Supplier Proxy Switcher | Dual-Header Audit Trail Enforcement |
-| **`UC-FIN-01`** | `MER-04` | Merchant PWA (360px Mobile) | Trade Credit Underwriting & 2-Phase Hold | Credit Headroom Overdraft Breaker (402) |
-| **`UC-FIN-02`** | `MER-05` | Merchant PWA (360px Mobile) | Dynamic UPI QR Checkout & Instant Webhook | Idempotent HMAC Payment Signature Gate |
-| **`UC-ORD-01`** | `DRV-04` | Driver Mobile PWA (360px) | Vehicle Departure Gate (Manifest Clearance) | Mandatory Pre-Trip Cargo Manifest (422) |
-| **`UC-ORD-01`** | `DRV-06` | Driver Mobile PWA (360px) | Physical Handover OTP Verification | Cryptographic 6-Digit SMS OTP Gate (401) |
+| **`UC-01A` / `UC-01`** | `SHR-02` | Public / All Roles (360px & Desktop) | Unified Multi-Persona Mobile Login & Quick Profile Onboarding | 10-Digit Mobile Regex & Bot-Free reCAPTCHA Gate |
+| **`UC-01A`** | `SHR-04` | Public / All Roles (360px Mobile) | 6-Digit Cryptographic SMS OTP Verification | 3-Attempt Throttle, 15-Min Exponential Backoff |
+| **`UC-01H` / `UC-02`** | `SHR-03` | Authenticated User (360px Mobile) | Progressive Role Elevation & Operations Switch Modal | Microservice RBAC Validation & Claims Invalidation |
+| **`UC-OBS-01` / `UC-01G`**| `PUB-01` | Public / SRE (360px & Desktop) | Microservices & Database Mesh Telemetry | Zero-Trust Gateway Perimeter Gate |
+| **`UC-ADM-01` / `UC-22`** | `SPT-08` | Support Console (1024px) | Geo-Hierarchy & Village Hub Registry | Unassigned Rural Corridor Gate |
+| **`UC-ADM-02` / `UC-23`** | `SPT-10` | Support Console (1024px) | Subscription Plans & Platform Tariffs | Quota Ceiling Overdraft Gate |
+| **`UC-ADM-03` / `UC-24`** | `SPT-12` | Support Console (1024px) | Statutory GST & Sec 194-O TDS Rules | Tax Withholding Threshold Gate |
+| **`UC-OPS-01` / `UC-25`** | `SPT-02.5`| Support Console (1024px) | Supplier Bulk Ingestion & Dry-Run Gate | Malformed 14-char GSTIN Breaker |
+| **`UC-OPS-02` / `UC-26`** | `SPT-01.P`| Support Console (1024px) | Support-as-Supplier Proxy Switcher | Dual-Header Audit Trail Enforcement |
+| **`UC-FIN-01` / `UC-04`** | `MER-04` | Merchant PWA (360px Mobile) | Trade Credit Underwriting & 2-Phase Hold | Credit Headroom Overdraft Breaker (402) |
+| **`UC-FIN-02` / `UC-05`** | `MER-05` | Merchant PWA (360px Mobile) | Dynamic UPI QR Checkout & Instant Webhook | Idempotent HMAC Payment Signature Gate |
+| **`UC-ORD-01` / `UC-06`** | `DRV-04` | Driver Mobile PWA (360px) | Vehicle Departure Gate (Manifest Clearance) | Mandatory Pre-Trip Cargo Manifest (422) |
+| **`UC-ORD-01` / `UC-06`** | `DRV-06` | Driver Mobile PWA (360px) | Physical Handover OTP Verification | Cryptographic 6-Digit SMS OTP Gate (401) |
+
+---
+
+## 0. Tier 1 Identity, Authentication & Role Onboarding Wireframes
+
+### 0.1. `UC-01A`: Unified Multi-Persona Login & Pre-Onboarding (`SHR-02`)
+* **Role**: All Personas (`ACT-BUY`, `ACT-MER`, `ACT-DRV`, `ACT-SUP`, `ACT-OPS`, `ACT-FIN`, `ACT-SRE`)
+* **Route**: `/login`
+* **Inspired By**: [`constitution/wireframes/Shared.md`](../constitution/wireframes/Shared.md) `SHR-02` and [`web/src/apps/shell/screens/AuthScreens.tsx`](../web/src/apps/shell/screens/AuthScreens.tsx)
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  🌐 India • EN ▾                                                      │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  [Bharat Commerce Grid]             Sign In or Register                │
+│  Access the Rural Network           ───────────────────                │
+│  One unified identity connects      Country: [ India (+91)         ▾ ] │
+│  you across mandi hubs, trade                                          │
+│  credit lines & instant payouts.    Mobile Number:                     │
+│                                     ┌──────┬─────────────────────────┐ │
+│  ⚡ Zero Password Vulnerability     │ +91  │ 89778 48501             │ │
+│  🇮🇳 Multilingual Regional Dialect   └──────┴─────────────────────────┘ │
+│  🛡️ NPCI / UPI Escrow Protection                                       │
+│                                     QUICK PROFILE SETUP (OPTIONAL)     │
+│                                     Full Name:                         │
+│                                     [ Ramesh Kumar                   ] │
+│                                     Postal Pincode:                    │
+│                                     [ 523273                         ] │
+│                                                                        │
+│                                     PRIMARY PLATFORM ROLE:             │
+│                                     ┌────────────────┬───────────────┐ │
+│                                     │ 🛒 Consumer    │ 🏪 Merchant   │ │
+│                                     │ (Selected)     │               │ │
+│                                     ├────────────────┼───────────────┤ │
+│                                     │ 🛵 Fleet Rider │ 🏭 Supplier   │ │
+│                                     └────────────────┴───────────────┘ │
+│                                                                        │
+│                                     [ Send Secure Verification Code ➔ ]│
+│                                                                        │
+│                                     ─────────────── or ─────────────── │
+│                                     [ G  Continue with Google        ] │
+│                                                                        │
+│                                     Are you a mill depot?              │
+│                                     [ Explore Supplier Portal ➔ ]      │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### 0.2. `UC-01A`: 6-Digit Cryptographic SMS OTP Verification (`SHR-04`)
+* **Role**: All Personas (`ACT-BUY`, `ACT-MER`, `ACT-DRV`, `ACT-SUP`, etc.)
+* **Route**: `/login/verify`
+* **Inspired By**: [`constitution/wireframes/Shared.md`](../constitution/wireframes/Shared.md) `SHR-04`
+
+```
+┌────────────────────────────────────────┐
+│ ← Back to Sign-In                      │
+├────────────────────────────────────────┤
+│                                        │
+│  🔒 VERIFY SECURE LOGIN CODE           │
+│  Enter the 6-digit code sent to        │
+│  +91 89778 48501                       │
+│                                        │
+│  ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐   │
+│  │ 1 │ │ 2 │ │ 3 │ │ 1 │ │ 2 │ │ 3 │   │
+│  └───┘ └───┘ └───┘ └───┘ └───┘ └───┘   │
+│                                        │
+│  Resend code in 24s                    │
+│                                        │
+│  [ Verify Code & Sign In ➔ ]           │
+│                                        │
+│  🛡️ Security Notice:                   │
+│  - Single-use cryptographic OTP        │
+│  - Automatic claims generation         │
+│  - Rate-limited to 3 attempts          │
+└────────────────────────────────────────┘
+```
+
+### 0.3. `UC-01H`: Progressive Role Elevation Modal (`SHR-03`)
+* **Role**: Authenticated Buyer &rarr; Merchant / Driver / Supplier
+* **Route**: `/login` (Active Session State)
+* **Inspired By**: [`web/src/apps/shell/screens/AuthScreens.tsx`](../web/src/apps/shell/screens/AuthScreens.tsx) `RoleSwitchForm`
+
+```
+┌────────────────────────────────────────┐
+│ ● Active Session                       │
+│ You are Signed In as Ramesh Kumar      │
+│ Assigned Role: Consumer / Buyer        │
+│ Assigned Village: village_kandukur     │
+├────────────────────────────────────────┤
+│                                        │
+│ [🎧 Contact Support to Switch Role ▲ ] │
+│ ┌────────────────────────────────────┐ │
+│ │ Support Role Conversion Request    │ │
+│ │ Contact operations to switch       │ │
+│ │ platform role and permissions.     │ │
+│ │                                    │ │
+│ │ Target Role to Switch:             │ │
+│ │ [ Kirana Merchant (🏪 Wholesale) ▾]│ │
+│ │                                    │ │
+│ │ Reason for Role Switch:            │ │
+│ │ [ Registered kirana store owner    │ │
+│ │   requesting merchant terminal.   ]│ │
+│ │                                    │ │
+│ │ [ Submit Role Switch Request ➔   ] │ │
+│ └────────────────────────────────────┘ │
+│                                        │
+│ [ Open App ➔                         ] │
+│ [ Sign Out & Switch Account          ] │
+└────────────────────────────────────────┘
+```
 
 ---
 

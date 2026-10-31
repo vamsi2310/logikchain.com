@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-08`
-- **Epic Status**: [DONE]
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: Merchant Credit Facilities, Limits & Risk Underwriting
 - **Bound Microservice**: `microservices/services/credit-service`
 - **Container Port**: `4008`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-08.01`
-- **Feature Status**: [DONE]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Merchant trade credit underwriting, supplier-specific credit limit assignment, limit increase requests, and Supplier/Support review. *(Credit headroom is strictly isolated per supplier: a merchant may hold ₹10,000 with Supplier A, ₹30,000 with Supplier B, and ₹0 with Supplier C).*
 - **Service Endpoints**: `POST /v1/credit/limits` (`setMerchantCreditLimit`), `POST /v1/credit/requests` (`requestCreditIncrease`), `POST /v1/credit/requests/{id}/review`, `GET /v1/credit/profiles/{merchantId}/supplier/{supplierId}`
 - **UI Screens**: [MER-07 Credit Line](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-07), [SUP-10 Credit Governance](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Supplier.md#SUP-10)

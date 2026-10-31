@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-11`
-- **Epic Status**: [IN_PROGRESS]
+- **Epic Status**: [DONE]
 - **Functional Area**: Platform Governance, NPCI/RBI TPAP Compliance & Anti-Money Laundering (AML)
 - **Bound Microservice**: `microservices/services/governance-service`
 - **Container Port**: `4011`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-11.01`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: NPCI TPAP guidelines enforcement, Virtual Payment Address (VPA) registration, bank account binding verification, and VPA de-registration.
 - **Service Endpoints**: `POST /v1/governance/vpa/register` (`registerVPA`), `POST /v1/governance/vpa/deregister` (`deregisterVPA`), `GET /v1/governance/vpa/{vpa}/verify` (`verifyVPALinkage`)
 - **UI Screens**: [SPT-13 Compliance Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-13)
@@ -96,7 +96,7 @@ Scenario: Register compliant VPA
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-11.02`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Real-time transaction velocity checks, circular transaction ring detection, rapid cash-out prevention, and automated account lockdown.
 - **Service Endpoints**: `POST /v1/governance/aml/check` (`runAMLFraudCheck`), `GET /v1/governance/aml/alerts`
 - **UI Screens**: [SPT-13 Compliance Alerts](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-13)
@@ -187,7 +187,7 @@ Scenario: Support proxy action recorded in immutable audit log
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-11.03`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: NPCI-mandated T+1 dispute SLA tracking, customer complaint escalation, audit logging, and automated daily compliance filing.
 - **Service Endpoints**: `POST /v1/governance/disputes` (`trackDisputeSLA`), `POST /v1/governance/disputes/{id}/resolve` (`resolveUPIDispute`), `POST /v1/governance/reporting/npci` (`reportToNPCI`)
 - **UI Screens**: [SPT-14 Dispute Escalation](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-14)
@@ -267,7 +267,7 @@ Scenario: Open dispute tracks 24-hour SLA timer
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-11.04`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Multi-role legal contracts (Buyer Terms of Sale, Merchant PUDO Agreement, Supplier Master Agreement, Driver Logistics Agreement), versioned clickwrap consent capture, cryptographic audit logging, mandatory policy update re-consent workflows, and statutory disclosures under the Consumer Protection (E-Commerce) Rules 2020.
 - **Service Endpoints**:
   - `POST /v1/governance/policies/consent` (`recordPolicyConsent`)

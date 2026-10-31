@@ -1,8 +1,9 @@
-var WORK_MANAGEMENT_DATA = [
+// Auto-generated work management data file
+module.exports = [
   {
     "id": "EPIC-01",
     "title": "Identity, Authentication & Role Lifecycle",
-    "status": "DONE",
+    "status": "IN_PROGRESS",
     "functionalArea": "",
     "microservice": "microservices/services/identity-service",
     "port": "4001",
@@ -12,7 +13,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-01.01",
         "title": "Phone OTP Authentication & Custom Claims Bootstrap",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Phone number SMS OTP authentication, user registration bootstrap, and custom claims token decoration.",
         "endpoints": "POST /v1/auth/bootstrap",
         "stories": [
@@ -20,14 +21,14 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-01.01.01",
             "type": "user_journey",
             "title": "US-01.01.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As an unauthenticated citizen, I want to authenticate using my 10-digit phone number and an SMS OTP, so that I can securely log into Logikchain without needing an email or password."
           },
           {
             "id": "US-01.01.02",
             "type": "user_journey",
             "title": "US-01.01.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As an authenticated user opening the app, I want the client to inspect my verified custom claims, so that I am automatically directed to my designated workspace (Buyer, Merchant, Driver, Supplier, or Support)."
           },
           {
@@ -55,7 +56,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-01.01.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement phone input (`SHR-02`), reCAPTCHA Enterprise verification, 60s countdown timer, and 6-digit OTP input (`SHR-04`) with token bootstrap calling API Gateway."
           },
           {
@@ -76,7 +77,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-01.01.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test validating full phone OTP login, custom claims bootstrap, and buyer dashboard redirection against backend microservices deployed on Google Cloud test project (`logikchain-test`)."
           },
           {
@@ -143,7 +144,7 @@ var WORK_MANAGEMENT_DATA = [
             "res.body.expiresIn === 3600"
           ]
         },
-        "reviewComments": "E2E Verified: Phone OTP authentication (8977848501 / 123123) and session claims bootstrap validated via user-flow-login-role-village.spec.ts (27.5s). Custom claims decoded into active React session.",
+        "reviewComments": "Gaps Identified: UI Design Gap: User-specific authentication flows need end-to-end multi-persona verification for all 7 roles (UC-01A through UC-01K). Pre-signup intent persistence and registration validation across individual persona corridors need automated test assertion.",
         "latestTestResults": {
           "suite": "user-flow-login-role-village.spec.ts",
           "status": "PASSED",
@@ -158,12 +159,16 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Seed phone number and mock OTP in test auth state -> 2. Execute phone OTP login and verify 6-digit input auto-advance -> 3. Validate decoded custom claims and profile navigation -> 4. Explicit user sign-out and session storage clearing.",
           "circuitBreakerExpectations": "Rate limiting on OTP requests (max 3 per 5 minutes per IP/MSISDN); invalid OTP lockout after 5 failed attempts with 15-minute cool-down.",
           "definitionOfDone": "Automated Playwright E2E passing (user-flow-login-role-village.spec.ts), Firebase Auth token verification in identity-service, session claims correctly decoded in React session context."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: User-specific authentication flows need end-to-end multi-persona verification for all 7 roles (UC-01A through UC-01K).",
+          "Pre-signup intent persistence and registration validation across individual persona corridors need automated test assertion."
+        ]
       },
       {
         "id": "FEAT-01.02",
         "title": "Regional Supplier Organization Provisioning",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Vetted B2B supplier organization creation, geographical jurisdiction binding, and administrator credentials generation.",
         "endpoints": "POST /v1/suppliers",
         "stories": [
@@ -171,14 +176,14 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-01.02.01",
             "type": "user_journey",
             "title": "US-01.02.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a Support Administrator, I want to register a new verified supplier organization with regional configuration parameters, so that they can manage distribution routes, inventory, and field fleets."
           },
           {
             "id": "US-01.02.02",
             "type": "user_journey",
             "title": "US-01.02.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a Support operator acting as a supplier proxy, I want to perform all supplier-side data management actions (fleet setup, member directory, gig scheduling) on behalf of a supplier organization, so that suppliers who outsource their operations remain fully functional on the platform."
           },
           {
@@ -199,7 +204,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-01.02.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Supplier Management console view (`SPT-02`) with supplier registration form, GSTIN auto-formatting, regional jurisdiction dropdowns, and submission validation."
           },
           {
@@ -220,7 +225,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-01.02.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test validating supplier organization registration from Support PWA console against `identity-service` and `config-service` deployed on `logikchain-test`."
           },
           {
@@ -301,12 +306,17 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Test Data Setup -> 2. User Sign-In -> 3. Core Business Flow -> 4. Explicit User Sign-Out",
           "circuitBreakerExpectations": "Ensure boundary checks, authorization guards, and idempotency protection on all service endpoints.",
           "definitionOfDone": "Service API verified, outbox CDC replication active, zero regressions across test suites."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Supplier app screens in web/src/apps/supplier/ need visual redesign to match the modern homepage design system and color palette.",
+          "Self-serve mill facility registration flow and GSTIN onboarding UI requires modern responsive card components."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Supplier app screens in web/src/apps/supplier/ need visual redesign to match the modern homepage design system and color palette. Self-serve mill facility registration flow and GSTIN onboarding UI requires modern responsive card components."
       },
       {
         "id": "FEAT-01.03",
         "title": "Progressive Role Conversion & Multi-Client Handoff",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Elevating active buyer accounts to merchant or driver roles and coordinating runtime handoff between PWA, Android, and iOS.",
         "endpoints": "POST /v1/buyers/{buyerId}/role",
         "stories": [
@@ -314,14 +324,14 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-01.03.01",
             "type": "user_journey",
             "title": "US-01.03.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a supplier (or Support operator acting as supplier proxy), I want to convert an existing buyer into an authorized merchant or driver, so that our field logistics network expands with trusted local individuals."
           },
           {
             "id": "US-01.03.02",
             "type": "user_journey",
             "title": "US-01.03.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a converted driver using the Web PWA, I want to be presented with an immediate deep link to the Android Play Store, so that I can perform field custody handovers on the official native runtime."
           },
           {
@@ -342,7 +352,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-01.03.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Supplier Member Directory (`SUP-08`) with role promotion modal, and implement Role Splash screen (`SHR-06`) redirecting elevated drivers to Android Play Store."
           },
           {
@@ -363,7 +373,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-01.03.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test validating role elevation on `SUP-08` and verifying that the promoted driver account receives `SHR-06` runtime handoff prompt on `logikchain-test`."
           },
           {
@@ -422,7 +432,7 @@ var WORK_MANAGEMENT_DATA = [
             "page.locator('.merchant-dashboard-banner').isVisible()"
           ]
         },
-        "reviewComments": "E2E Verified: Role switch request via Contact Support modal elevates Buyer to Kirana Merchant with reason logging. Fullscreen role corridor (/m/gigs) loads hiding public header/footer; close app button restores public layout.",
+        "reviewComments": "Gaps Identified: UI Design Gap: Kirana Merchant corridor (/m/gigs, /m/orders, /m/credit) in web/src/apps/merchant/ relies on legacy wireframe Chrome/Cards and needs complete UI rewrite matching the homepage design tokens. Fullscreen corridor handover and Close App experience requires high-contrast navigation polish.",
         "latestTestResults": {
           "suite": "user-flow-login-role-village.spec.ts",
           "status": "PASSED",
@@ -437,12 +447,16 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Bootstrap active buyer session -> 2. Submit role conversion request via Contact Support modal with justification -> 3. Verify role change in session and open fullscreen role app (/m/gigs) hiding public layout -> 4. Click Close App to restore public layout and explicitly sign out.",
           "circuitBreakerExpectations": "Disallow unauthorized privilege elevation; multi-role accounts must switch contexts explicitly; support operators cannot self-elevate without audit logging.",
           "definitionOfDone": "Playwright E2E test passing, identity_db role update verified, layout transition between public chrome and standalone fullscreen corridor verified."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Kirana Merchant corridor (/m/gigs, /m/orders, /m/credit) in web/src/apps/merchant/ relies on legacy wireframe Chrome/Cards and needs complete UI rewrite matching the homepage design tokens.",
+          "Fullscreen corridor handover and Close App experience requires high-contrast navigation polish."
+        ]
       },
       {
         "id": "FEAT-01.04",
         "title": "User Suspension & Account Governance Lifecycle",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Temporary or permanent account suspension, fraud lockdown, and reinstatement workflows.",
         "endpoints": "POST /v1/users/{userId}/suspension",
         "stories": [
@@ -450,21 +464,21 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-01.04.01",
             "type": "user_journey",
             "title": "US-01.04.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a Support operator, I want to suspend a compromised or non-compliant user account across the entire platform, so that further transactions are blocked immediately."
           },
           {
             "id": "US-01.04.02",
             "type": "user_journey",
             "title": "US-01.04.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As an operator, I want to restore an account once discrepancies are settled, so that legitimate business activities can resume promptly."
           },
           {
             "id": "US-01.04.03",
             "type": "user_journey",
             "title": "US-01.04.03",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a Support operator, I want to view and edit a user's full profile — including contact details, role, linked supplierId, and service eligibility — from `SPT-03`, so that account corrections can be made without a code deployment or direct database intervention."
           },
           {
@@ -485,7 +499,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-01.04.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Account Blocked modal (`SHR-05`) with dispute resolution support contact action, and Support User Detail suspension controls (`SPT-03`)."
           },
           {
@@ -506,7 +520,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-01.04.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test verifying that a suspended user is barred from placing orders and instantly redirected to `SHR-05` on `logikchain-test`."
           },
           {
@@ -571,7 +585,12 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Test Data Setup -> 2. User Sign-In -> 3. Core Business Flow -> 4. Explicit User Sign-Out",
           "circuitBreakerExpectations": "Ensure boundary checks, authorization guards, and idempotency protection on all service endpoints.",
           "definitionOfDone": "Service API verified, outbox CDC replication active, zero regressions across test suites."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Real-time account lockout and unauthorized role redirection (/unauthorized) needs automated circuit breaker verification (UC-01K).",
+          "Suspended user banner and Support Desk appeal flow needs modern alert styling."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Real-time account lockout and unauthorized role redirection (/unauthorized) needs automated circuit breaker verification (UC-01K). Suspended user banner and Support Desk appeal flow needs modern alert styling."
       },
       {
         "id": "FEAT-01.05",
@@ -698,7 +717,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-01.06",
         "title": "User Profile Lifecycle, Cloud Media Storage & KYC Onboarding",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "- Complete user profile query and mutation APIs (`GET /v1/users/me`, `GET /v1/users/{userId}`, `PATCH /v1/users/{userId}`).",
         "endpoints": "-",
         "stories": [
@@ -706,28 +725,28 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-01.06.01",
             "type": "user_journey",
             "title": "US-01.06.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a new user logging into Logikchain for the first time, I want a streamlined onboarding wizard to set my name, language, village, and kirana merchant, so that my shopping and delivery experience is immediately customized to my village."
           },
           {
             "id": "US-01.06.02",
             "type": "user_journey",
             "title": "US-01.06.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As an authenticated user, I want to view and edit my personal details, address, and notification preferences from the account settings screen, so that my contact information remains accurate."
           },
           {
             "id": "US-01.06.03",
             "type": "user_journey",
             "title": "US-01.06.03",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a user, driver, or merchant, I want to upload a profile photo or verification document directly to secure cloud storage, so that my profile is recognized across the field delivery network."
           },
           {
             "id": "US-01.06.04",
             "type": "user_journey",
             "title": "US-01.06.04",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a Support operator, I want to view any user's profile and KYC verification status on `SPT-03`, so that I can assist with address corrections, language switches, or profile troubleshooting."
           },
           {
@@ -755,7 +774,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-01.06.01",
             "type": "pwa",
             "title": "Web PWA Profile & Setup Wizard",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Build onboarding wizard (`BUY-00` / `SetupScreens.tsx`), Account Settings view (`AccountScreens.tsx`), and client-side WebP image cropper/uploader in `web/`."
           },
           {
@@ -797,7 +816,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-01.06.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright cloud test on `logikchain-test` executing full profile onboarding: Phone OTP Login ➔ Onboarding Wizard ➔ Profile Update ➔ Avatar Upload ➔ Real-Time Firestore Listener Verification."
           }
         ],
@@ -845,7 +864,7 @@ var WORK_MANAGEMENT_DATA = [
             "res.body.digilockerAadhaarMatch === true"
           ]
         },
-        "reviewComments": "E2E Verified: User profile village update to village_kandukur_523105 persisted to identity_db.user_profiles and verified via GET /v1/users/usr_8977848501. UI updates dynamically with village badge.",
+        "reviewComments": "Gaps Identified: UI Design Gap: Buyer app screens in web/src/apps/buyer/ need complete rewrite from legacy wireframe cards to modern responsive layout matching PublicHomeScreen. User profile village selection and persistence UI needs polished styling and icon badges.",
         "latestTestResults": {
           "suite": "user-flow-login-role-village.spec.ts",
           "status": "PASSED",
@@ -860,14 +879,18 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Authenticate user -> 2. Navigate to profile edit screen (/profile/edit) -> 3. Update primary village (village_kandukur_523105) and save profile -> 4. Verify identity-service database persistence and explicitly sign out.",
           "circuitBreakerExpectations": "Village selection must validate against config-service master hierarchy; media upload requires signed URL verification with MIME type and size enforcement (<5MB).",
           "definitionOfDone": "E2E test verifying profile mutation and identity_db row persistence, display badge update in user menu, clean sign-out."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Buyer app screens in web/src/apps/buyer/ need complete rewrite from legacy wireframe cards to modern responsive layout matching PublicHomeScreen.",
+          "User profile village selection and persistence UI needs polished styling and icon badges."
+        ]
       }
     ]
   },
   {
     "id": "EPIC-02",
     "title": "Orders & Commerce Fulfillment",
-    "status": "DONE",
+    "status": "IN_PROGRESS",
     "functionalArea": "",
     "microservice": "microservices/services/orders-service",
     "port": "4002",
@@ -877,7 +900,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-02.01",
         "title": "Buyer E-Commerce & In-Transit Dynamic Ordering",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Rural consumer cart checkout, village merchant hub delivery (PUDO), village serviceability check (requires registered merchant), dynamic order capture from in-transit truck pamphlet stock, and prepaid/CoD order creation. *(Group-buying demand pooling is PARKED for a future phase).*",
         "endpoints": "-",
         "stories": [
@@ -885,28 +908,28 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-02.01.01",
             "type": "user_journey",
             "title": "US-02.01.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a rural buyer, I want to choose between collecting my parcel from the village merchant shop or opting for village home delivery at the merchant's fee, so that I can choose the convenience level that fits my day."
           },
           {
             "id": "US-02.01.02",
             "type": "user_journey",
             "title": "US-02.01.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a rural buyer with a CoD order, I want to pay online via UPI in my app anytime before picking up the parcel, so that I don't have to carry exact cash change to the merchant's store."
           },
           {
             "id": "US-02.01.03",
             "type": "user_journey",
             "title": "US-02.01.03",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a rural buyer, I want to browse the live stock currently carried on the delivery truck en-route to my village, so that I can buy items on-the-fly and have them dropped off at my village merchant on the truck's arrival."
           },
           {
             "id": "US-02.01.04",
             "type": "user_journey",
             "title": "US-02.01.04",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As the platform, I need to verify that a village has an active registered merchant before allowing orders to be placed, so that packages are never dispatched to a village without an authorized pickup/PUDO location."
           },
           {
@@ -941,7 +964,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-02.01.01",
             "type": "pwa",
             "title": "Web PWA — Buyer Catalog & Merchant Hub Pickup",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Catalog browsing (`BUY-03`), live truck pamphlet stock view, merchant pickup point display, and checkout (`BUY-04`) with UPI Intent / CoD in `web/`."
           },
           {
@@ -976,7 +999,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-02.01.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test — Individual & In-Transit Checkout",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test validating end-to-end buyer checkout with merchant hub pickup, in-transit stock deduction, and tracking screen update against `orders-service` on `logikchain-test`."
           },
           {
@@ -1070,12 +1093,16 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Seed catalog items and merchant delivery address -> 2. Sign in as rural buyer -> 3. Add items to cart, submit order via POST /v1/orders, verify departure gate status -> 4. Explicit user sign-out.",
           "circuitBreakerExpectations": "Orders blocked if delivery village is outside active gig route corridor or if vehicle has completed departure gate inspection.",
           "definitionOfDone": "orders-service PostgreSQL order creation verified, outbox CDC event queued, passing Playwright usecases-commerce test."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Buyer e-commerce checkout and parcel tracking screens in web/src/apps/buyer/ use outdated wireframes and need redesign matching main design tokens."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Buyer e-commerce checkout and parcel tracking screens in web/src/apps/buyer/ use outdated wireframes and need redesign matching main design tokens."
       },
       {
         "id": "FEAT-02.02",
         "title": "Merchant B2B Bulk Ordering & Credit Checkout",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Village merchant wholesale bulk restocking, case-tier quantity discounts, and revolving credit line authorization.",
         "endpoints": "POST /v1/merchant-orders",
         "stories": [
@@ -1083,7 +1110,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-02.02.01",
             "type": "user_journey",
             "title": "US-02.02.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a village shopkeeper, I want to purchase wholesale bulk inventory on my supplier credit line, so that I can maintain store inventory without exhausting immediate working capital."
           },
           {
@@ -1104,7 +1131,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-02.02.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Merchant Wholesale Bulk Catalog (`MER-04`), Case-Tier discounts, and B2B Checkout (`MER-05`) with credit headroom indicator and draft save."
           },
           {
@@ -1125,7 +1152,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-02.02.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test validating wholesale merchant bulk checkout on credit, synchronous hold reservation, and credit headroom decrement against `orders-service` and `credit-service` on `logikchain-test`."
           },
           {
@@ -1214,7 +1241,11 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Test Data Setup -> 2. User Sign-In -> 3. Core Business Flow -> 4. Explicit User Sign-Out",
           "circuitBreakerExpectations": "Ensure boundary checks, authorization guards, and idempotency protection on all service endpoints.",
           "definitionOfDone": "Service API verified, outbox CDC replication active, zero regressions across test suites."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Merchant B2B bulk catalog ordering (/m/bulk/new) in web/src/apps/merchant/ needs modernization with high-density SKU tables and trade credit hold badges."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Merchant B2B bulk catalog ordering (/m/bulk/new) in web/src/apps/merchant/ needs modernization with high-density SKU tables and trade credit hold badges."
       },
       {
         "id": "FEAT-02.03",
@@ -1500,7 +1531,7 @@ var WORK_MANAGEMENT_DATA = [
   {
     "id": "EPIC-03",
     "title": "Gig Logistics, Fleet Dispatch & Routing",
-    "status": "DONE",
+    "status": "IN_PROGRESS",
     "functionalArea": "",
     "microservice": "microservices/services/gigs-service",
     "port": "4003",
@@ -1668,7 +1699,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-03.02",
         "title": "Live Gig Execution & Real-Time Telemetry",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Gig start attestation, background GPS ping ingestion, real-time driver tracking, and Play Integrity verification.",
         "endpoints": "POST /v1/gigs/{gigId}:start",
         "stories": [
@@ -1676,7 +1707,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-03.02.01",
             "type": "user_journey",
             "title": "US-03.02.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a driver on the road, I want my Android app to continuously stream GPS coordinates in the background, so that villagers are notified ahead of my arrival without my manual intervention."
           },
           {
@@ -1697,7 +1728,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-03.02.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Buyer Live Tracking map (`BUY-05`) with smooth vehicle pin animation reacting to Firestore `/DriverLocations` stream."
           },
           {
@@ -1732,7 +1763,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-03.02.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test verifying that when synthetic telemetry is pushed to `gigs-service`, the buyer PWA tracking view updates the delivery vehicle position smoothly on `logikchain-test`."
           },
           {
@@ -1798,7 +1829,11 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Test Data Setup -> 2. User Sign-In -> 3. Core Business Flow -> 4. Explicit User Sign-Out",
           "circuitBreakerExpectations": "Ensure boundary checks, authorization guards, and idempotency protection on all service endpoints.",
           "definitionOfDone": "Service API verified, outbox CDC replication active, zero regressions across test suites."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Fleet Driver PWA screens (/d/gigs, /d/trips) in web/src/apps/vehicle/ need complete UI rewrite with high-contrast outdoor widgets, cargo departure checklists, and live route navigation."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Fleet Driver PWA screens (/d/gigs, /d/trips) in web/src/apps/vehicle/ need complete UI rewrite with high-contrast outdoor widgets, cargo departure checklists, and live route navigation."
       },
       {
         "id": "FEAT-03.03",
@@ -2063,7 +2098,7 @@ var WORK_MANAGEMENT_DATA = [
   {
     "id": "EPIC-04",
     "title": "Pamphlet & Dynamic Inventory Distribution",
-    "status": "DONE",
+    "status": "IN_PROGRESS",
     "functionalArea": "",
     "microservice": "microservices/services/pamphlet-service",
     "port": "4004",
@@ -2073,7 +2108,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-04.01",
         "title": "Dynamic Gig Pamphlet Creation & In-Transit Rolling Stock",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Automated manifest initialization, surrogate key binding (`pmp_{id}` linked to `gigId`), dual cargo partitioning (pre-booked customer orders vs. rolling merchant spot-restock stock), and dynamic in-transit order conversion.",
         "endpoints": "POST /v1/pamphlets",
         "stories": [
@@ -2081,14 +2116,14 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-04.01.01",
             "type": "user_journey",
             "title": "US-04.01.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a warehouse dispatcher, I want a dedicated digital manifest for every scheduled vehicle departure with clear separation between pre-booked orders and uncommitted pamphlet stock, so that warehouse loading is completely verifiable."
           },
           {
             "id": "US-04.01.02",
             "type": "user_journey",
             "title": "US-04.01.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a delivery driver or supplier, I want a delivery truck to be able to depart with zero pre-booked orders and purely pamphlet inventory, so that we can capture dynamic orders from buyers and merchants while the truck is rolling toward their village."
           },
           {
@@ -2116,7 +2151,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-04.01.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Supplier Warehouse Loading dashboard (`SUP-06`) showing dynamic manifest items and rolling stock allocation per scheduled departure in `web/`."
           },
           {
@@ -2137,7 +2172,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-04.01.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test validating that when a gig is composed, the matching pamphlet is automatically generated with surrogate key and visible on Supplier PWA console on `logikchain-test`."
           },
           {
@@ -2214,7 +2249,11 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Test Data Setup -> 2. User Sign-In -> 3. Core Business Flow -> 4. Explicit User Sign-Out",
           "circuitBreakerExpectations": "Ensure boundary checks, authorization guards, and idempotency protection on all service endpoints.",
           "definitionOfDone": "Service API verified, outbox CDC replication active, zero regressions across test suites."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Dynamic rolling stock pamphlet builder in web/src/apps/supplier/ needs visual overhaul aligning with modern dashboard standards."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Dynamic rolling stock pamphlet builder in web/src/apps/supplier/ needs visual overhaul aligning with modern dashboard standards."
       },
       {
         "id": "FEAT-04.02",
@@ -2901,7 +2940,7 @@ var WORK_MANAGEMENT_DATA = [
   {
     "id": "EPIC-06",
     "title": "Payouts, Disbursements & Beneficiary Banking",
-    "status": "DONE",
+    "status": "IN_PROGRESS",
     "functionalArea": "",
     "microservice": "microservices/services/payouts-service",
     "port": "4006",
@@ -2911,7 +2950,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-06.01",
         "title": "Beneficiary Registration & KMS Account Encryption",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Secure bank account & UPI VPA onboarding, Penny-drop validation, and Cloud KMS envelope encryption at rest.",
         "endpoints": "POST /v1/payouts/beneficiaries",
         "stories": [
@@ -2919,14 +2958,14 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-06.01.01",
             "type": "user_journey",
             "title": "US-06.01.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a delivery driver, I want to securely add my bank account details on my phone, so that my delivery earnings can be directly deposited into my bank account."
           },
           {
             "id": "US-06.01.02",
             "type": "user_journey",
             "title": "US-06.01.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As an organization, I want banking details encrypted at rest using Cloud KMS, so that customer financial data is completely secure against database leaks."
           },
           {
@@ -2954,7 +2993,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-06.01.01",
             "type": "pwa",
             "title": "Web PWA Client",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Implement Supplier Bank Profile (`SUP-08`) with IFSC code auto-lookup, masked account number preview, and penny-drop verification badge in `web/`."
           },
           {
@@ -2975,7 +3014,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-06.01.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test validating bank account onboarding from Supplier PWA, verifying IFSC resolution and KMS encrypted storage against `payouts-service` on `logikchain-test`."
           },
           {
@@ -3046,7 +3085,11 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Seed beneficiary bank details -> 2. Sign in as driver/supplier -> 3. Submit bank account, verify KMS ciphertext storage and penny-drop validation -> 4. Explicit sign out.",
           "circuitBreakerExpectations": "Disallow plaintext bank account numbers in database; invalid IFSC rejected at submission.",
           "definitionOfDone": "payouts-service stores encrypted account numbers, Penny-drop mock passes, verified in usecases-custody-payouts.spec.ts."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Transporter bank account registration and KMS encryption UI in web/src/apps/vehicle/ needs modern form cards with IFSC verification."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Transporter bank account registration and KMS encryption UI in web/src/apps/vehicle/ needs modern form cards with IFSC verification."
       },
       {
         "id": "FEAT-06.02",
@@ -3392,7 +3435,7 @@ var WORK_MANAGEMENT_DATA = [
   {
     "id": "EPIC-07",
     "title": "Cash Management & Rural CoD Custody",
-    "status": "DONE",
+    "status": "IN_PROGRESS",
     "functionalArea": "",
     "microservice": "microservices/services/cash-service",
     "port": "4007",
@@ -3402,7 +3445,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-07.01",
         "title": "CoD Cash Collection & Driver Custody Tracking",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Field currency collection logging, driver real-time cash balance tracking, offline custody capture, and mobile outbox sync.",
         "endpoints": "GET /v1/cash/summary/{driverId}",
         "stories": [
@@ -3410,14 +3453,14 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-07.01.01",
             "type": "user_journey",
             "title": "US-07.01.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a rural delivery driver, I want my mobile app to reliably record cash collections at village merchant shops even when there is no mobile network, so that my collected cash tally remains accurate."
           },
           {
             "id": "US-07.01.02",
             "type": "user_journey",
             "title": "US-07.01.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a supplier, I want real-time visibility into the exact physical cash currently held by each driver on the road, so that operational financial risk is monitored continuously."
           },
           {
@@ -3445,7 +3488,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-07.01.01",
             "type": "pwa",
             "title": "Web PWA Cash Custody Monitor",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Build real-time driver cash custody monitor on Supplier and Support PWA in `web/` with live aggregate collection tallies and filterable route audit views."
           },
           {
@@ -3480,7 +3523,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-07.01.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test verifying cash collection recording, driver custody balance updates, and offline sync reconciliation against `cash-service` on `logikchain-test`."
           },
           {
@@ -3557,7 +3600,11 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Seed CoD order -> 2. Sign in as driver -> 3. Record cash collection at doorstep, verify driver custody float increment and threshold warning -> 4. Explicit sign out.",
           "circuitBreakerExpectations": "Driver cash float exceeding max threshold (₹20,000) generates high-risk warning and restricts new CoD handovers until cash turn-in.",
           "definitionOfDone": "cash-service driver_custody record incremented, mobile offline outbox sync verified, tested in usecases-custody-payouts.spec.ts."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Driver CoD cash custody tracker and daily limit guard in web/src/apps/vehicle/ need modern outdoor UI rewrite with high-visibility balance progress meters."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Driver CoD cash custody tracker and daily limit guard in web/src/apps/vehicle/ need modern outdoor UI rewrite with high-visibility balance progress meters."
       },
       {
         "id": "FEAT-07.02",
@@ -3831,7 +3878,7 @@ var WORK_MANAGEMENT_DATA = [
   {
     "id": "EPIC-08",
     "title": "Merchant Credit & Risk Underwriting",
-    "status": "DONE",
+    "status": "IN_PROGRESS",
     "functionalArea": "",
     "microservice": "microservices/services/credit-service",
     "port": "4008",
@@ -3841,7 +3888,7 @@ var WORK_MANAGEMENT_DATA = [
       {
         "id": "FEAT-08.01",
         "title": "Merchant Credit Line Underwriting & Limit Assignment",
-        "status": "DONE",
+        "status": "IN_PROGRESS",
         "scope": "Merchant trade credit underwriting, supplier-specific credit limit assignment, limit increase requests, and Supplier/Support review. *(Credit headroom is strictly isolated per supplier: a merchant may hold ₹10,000 with Supplier A, ₹30,000 with Supplier B, and ₹0 with Supplier C).*",
         "endpoints": "POST /v1/credit/limits",
         "stories": [
@@ -3849,14 +3896,14 @@ var WORK_MANAGEMENT_DATA = [
             "id": "US-08.01.01",
             "type": "user_journey",
             "title": "US-08.01.01",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a village merchant, I want to view my credit limit, used credit, and available headroom broken down by each individual supplier on my phone, so that I know exactly how much stock I can order on credit from each vendor."
           },
           {
             "id": "US-08.01.02",
             "type": "user_journey",
             "title": "US-08.01.02",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "As a regional supplier, I want to assign customized credit limits to local shopkeepers for my products only, so that my capital risk is isolated and never exposed to orders placed with competitor suppliers."
           },
           {
@@ -3877,7 +3924,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "PWA-08.01.01",
             "type": "pwa",
             "title": "Web PWA Merchant Credit Dashboard & Supplier Underwriting",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Build merchant credit dashboard on `web/m/` (`MER-07`) and Supplier underwriting governance console on `web/s/` (`SUP-10`) with tier selector and limit adjustment sliders."
           },
           {
@@ -3898,7 +3945,7 @@ var WORK_MANAGEMENT_DATA = [
             "id": "TEST-08.01.PWA",
             "type": "pwa_test",
             "title": "PWA Cloud E2E Test on Test Project",
-            "status": "DONE",
+            "status": "IN_PROGRESS",
             "description": "Automated Playwright test verifying credit application submission, Supplier underwriting approval, and live headroom update on PWA against `credit-service` on `logikchain-test`."
           },
           {
@@ -3966,7 +4013,11 @@ var WORK_MANAGEMENT_DATA = [
           "lifecycleExpectations": "1. Seed merchant credit line profile -> 2. Sign in as merchant -> 3. Reserve credit for B2B order; verify available credit headroom decrease -> 4. Explicit sign out.",
           "circuitBreakerExpectations": "Order amount exceeding available credit headroom strictly rejected with 402/403 credit limit exceeded.",
           "definitionOfDone": "credit-service reservations table updated, headroom circuit breaker verified in usecases-commerce.spec.ts."
-        }
+        },
+        "gapsIdentified": [
+          "UI Design Gap: Merchant trade credit line dashboard (/m/credit) in web/src/apps/merchant/ needs modern visual upgrade with headroom gauges and 2-phase hold monitors."
+        ],
+        "reviewComments": "Gaps Identified: UI Design Gap: Merchant trade credit line dashboard (/m/credit) in web/src/apps/merchant/ needs modern visual upgrade with headroom gauges and 2-phase hold monitors."
       },
       {
         "id": "FEAT-08.02",
@@ -7384,5 +7435,3 @@ var WORK_MANAGEMENT_DATA = [
     ]
   }
 ];
-if (typeof window !== "undefined") window.WORK_MANAGEMENT_DATA = WORK_MANAGEMENT_DATA;
-if (typeof module !== "undefined") module.exports = WORK_MANAGEMENT_DATA;

@@ -102,7 +102,7 @@ Scenario: Driver registers bank account with KMS encryption
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-06.02`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Driver earnings balance validation, withdrawal request creation, threshold validation, and Support review workflow.
 - **Service Endpoints**: `POST /v1/payouts/requests` (`requestPayout`), `POST /v1/payouts/requests/{id}/review` (`reviewPayoutRequest`)
 - **UI Screens**: [VEH-07 Driver Wallet](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-07), [SPT-05 Payout Review](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-05)
@@ -184,7 +184,7 @@ Scenario: Driver requests payout with pending cash discrepancy
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-06.03`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Rate-limited payout queue execution, Cloud Tasks worker integration, RazorpayX payout disbursement, and settlement logging.
 - **Service Endpoints**: `POST /v1/payouts/tasks/transfer` (`initiatePayoutTransfer`), `POST /v1/payouts/settlement`
 - **UI Screens**: [VEH-07 Driver Wallet](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-07), [SPT-05 Support Payout Details](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-05)
@@ -270,7 +270,7 @@ Scenario: Cloud Task executes bank payout transfer
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-06.04`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: End-to-end supplier funds tracking, platform escrow visibility, fund allocation breakdown (merchant handling commissions, driver trip compensation, platform take-rate), supplier bank withdrawal authorization, and Support financial monitoring dashboard.
 - **Service Endpoints**:
   - `GET /v1/payouts/suppliers/{supplierId}/funds-summary` (`getSupplierFundsSummary`)

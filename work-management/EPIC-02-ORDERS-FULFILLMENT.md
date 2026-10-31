@@ -144,7 +144,7 @@ Scenario: In-transit order converts truck pamphlet stock dynamically
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.02`
-- **Feature Status**: [DONE]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Village merchant wholesale bulk restocking, case-tier quantity discounts, and revolving credit line authorization.
 - **Service Endpoints**: `POST /v1/merchant-orders` (`placeMerchantOrder`), `POST /v1/merchant-orders/{id}:cancel`
 - **UI Screens**: [MER-02 Merchant Gigs](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-02), [MER-04 Bulk Catalog](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-04), [MER-05 Checkout](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Merchant.md#MER-05)
@@ -346,7 +346,7 @@ Scenario: Partial delivery acceptance with line-item rejection
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-02.04`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Formal order deliverable specifications, village merchant PUDO 72-hour retention window, doorstep line-item rejection policy, non-returnable categories, automated Return-to-Origin (RTO) execution, and buyer refund triggers.
 - **Service Endpoints**:
   - `POST /v1/orders/{orderId}/returns/initiate` (`initiateOrderReturn`)

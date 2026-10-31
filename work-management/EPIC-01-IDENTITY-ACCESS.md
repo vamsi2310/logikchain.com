@@ -108,7 +108,7 @@ Scenario: Successful phone authentication and claims bootstrap
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.02`
-- **Feature Status**: [DONE]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Vetted B2B supplier organization creation, geographical jurisdiction binding, and administrator credentials generation.
 - **Service Endpoints**: `POST /v1/suppliers`, `GET /v1/suppliers/{supplierId}`
 - **UI Screens**: [SPT-02 Supplier Management](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md)
@@ -271,7 +271,7 @@ Scenario: Supplier elevates buyer to vehicle driver
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-01.04`
-- **Feature Status**: [DONE]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Temporary or permanent account suspension, fraud lockdown, and reinstatement workflows.
 - **Service Endpoints**: `POST /v1/users/{userId}/suspension`, `DELETE /v1/users/{userId}/suspension`
 - **UI Screens**: [SPT-03 User Detail](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md), [SHR-05 Account Blocked](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Shared.md#SHR-05)

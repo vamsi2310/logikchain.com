@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-03`
-- **Epic Status**: [DONE]
+- **Epic Status**: [IN_PROGRESS]
 - **Functional Area**: Gig Logistics, Fleet Dispatch & Real-Time Routing
 - **Bound Microservice**: `microservices/services/gigs-service`
 - **Container Port**: `4003`
@@ -113,7 +113,7 @@ Scenario: Mid-route vehicle reassignment maintains gig continuity
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-03.02`
-- **Feature Status**: [DONE]
+- **Feature Status**: [IN_PROGRESS]
 - **Functional Scope**: Gig start attestation, background GPS ping ingestion, real-time driver tracking, and Play Integrity verification.
 - **Service Endpoints**: `POST /v1/gigs/{gigId}:start`, `POST /v1/gigs/{gigId}/location`
 - **UI Screens**: [VEH-02 Active Gig](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Vehicle.md#VEH-02), [BUY-05 Live Tracking](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Buyer.md#BUY-05)

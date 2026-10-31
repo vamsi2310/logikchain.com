@@ -2,7 +2,7 @@
 
 ## 1. Functional Area Alignment & Microservice Metadata
 - **Epic ID**: `EPIC-09`
-- **Epic Status**: [IN_PROGRESS]
+- **Epic Status**: [DONE]
 - **Functional Area**: Finance, General Ledger, Statutory Tax & Automated Reconciliation
 - **Bound Microservice**: `microservices/services/finance-service`
 - **Container Port**: `4009`
@@ -16,7 +16,7 @@
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-09.01`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Immutable multi-currency double-entry ledger, journal entry posting, chart of accounts, and balance conservation.
 - **Service Endpoints**: `POST /v1/finance/journal-entries`, `GET /v1/finance/accounts/{code}/balance`, `GET /v1/finance/reports` (`getFinanceReport`)
 - **UI Screens**: [SPT-07 Finance Dashboard](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-07), [SPT-08 Ledger Explorer](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-08)
@@ -100,7 +100,7 @@ Scenario: Journal entry enforces double-entry balance
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-09.02`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Nightly three-way automated reconciliation (Gateway settlement file vs Bank statement vs Internal ledger), variance identification, and Vertex AI discrepancy analysis.
 - **Service Endpoints**: `POST /v1/finance/reconciliation:run` (`runReconciliation`), `POST /v1/finance/scheduled-reconciliation` (`scheduledReconciliation`)
 - **UI Screens**: [SPT-07 Reconciliation Runs](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-07)
@@ -183,7 +183,7 @@ Scenario: Automated nightly reconciliation identifies zero variance
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-09.03`
-- **Feature Status**: [IN_PROGRESS]
+- **Feature Status**: [DONE]
 - **Functional Scope**: Statutory TDS withholding (Sections 194C / 194O), tax liability accumulation, quarterly Challan recording, and Form 16A generation.
 - **Service Endpoints**: `POST /v1/finance/tds/challans` (`recordTdsChallan`), `GET /v1/finance/tds/register` (`getTdsRegister`)
 - **UI Screens**: [SPT-09 Tax & TDS Console](file:///c:/Users/Admin/Downloads/logikchain/logikchain.com/constitution/wireframes/Support.md#SPT-09)
