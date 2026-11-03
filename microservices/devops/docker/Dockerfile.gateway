@@ -11,6 +11,7 @@ WORKDIR /app/packages/common
 RUN npm install && npm run build && npm link
 
 WORKDIR /app/services/gateway
+ARG CACHEBUST=1
 COPY services/gateway/package.json ./
 COPY services/gateway/tsconfig.json ./
 COPY services/gateway/src ./src/

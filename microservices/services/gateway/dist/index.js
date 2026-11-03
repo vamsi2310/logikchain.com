@@ -125,19 +125,26 @@ app.get('/health/services', async (req, res) => {
             const dbStatus = data.database?.status || (isOk ? 'connected' : isDegraded ? 'degraded' : 'disconnected');
             const dbLatency = data.database?.latencyMs ?? (isOk ? Math.max(1, Math.round(latencyMs * 0.35)) : null);
             const fbStatus = isOk ? 'connected' : isDegraded ? 'degraded' : 'disconnected';
+            const isRust = svc.id !== 'gateway';
+            const runtime = data.runtime || (isRust ? 'rust-axum' : 'node-express');
+            const dbEngine = isRust ? 'sqlite' : 'firestore';
+            const dbType = dbEngine === 'sqlite' ? 'SQLite (WAL)' : 'Firestore CDC Mesh';
+            const dbName = dbEngine === 'sqlite' ? `${svc.id}.db` : svc.db;
             return {
                 id: svc.id,
                 epic: svc.epic,
                 name: svc.name,
                 port: svc.port,
                 status: isOk ? 'healthy' : isDegraded ? 'degraded' : resp.ok ? 'healthy' : 'unreachable',
+                runtime,
                 httpStatus: resp.status,
                 latencyMs,
                 lastChecked: new Date().toISOString(),
                 details: data.error || data.sync ? { sync: data.sync, error: data.error } : undefined,
                 database: {
-                    name: svc.db,
-                    type: svc.id === 'gateway' ? 'Firestore CDC Mesh' : 'PostgreSQL 16',
+                    name: dbName,
+                    type: dbType,
+                    engine: dbEngine,
                     status: dbStatus,
                     latencyMs: dbLatency,
                     error: data.database?.error || (isDegraded ? data.error : undefined),
@@ -156,19 +163,26 @@ app.get('/health/services', async (req, res) => {
             };
         }
         catch (err) {
+            const isRust = svc.id !== 'gateway';
+            const runtime = isRust ? 'rust-axum' : 'node-express';
+            const dbEngine = isRust ? 'sqlite' : 'firestore';
+            const dbType = dbEngine === 'sqlite' ? 'SQLite (WAL)' : 'Firestore CDC Mesh';
+            const dbName = dbEngine === 'sqlite' ? `${svc.id}.db` : svc.db;
             return {
                 id: svc.id,
                 epic: svc.epic,
                 name: svc.name,
                 port: svc.port,
                 status: 'offline',
+                runtime,
                 httpStatus: null,
                 latencyMs: Date.now() - startTime,
                 lastChecked: new Date().toISOString(),
                 error: err.name === 'AbortError' ? 'Connection timeout (>1200ms)' : 'Service offline or port closed',
                 database: {
-                    name: svc.db,
-                    type: svc.id === 'gateway' ? 'Firestore CDC Mesh' : 'PostgreSQL 16',
+                    name: dbName,
+                    type: dbType,
+                    engine: dbEngine,
                     status: 'disconnected',
                     latencyMs: null,
                     error: 'Service unreachable',

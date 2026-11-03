@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1.4
+# Multi-stage production build for Rust microservices with embedded SQLite
+FROM rust:alpine AS builder
+
+WORKDIR /usr/src/app
+
+# Install native compilation dependencies
+RUN apk add --no-cache musl-dev sqlite-dev pkgconfig openssl-dev
+
+# Copy workspace manifests and source code
+COPY Cargo.toml Cargo.lock* ./
+COPY crates ./crates/
+COPY services ./services/
+
+# Compile all workspace binaries in release mode (cached once for all services)
+RUN cargo build --release
+
+# Stage 2: Ultra-lightweight production runner (~18MB total image)
+FROM alpine:3.20 AS runner
+
+RUN apk add --no-cache ca-certificates sqlite-libs tzdata curl
+
+# Create data directory for embedded SQLite database storage
+RUN mkdir -p /data && chmod 0755 /data
+
+ARG SERVICE_NAME=orders-service
+COPY --from=builder /usr/src/app/target/release/${SERVICE_NAME} /usr/local/bin/microservice
+
+ENV PORT=4002
+ENV DATABASE_PATH=/data/${SERVICE_NAME}.db
+ENV FIREBASE_BRIDGE_URL=http://firebase-bridge:4050
+ENV SYNC_INTERVAL_MS=2000
+
+EXPOSE ${PORT}
+
+VOLUME ["/data"]
+
+CMD ["/usr/local/bin/microservice"]

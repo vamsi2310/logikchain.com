@@ -184,31 +184,30 @@ Scenario: Bot without App Check token rejected at perimeter
 
 ---
 
-## FEAT-12.03: Bidirectional Microservice-to-Firestore CDC Sync Engine
+## FEAT-12.03: Firebase Sync Bridge for Rust Microservices & SQLite Outbox Streams
 
 ### 1. Feature Metadata & Hierarchy
 - **Feature ID**: `FEAT-12.03`
 - **Feature Status**: [DONE]
-- **Functional Scope**: PostgreSQL transactional outbox polling, Change Data Capture (CDC), batch commits to Cloud Firestore collections, and real-time offline mutation ingestion.
-- **Service Endpoints**: `GET /sync/status` (Health/Metrics), `POST /sync/trigger` (Manual Flush)
-- **UI Screens**: Infrastructure Background Worker
+- **Functional Scope**: Dual-purpose Node.js Firebase Sync Bridge (:4050): ingests high-throughput outbox batches from Rust microservices (embedded SQLite) to commit into Cloud Firestore collections (`bulkWriter`), signs Cloud Storage media URLs, and dispatches inbound Firestore snapshot mutations to internal Rust service HTTP endpoints.
+- **Service Endpoints**: `POST /v1/bridge/outbox`, `POST /v1/bridge/storage/sign-upload`, `POST /v1/bridge/storage/sign-download`, `GET /sync/status`, `POST /sync/trigger`
+- **UI Screens**: Infrastructure Background Worker / Bridge Gateway
 
 ### 2. Derived Use Cases
-#### UC-12.03.A: Asynchronous PostgreSQL Outbox to Cloud Firestore Replication
-- **Description**: Microservices commit state changes and outbox events within a single PostgreSQL transaction; sync engine worker replicates events into Cloud Firestore for low-latency client reads.
-- **Primary Actor**: Sync Engine Worker (`sync-engine` :4050) and Periodic Microservice Syncers.
-- **Secondary Systems**: Microservice PostgreSQL Databases, Cloud Firestore.
-- **Preconditions**: Microservice has written un-synced events into its `outbox_events` table.
+#### UC-12.03.A: Rust SQLite Transactional Outbox to Cloud Firestore Replication via Bridge
+- **Description**: Rust microservices commit business logic and outbox records within a single local SQLite transaction (`WAL` mode); background outbox workers stream events to the Firebase Sync Bridge (:4050), which commits batch writes to Cloud Firestore.
+- **Primary Actor**: Firebase Sync Bridge (`firebase-bridge` :4050) and Rust Domain Microservices.
+- **Secondary Systems**: Microservice SQLite Databases (`.db`), Cloud Firestore, Cloud Storage.
+- **Preconditions**: Rust microservice has committed events into its local SQLite `outbox_events` table.
 - **Nominal Flow**:
-  1. Syncer polls local `outbox_events` where `synced_at IS NULL` (polling interval: 2000ms).
-  2. Fetches batch of up to 100 pending events.
-  3. Opens Firestore batch write; maps domain payload into target Firestore collection doc (`/Orders/{id}`, `/Gigs/{id}`, `/UserProfiles/{id}`).
-  4. Commits Firestore batch atomically.
-  5. Updates PostgreSQL `outbox_events` setting `synced_at = NOW()`.
-  6. Increments Prometheus metrics counters.
+  1. Rust worker reads un-synced events from local SQLite `outbox_events` (`synced_at IS NULL`).
+  2. Dispatches batch payload via internal HTTP / gRPC to `http://firebase-bridge:4050/v1/bridge/outbox`.
+  3. Firebase Bridge uses Google `firebase-admin` `bulkWriter` to commit documents into target Firestore collections (`/Orders/{id}`, `/Gigs/{id}`, `/UserProfiles/{id}`).
+  4. Bridge returns HTTP 200 with synced IDs.
+  5. Rust worker marks local SQLite records with `synced_at = CURRENT_TIMESTAMP`.
 - **Alternate / Degraded Flow**:
-  - *Firestore Network Failure*: Worker pauses; applies exponential backoff; leaves `synced_at` as NULL to ensure zero data loss (At-Least-Once Delivery).
-- **Postconditions**: PostgreSQL state mirrored in Cloud Firestore; mobile and web clients receive real-time document snapshots.
+  - *Bridge or Firestore Offline*: Events remain pending in local SQLite outbox; retry occurs with exponential backoff on subsequent tick. Zero data loss (At-Least-Once Delivery).
+- **Postconditions**: Rust microservice SQLite state replicated to Cloud Firestore; mobile and web clients receive real-time document snapshots.
 
 ### 3. User Journey Stories
 - **US-12.03.01 [READY]**: *As a rural user with intermittent internet, I want my app to read data from Firestore's local cache instantly, while the backend sync engine ensures the data is always up-to-date with the PostgreSQL master database.*
@@ -223,9 +222,11 @@ Scenario: Outbox event commits to Cloud Firestore within 2 seconds
 ```
 
 ### 4. Integration Stories
-- **INT-12.03.01 [READY] (PostgreSQL Outbox Stream Integration)**: *As the Sync Engine, I need to connect to all microservice PostgreSQL outbox tables to poll and process pending replication events.*
-- **INT-12.03.02 [READY] (Cloud Firestore Batch Write Integration)**: *As the Sync Engine, I need to utilize Firestore Admin SDK batch operations to minimize API operations and maintain write atomicity.*
-- **INT-12.03.03 [READY] (Firestore Inbound Snapshot Listener Integration)**: *As the Sync Engine, I need to listen to incoming offline mutations committed by mobile clients in Firestore `/outbox_mobile/` and ingest them into PostgreSQL with idempotency checks.*
+- **INT-12.03.01 [READY] (SQLite Outbox Stream Integration)**: *As the Firebase Sync Bridge, I need to expose high-performance endpoints (`POST /v1/bridge/outbox`) to ingest transactional outbox batches from Rust microservices.*
+- **INT-12.03.02 [READY] (Cloud Firestore Batch Write Integration)**: *As the Firebase Sync Bridge, I need to utilize Firestore Admin SDK `bulkWriter` operations to minimize API operations and maintain write atomicity.*
+- **INT-12.03.03 [READY] (Firestore Inbound Snapshot Listener Integration)**: *As the Firebase Sync Bridge, I need to listen to incoming offline mutations committed by mobile clients in Firestore `/outbox_mobile/` and ingest them into target Rust microservices via internal mutation webhooks.*
+- **INT-12.03.04 [READY] (Rust Microservice Outbox Streaming Client)**: *As a Rust domain microservice, I need an asynchronous background worker that drains the local SQLite `outbox_events` table and streams batches to the Firebase Sync Bridge.*
+- **INT-12.03.05 [READY] (Cloud Storage URL Signing Bridge)**: *As the Firebase Sync Bridge, I need to generate short-lived signed upload and download URLs for Cloud Storage to allow Rust services and clients to store media without direct GCP credentials.*
 
 ### 5. Multi-Client Implementation Stories
 - **PWA-12.03.01 [READY] (Web PWA Firestore Realtime Listener Client)**: *Implement Firestore snapshot listeners in `web/` subscribing to synchronized collections with automatic reconciliation on reconnect.*

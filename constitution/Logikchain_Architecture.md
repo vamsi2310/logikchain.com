@@ -96,7 +96,7 @@ A buyer must not download Support chrome. A Support operator must not wait on a 
 
 ---
 
-## 3. Backend: Firebase first, GCP where Firebase is the wrong tool
+## 3. Backend: Domain Microservices in Rust, SQLite Local Storage & Firebase Cloud State
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -124,6 +124,10 @@ A buyer must not download Support chrome. A Support operator must not wait on a 
 
 | Concern | Service | Why this one |
 | ------- | ------- | ------------ |
+| Domain Execution | Rust Microservices (Axum / Tokio) | High-throughput, deterministic execution, ~15MB RAM per service, memory safety for financial transactions |
+| Local Operational Data | Embedded SQLite (WAL mode) | In-process zero-daemon embedded database per service, sub-millisecond local queries, eliminates Postgres daemon overhead |
+| Cloud Persistent State | Cloud Firestore | Managed cloud durability, cross-region replication, real-time client listener delivery for PWA and Mobile |
+| Integration Bridge | Firebase Sync Bridge (Node.js) | Employs official Google `firebase-admin` SDK, eliminating Rust Firebase library risks while bridging SQLite outboxes to Firestore |
 | Identity | Firebase Auth | Phone OTP and Google, already the onboarding path |
 | Authorisation | Custom claims + `/UserProfiles/{uid}` re-read on every callable | Claims are a convenience for rules. The profile document is the authority for a mutation. See `suspendUser` |
 | Reads | Firestore | Offline cache, security rules, the document shapes in `constitution/Logikchain_Data_Structures.md` |

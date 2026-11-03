@@ -6,10 +6,16 @@ import { env } from "@/config/env";
 import { useSession, roleHome } from "@/state/session";
 import { PublicLayout } from "./PublicLayout";
 import { E2ETestRunnerSection } from "./E2ETestRunnerSection";
+import {
+  MICROSERVICE_USECASE_MAPPINGS,
+  type MappedUseCase,
+  type ServiceUseCaseProfile,
+} from "./MicroserviceUseCaseMapping";
 
 export interface DatabaseCheck {
   name: string;
   type: string;
+  engine?: "sqlite" | "postgres" | "firestore";
   status: "connected" | "degraded" | "disconnected";
   latencyMs?: number | null;
   error?: string;
@@ -33,6 +39,7 @@ export interface MicroserviceStatus {
   epic: string;
   name: string;
   port: number;
+  runtime?: string;
   status: "healthy" | "degraded" | "offline" | "unreachable";
   httpStatus: number | null;
   latencyMs: number;
@@ -183,6 +190,12 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
 
   const [gatewayStatus, setGatewayStatus] = useState<"checking" | "connected" | "disconnected">("checking");
   const [services, setServices] = useState<MicroserviceStatus[]>([]);
+  const [selectedServiceFilter, setSelectedServiceFilter] = useState<string>("all");
+  const [useCaseSearchQuery, setUseCaseSearchQuery] = useState<string>("");
+  const [selectedUseCaseModal, setSelectedUseCaseModal] = useState<{
+    useCase: MappedUseCase;
+    service: ServiceUseCaseProfile;
+  } | null>(null);
   const [firestoreStatus, setFirestoreStatus] = useState<FirestoreTelemetry>({
     status: "checking",
     databaseId: env.firebase.databaseId || "(default)",
@@ -261,15 +274,21 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
         const normalized = (data.services || []).map((s) => {
           const fbTarget = SERVICE_FIREBASE_TARGETS[s.id] || { target: "Firestore & Storage", collection: "Outbox" };
           const fbStatus = s.firebase?.status || (s.status === "healthy" ? "connected" : s.status === "degraded" ? "degraded" : "disconnected");
+          const isRust = s.id !== "gateway";
+          const dbEngine: "sqlite" | "postgres" | "firestore" = isRust ? "sqlite" : "firestore";
+          const dbType = dbEngine === "sqlite" ? "SQLite (WAL)" : "Firestore CDC Mesh";
+          const dbName = dbEngine === "sqlite" ? `${s.id}.db` : (s.database?.name || "outbox_cdc");
 
           return {
             ...s,
-            database: s.database || {
-              name: `${s.id}_db`,
-              type: s.id === "gateway" ? "Firestore CDC Mesh" : "PostgreSQL 16",
-              status: s.status === "healthy" ? "connected" : s.status === "degraded" ? "degraded" : "disconnected",
-              latencyMs: s.status === "healthy" ? Math.max(1, Math.round(s.latencyMs * 0.35)) : null,
-              error: s.details?.error,
+            runtime: isRust ? "rust-axum" : "node-express",
+            database: {
+              name: dbName,
+              type: dbType,
+              engine: dbEngine,
+              status: s.database?.status || (s.status === "healthy" ? "connected" : s.status === "degraded" ? "degraded" : "disconnected"),
+              latencyMs: s.database?.latencyMs ?? (s.status === "healthy" ? Math.max(1, Math.round(s.latencyMs * 0.35)) : null),
+              error: s.database?.error || s.details?.error,
             },
             firebase: s.firebase || {
               target: fbTarget.target,
@@ -296,19 +315,19 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
       setLastUpdated(new Date());
 
       const fallbackDefs = [
-        { id: "gateway", epic: "EPIC-12", name: "API Gateway & Sync Engine", port: 8080, db: "outbox_cdc", dbType: "Firestore CDC Mesh", status: "offline" as const, httpStatus: null, error: "Gateway offline on port 8080" },
-        { id: "config", epic: "EPIC-10", name: "Platform Geo-Hierarchy & Config", port: 4010, db: "config_db", dbType: "PostgreSQL 16", status: "degraded" as const, httpStatus: 500, error: "Database offline / degraded" },
-        { id: "identity", epic: "EPIC-01", name: "Identity, Auth & Access", port: 4001, db: "identity_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "orders", epic: "EPIC-02", name: "Orders & Commerce Fulfillment", port: 4002, db: "orders_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "gigs", epic: "EPIC-03", name: "Gig Logistics & Fleet Dispatch", port: 4003, db: "gigs_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "pamphlet", epic: "EPIC-04", name: "Pamphlet & Inventory Syndication", port: 4004, db: "pamphlet_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "payments", epic: "EPIC-05", name: "Payments & UPI Collections", port: 4005, db: "payments_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "payouts", epic: "EPIC-06", name: "Payouts & Disbursements", port: 4006, db: "payouts_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "cash", epic: "EPIC-07", name: "Rural Cash & CoD Custody", port: 4007, db: "cash_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "credit", epic: "EPIC-08", name: "Merchant Working Capital Credit", port: 4008, db: "credit_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "finance", epic: "EPIC-09", name: "Financial Ledger & Reconciliation", port: 4009, db: "finance_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "governance", epic: "EPIC-11", name: "Platform Governance & AML", port: 4011, db: "governance_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
-        { id: "socialConnect", epic: "EPIC-13", name: "Social Connect & Notifications", port: 4012, db: "social_db", dbType: "PostgreSQL 16", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "gateway", epic: "EPIC-12", name: "API Gateway & Sync Engine", port: 8080, db: "outbox_cdc", dbType: "Firestore CDC Mesh", dbEngine: "firestore" as const, runtime: "node-express", status: "offline" as const, httpStatus: null, error: "Gateway offline on port 8080" },
+        { id: "identity", epic: "EPIC-01", name: "Identity, Auth & Access", port: 4001, db: "identity.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "orders", epic: "EPIC-02", name: "Orders & Commerce Fulfillment", port: 4002, db: "orders.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "gigs", epic: "EPIC-03", name: "Gig Logistics & Fleet Dispatch", port: 4003, db: "gigs.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "pamphlet", epic: "EPIC-04", name: "Pamphlet & Inventory Syndication", port: 4004, db: "pamphlet.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "payments", epic: "EPIC-05", name: "Payments & UPI Collections", port: 4005, db: "payments.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "payouts", epic: "EPIC-06", name: "Payouts & Disbursements", port: 4006, db: "payouts.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "cash", epic: "EPIC-07", name: "Rural Cash & CoD Custody", port: 4007, db: "cash.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "credit", epic: "EPIC-08", name: "Merchant Working Capital Credit", port: 4008, db: "credit.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "finance", epic: "EPIC-09", name: "Financial Ledger & Reconciliation", port: 4009, db: "finance.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "config", epic: "EPIC-10", name: "Platform Geo-Hierarchy & Config", port: 4010, db: "config.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "degraded" as const, httpStatus: 500, error: "Database offline / degraded" },
+        { id: "governance", epic: "EPIC-11", name: "Platform Governance & AML", port: 4011, db: "governance.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
+        { id: "socialConnect", epic: "EPIC-13", name: "Social Connect & Notifications", port: 4012, db: "socialConnect.db", dbType: "SQLite (WAL)", dbEngine: "sqlite" as const, runtime: "rust-axum", status: "offline" as const, httpStatus: null, error: "Service offline or port closed" },
       ];
 
       setServices(
@@ -320,6 +339,7 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
             name: def.name,
             port: def.port,
             status: def.status,
+            runtime: def.runtime,
             httpStatus: def.httpStatus,
             latencyMs: def.status === "degraded" ? 25 : 0,
             lastChecked: new Date().toISOString(),
@@ -327,6 +347,7 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
             database: {
               name: def.db,
               type: def.dbType,
+              engine: def.dbEngine,
               status: def.status === "degraded" ? "degraded" : "disconnected",
               latencyMs: def.status === "degraded" ? 25 : null,
               error: def.error,
@@ -367,6 +388,12 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
   const dbConnectedCount = services.filter((s) => s.database?.status === "connected").length;
   const dbDegradedCount = services.filter((s) => s.database?.status === "degraded").length;
   const dbDisconnectedCount = totalDbCount - dbConnectedCount - dbDegradedCount;
+
+  // Runtime & Database Engine Metrics
+  const rustCount = services.filter((s) => s.runtime?.includes("rust")).length;
+  const nodeCount = services.length - rustCount;
+  const sqliteCount = services.filter((s) => s.database?.engine === "sqlite" || s.database?.type?.includes("SQLite")).length;
+  const postgresCount = services.filter((s) => s.database?.engine === "postgres" || s.database?.type?.includes("PostgreSQL")).length;
 
   // Firebase Core Connection Metrics
   const fbConnectedCount = services.filter((s) => s.firebase?.status === "connected").length;
@@ -430,7 +457,7 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                 fontWeight: 700,
               }}
             >
-              13 Services · 12 DBs
+              {services.length} Services ({rustCount > 0 ? `${rustCount} Rust · ${nodeCount} Node` : "13 Services"}) · {sqliteCount} SQLite · {postgresCount} Postgres
             </span>
           </button>
 
@@ -543,7 +570,7 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                     fontSize: "1.05rem",
                   }}
                 >
-                  PostgreSQL Mesh (12 DBs)
+                  Database Mesh (SQLite & Postgres)
                 </strong>
                 <span
                   style={{
@@ -559,7 +586,9 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                 </span>
               </div>
               <div style={{ color: "#475569", fontSize: "0.82rem", marginTop: "0.2rem" }}>
-                <span>Database-per-service isolation · </span>
+                <span>
+                  <strong>{sqliteCount}</strong> SQLite (WAL) · <strong>{postgresCount}</strong> PostgreSQL 16 ·{" "}
+                </span>
                 {dbDegradedCount > 0 && <span style={{ color: "#b45309", fontWeight: 600 }}>{dbDegradedCount} Degraded · </span>}
                 <span style={{ color: "#64748b" }}>{dbDisconnectedCount} Disconnected</span>
               </div>
@@ -666,13 +695,14 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
               <thead>
                 <tr>
                   <th style={{ width: "85px" }}>Epic</th>
-                  <th>Microservice</th>
+                  <th>Microservice & Runtime</th>
                   <th style={{ width: "75px" }}>Port</th>
                   <th style={{ width: "120px" }}>Service Status</th>
-                  <th style={{ width: "210px" }}>Database Check (Postgres)</th>
+                  <th style={{ width: "230px" }}>Database Engine (SQLite / Postgres)</th>
                   <th style={{ width: "230px" }}>Firebase Connection & Sync</th>
                   <th style={{ width: "85px" }}>Latency</th>
                   <th style={{ width: "100px" }}>HTTP Code</th>
+                  <th style={{ width: "230px" }}>Mapped Use Cases</th>
                   <th>Diagnostics / Notes</th>
                 </tr>
               </thead>
@@ -686,8 +716,13 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                   const badgeIcon = isHealthy ? "🟢" : isDegraded ? "🟡" : "🔴";
                   const statusLabel = isHealthy ? "Online" : isDegraded ? "Degraded" : "Offline";
 
+                  // Runtime check
+                  const isRust = svc.runtime?.includes("rust");
+
                   // Database check values
-                  const dbName = svc.database?.name || `${svc.id}_db`;
+                  const isSqlite = svc.database?.engine === "sqlite" || svc.database?.type?.includes("SQLite");
+                  const isPostgres = svc.database?.engine === "postgres" || svc.database?.type?.includes("PostgreSQL");
+                  const dbName = svc.database?.name || (isSqlite ? `${svc.id}.db` : `${svc.id}_db`);
                   const dbStatus = svc.database?.status || (isHealthy ? "connected" : isDegraded ? "degraded" : "disconnected");
                   const dbLatency = svc.database?.latencyMs;
                   const dbIcon = dbStatus === "connected" ? "🟢" : dbStatus === "degraded" ? "🟡" : "🔴";
@@ -716,7 +751,45 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                         </span>
                       </td>
                       <td>
-                        <strong style={{ color: "#1e293b", display: "block" }}>{svc.name}</strong>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.15rem" }}>
+                          <strong style={{ color: "#1e293b" }}>{svc.name}</strong>
+                          {isRust ? (
+                            <span
+                              style={{
+                                background: "#fef3c7",
+                                color: "#92400e",
+                                border: "1px solid #fde68a",
+                                padding: "0.1rem 0.4rem",
+                                borderRadius: "4px",
+                                fontSize: "0.68rem",
+                                fontWeight: 800,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.2rem",
+                                letterSpacing: "0.02em",
+                              }}
+                            >
+                              <span>🦀</span> RUST AXUM
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                background: "#f1f5f9",
+                                color: "#475569",
+                                border: "1px solid #e2e8f0",
+                                padding: "0.1rem 0.4rem",
+                                borderRadius: "4px",
+                                fontSize: "0.68rem",
+                                fontWeight: 700,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.2rem",
+                              }}
+                            >
+                              <span>🟢</span> NODE.JS
+                            </span>
+                          )}
+                        </div>
                         <code style={{ fontSize: "0.78rem", color: "#64748b" }}>{svc.id}-service</code>
                       </td>
                       <td>
@@ -742,18 +815,61 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                         </span>
                       </td>
 
-                      {/* DEDICATED DATABASE CHECK COLUMN */}
+                      {/* DEDICATED DATABASE CHECK COLUMN (SQLITE vs POSTGRES) */}
                       <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.25rem", flexWrap: "wrap" }}>
                           <span style={{ fontSize: "0.8rem" }}>{dbIcon}</span>
                           <code style={{ fontSize: "0.82rem", fontWeight: "700", color: "#0f172a", background: "#f1f5f9", padding: "0.1rem 0.35rem", borderRadius: "4px" }}>
                             {dbName}
                           </code>
+                          {isSqlite ? (
+                            <span
+                              style={{
+                                background: "#eff6ff",
+                                color: "#1d4ed8",
+                                border: "1px solid #bfdbfe",
+                                padding: "0.05rem 0.35rem",
+                                borderRadius: "4px",
+                                fontSize: "0.68rem",
+                                fontWeight: 800,
+                              }}
+                            >
+                              SQLite (WAL)
+                            </span>
+                          ) : isPostgres ? (
+                            <span
+                              style={{
+                                background: "#f0fdf4",
+                                color: "#166534",
+                                border: "1px solid #bbf7d0",
+                                padding: "0.05rem 0.35rem",
+                                borderRadius: "4px",
+                                fontSize: "0.68rem",
+                                fontWeight: 700,
+                              }}
+                            >
+                              PostgreSQL 16
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                background: "#fef3c7",
+                                color: "#92400e",
+                                border: "1px solid #fde68a",
+                                padding: "0.05rem 0.35rem",
+                                borderRadius: "4px",
+                                fontSize: "0.68rem",
+                                fontWeight: 700,
+                              }}
+                            >
+                              Firestore Mesh
+                            </span>
+                          )}
                         </div>
-                        <div style={{ fontSize: "0.72rem", color: "#64748b", marginTop: "0.2rem" }}>
+                        <div style={{ fontSize: "0.72rem", color: "#64748b" }}>
                           {dbStatus === "connected" ? (
                             <span style={{ color: "#16a34a", fontWeight: "600" }}>
-                              Connected {dbLatency ? `(${dbLatency}ms)` : ""}
+                              Connected {dbLatency ? `(${dbLatency}ms)` : ""} · {isSqlite ? "Embedded Zero-Daemon" : "Isolated DB"}
                             </span>
                           ) : dbStatus === "degraded" ? (
                             <span style={{ color: "#b45309", fontWeight: "600" }}>
@@ -762,7 +878,6 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                           ) : (
                             <span style={{ color: "#dc2626" }}>Connection Refused</span>
                           )}
-                          <span style={{ color: "#94a3b8" }}> · {svc.database?.type || "PostgreSQL 16"}</span>
                         </div>
                       </td>
 
@@ -831,6 +946,65 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
                           <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>No Response</span>
                         )}
                       </td>
+
+                      {/* MAPPED USE CASES */}
+                      <td>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", maxWidth: "230px" }}>
+                          {(() => {
+                            const mapping = MICROSERVICE_USECASE_MAPPINGS[svc.id];
+                            if (!mapping) {
+                              return <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>None</span>;
+                            }
+                            return (
+                              <>
+                                {mapping.useCases.slice(0, 4).map((uc) => (
+                                  <button
+                                    key={uc.id}
+                                    type="button"
+                                    onClick={() => setSelectedUseCaseModal({ useCase: uc, service: mapping })}
+                                    title={`${uc.id}: ${uc.title} (${uc.category})`}
+                                    style={{
+                                      background: uc.category === "business" ? "#eff6ff" : "#f5f3ff",
+                                      color: uc.category === "business" ? "#1d4ed8" : "#6d28d9",
+                                      border: `1px solid ${uc.category === "business" ? "#bfdbfe" : "#ddd6fe"}`,
+                                      padding: "0.1rem 0.35rem",
+                                      borderRadius: "4px",
+                                      fontSize: "0.68rem",
+                                      fontWeight: 700,
+                                      cursor: "pointer",
+                                      fontFamily: "monospace",
+                                    }}
+                                  >
+                                    {uc.id}
+                                  </button>
+                                ))}
+                                {mapping.useCases.length > 4 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedServiceFilter(svc.id);
+                                      document.getElementById("microservice-usecase-matrix")?.scrollIntoView({ behavior: "smooth" });
+                                    }}
+                                    style={{
+                                      background: "#f1f5f9",
+                                      color: "#334155",
+                                      border: "1px dashed #cbd5e1",
+                                      padding: "0.1rem 0.35rem",
+                                      borderRadius: "4px",
+                                      fontSize: "0.68rem",
+                                      fontWeight: 600,
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    +{mapping.useCases.length - 4} more
+                                  </button>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </td>
+
                       <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
                         {isHealthy && (
                           <span style={{ color: "#15803d" }}>
@@ -861,10 +1035,440 @@ export function PublicStatusScreen({ defaultTab }: { defaultTab?: "services" | "
               Database-Per-Service Architecture & Firebase Core Sync Mesh Specification
             </h4>
             <p style={{ margin: 0, fontSize: "0.9rem", color: "#334155", lineHeight: "1.6" }}>
-              In adherence to Logikchain's <strong>Zero-Shared-Database</strong> standard, every functional epic operates its own PostgreSQL 16 schema instance (e.g., <code>identity_db</code>, <code>orders_db</code>, <code>config_db</code>). Concurrently, <strong>Firebase Core Connection</strong> is deeply integrated across all 13 microservices: the <strong>API Gateway</strong> enforces Firebase App Check attestation and Auth token validation, <strong>Identity Service</strong> synchronizes custom RBAC claims, and all 12 domain microservices run autonomous <strong>Periodic Syncers</strong> writing transactional outbox events into Cloud Firestore collections and binary assets into Firebase Cloud Storage for real-time mobile and web subscriptions.
+              In adherence to Logikchain's <strong>Zero-Shared-Database</strong> standard, every functional epic operates its own dedicated datastore—transitioning to <strong>Rust (Axum) with Embedded SQLite (WAL)</strong> for zero-daemon sub-millisecond execution (e.g., <code>orders.db</code>) and isolated <strong>PostgreSQL 16</strong> instances (e.g., <code>identity_db</code>, <code>config_db</code>). Concurrently, the <strong>Firebase Sync Bridge (:4050)</strong> runs official <code>firebase-admin</code> to commit transactional outbox batches into Cloud Firestore and stream inbound offline mutations back into microservice engines.
             </p>
           </div>
+
+          {/* Microservices ⇄ Use Cases Functional Mapping Matrix */}
+          <div id="microservice-usecase-matrix" className="pub-article" style={{ marginTop: "2.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                  <span style={{ fontSize: "1.5rem" }}>🗺️</span>
+                  <h3 style={{ margin: 0, fontSize: "1.35rem", color: "#0f172a" }}>
+                    Microservices ⇄ Business & Technical Use Cases Mapping
+                  </h3>
+                </div>
+                <p style={{ margin: 0, fontSize: "0.88rem", color: "#64748b" }}>
+                  End-to-end traceability linking all platform use cases to their bound microservice, runtime engine (Rust / Node.js), and database store (SQLite WAL / PostgreSQL).
+                </p>
+              </div>
+
+              {/* Search input */}
+              <div style={{ minWidth: "280px", maxWidth: "400px", width: "100%" }}>
+                <input
+                  type="text"
+                  placeholder="Search use case ID (e.g. UC-05), keyword, or endpoint..."
+                  value={useCaseSearchQuery}
+                  onChange={(e) => setUseCaseSearchQuery(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "0.6rem 0.85rem",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "0.85rem",
+                    outline: "none",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Filter Chips */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1.5rem" }}>
+              <button
+                type="button"
+                onClick={() => setSelectedServiceFilter("all")}
+                style={{
+                  padding: "0.35rem 0.75rem",
+                  borderRadius: "999px",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedServiceFilter === "all" ? "#1d4ed8" : "#e2e8f0",
+                  background: selectedServiceFilter === "all" ? "#eff6ff" : "#ffffff",
+                  color: selectedServiceFilter === "all" ? "#1d4ed8" : "#475569",
+                }}
+              >
+                All Microservices (13)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedServiceFilter("rust")}
+                style={{
+                  padding: "0.35rem 0.75rem",
+                  borderRadius: "999px",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedServiceFilter === "rust" ? "#d97706" : "#fde68a",
+                  background: selectedServiceFilter === "rust" ? "#fef3c7" : "#fffdf5",
+                  color: "#92400e",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                }}
+              >
+                <span>🦀</span> Rust Services ({rustCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedServiceFilter("sqlite")}
+                style={{
+                  padding: "0.35rem 0.75rem",
+                  borderRadius: "999px",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedServiceFilter === "sqlite" ? "#2563eb" : "#bfdbfe",
+                  background: selectedServiceFilter === "sqlite" ? "#eff6ff" : "#f8fafc",
+                  color: "#1d4ed8",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                }}
+              >
+                <span>🗄️</span> SQLite WAL ({sqliteCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedServiceFilter("postgres")}
+                style={{
+                  padding: "0.35rem 0.75rem",
+                  borderRadius: "999px",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: "1px solid",
+                  borderColor: selectedServiceFilter === "postgres" ? "#16a34a" : "#bbf7d0",
+                  background: selectedServiceFilter === "postgres" ? "#f0fdf4" : "#ffffff",
+                  color: "#166534",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                }}
+              >
+                <span>🐘</span> PostgreSQL 16 ({postgresCount})
+              </button>
+            </div>
+
+            {/* Service & Use Case Profile Cards */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {Object.values(MICROSERVICE_USECASE_MAPPINGS)
+                .filter((profile) => {
+                  if (selectedServiceFilter === "rust") return profile.runtime.includes("rust");
+                  if (selectedServiceFilter === "sqlite") return profile.dbEngine === "sqlite";
+                  if (selectedServiceFilter === "postgres") return profile.dbEngine === "postgres";
+                  if (selectedServiceFilter !== "all") return profile.serviceId === selectedServiceFilter;
+                  return true;
+                })
+                .map((profile) => {
+                  const filteredUseCases = profile.useCases.filter((uc) => {
+                    if (!useCaseSearchQuery) return true;
+                    const q = useCaseSearchQuery.toLowerCase();
+                    return (
+                      uc.id.toLowerCase().includes(q) ||
+                      uc.title.toLowerCase().includes(q) ||
+                      uc.description.toLowerCase().includes(q) ||
+                      profile.name.toLowerCase().includes(q) ||
+                      profile.endpoints.some((ep) => ep.toLowerCase().includes(q))
+                    );
+                  });
+
+                  if (useCaseSearchQuery && filteredUseCases.length === 0) {
+                    return null;
+                  }
+
+                  const isRust = profile.runtime.includes("rust");
+                  const isSqlite = profile.dbEngine === "sqlite";
+
+                  return (
+                    <div
+                      key={profile.serviceId}
+                      style={{
+                        border: isRust ? "2px solid #fde68a" : "1px solid #e2e8f0",
+                        borderRadius: "10px",
+                        background: isRust ? "#fffdf5" : "#ffffff",
+                        padding: "1.25rem 1.5rem",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                      }}
+                    >
+                      {/* Card Header */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                            <span style={{ background: "#e2e8f0", color: "#334155", padding: "0.15rem 0.45rem", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 700 }}>
+                              {profile.epic}
+                            </span>
+                            <h4 style={{ margin: 0, fontSize: "1.15rem", color: "#0f172a" }}>
+                              {profile.name}
+                            </h4>
+                            <span style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "#64748b" }}>
+                              :{profile.port}
+                            </span>
+                            {isRust ? (
+                              <span style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", padding: "0.1rem 0.4rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: 800 }}>
+                                🦀 RUST AXUM
+                              </span>
+                            ) : (
+                              <span style={{ background: "#f1f5f9", color: "#475569", border: "1px solid #e2e8f0", padding: "0.1rem 0.4rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: 700 }}>
+                                🟢 NODE.JS
+                              </span>
+                            )}
+                            {isSqlite ? (
+                              <span style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", padding: "0.1rem 0.4rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: 800 }}>
+                                🗄️ SQLite (WAL) · {profile.dbName}
+                              </span>
+                            ) : profile.dbEngine === "postgres" ? (
+                              <span style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0", padding: "0.1rem 0.4rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: 700 }}>
+                                🐘 PostgreSQL 16 · {profile.dbName}
+                              </span>
+                            ) : (
+                              <span style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", padding: "0.1rem 0.4rem", borderRadius: "4px", fontSize: "0.7rem", fontWeight: 700 }}>
+                                🔥 Firestore CDC
+                              </span>
+                            )}
+                          </div>
+                          <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.85rem", color: "#475569" }}>
+                            {profile.primaryDomain}
+                          </p>
+                        </div>
+
+                        {/* Test Suite CTA */}
+                        <button
+                          type="button"
+                          onClick={() => handleTabChange("tests")}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.35rem",
+                            background: "#f0fdf4",
+                            color: "#166534",
+                            border: "1px solid #bbf7d0",
+                            padding: "0.35rem 0.7rem",
+                            borderRadius: "6px",
+                            fontSize: "0.78rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span>🧪 Run E2E Suite</span>
+                          <span style={{ fontSize: "0.7rem", opacity: 0.8 }}>↗</span>
+                        </button>
+                      </div>
+
+                      {/* Endpoints */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
+                        <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}>Endpoints:</span>
+                        {profile.endpoints.map((ep) => (
+                          <code key={ep} style={{ fontSize: "0.74rem", background: "#f1f5f9", color: "#334155", padding: "0.1rem 0.35rem", borderRadius: "4px" }}>
+                            {ep}
+                          </code>
+                        ))}
+                      </div>
+
+                      {/* Mapped Use Cases Grid */}
+                      <div style={{ marginTop: "0.5rem" }}>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                          Bound Use Cases ({filteredUseCases.length})
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "0.6rem" }}>
+                          {filteredUseCases.map((uc) => (
+                            <div
+                              key={uc.id}
+                              onClick={() => setSelectedUseCaseModal({ useCase: uc, service: profile })}
+                              style={{
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "6px",
+                                padding: "0.6rem 0.75rem",
+                                background: "#fafafa",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = "#93c5fd";
+                                e.currentTarget.style.background = "#eff6ff";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = "#e2e8f0";
+                                e.currentTarget.style.background = "#fafafa";
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.25rem", marginBottom: "0.25rem" }}>
+                                <span style={{ fontFamily: "monospace", fontSize: "0.75rem", fontWeight: 800, color: "#1d4ed8" }}>
+                                  {uc.id}
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: "0.65rem",
+                                    padding: "0.05rem 0.3rem",
+                                    borderRadius: "3px",
+                                    fontWeight: 700,
+                                    background: uc.category === "business" ? "#dbeafe" : "#ede9fe",
+                                    color: uc.category === "business" ? "#1e40af" : "#5b21b6",
+                                  }}
+                                >
+                                  {uc.category.toUpperCase()}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#1e293b", lineHeight: "1.3", marginBottom: "0.2rem" }}>
+                                {uc.title}
+                              </div>
+                              <div style={{ fontSize: "0.74rem", color: "#64748b", lineHeight: "1.3" }}>
+                                {uc.description}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
         </div>
+
+        {/* Use Case Detail Modal */}
+        {selectedUseCaseModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(15, 23, 42, 0.6)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "1rem",
+              backdropFilter: "blur(2px)",
+            }}
+            onClick={() => setSelectedUseCaseModal(null)}
+          >
+            <div
+              style={{
+                background: "#ffffff",
+                borderRadius: "12px",
+                maxWidth: "560px",
+                width: "100%",
+                padding: "1.75rem",
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                    <span style={{ fontFamily: "monospace", fontSize: "0.95rem", fontWeight: 800, color: "#1d4ed8" }}>
+                      {selectedUseCaseModal.useCase.id}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        padding: "0.1rem 0.4rem",
+                        borderRadius: "4px",
+                        fontWeight: 700,
+                        background: selectedUseCaseModal.useCase.category === "business" ? "#dbeafe" : "#ede9fe",
+                        color: selectedUseCaseModal.useCase.category === "business" ? "#1e40af" : "#5b21b6",
+                      }}
+                    >
+                      {selectedUseCaseModal.useCase.category.toUpperCase()} USE CASE
+                    </span>
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: "1.2rem", color: "#0f172a" }}>
+                    {selectedUseCaseModal.useCase.title}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUseCaseModal(null)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    fontSize: "1.25rem",
+                    cursor: "pointer",
+                    color: "#94a3b8",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p style={{ fontSize: "0.9rem", color: "#475569", lineHeight: "1.5", marginBottom: "1.25rem" }}>
+                {selectedUseCaseModal.useCase.description}
+              </p>
+
+              {/* Service & Database Metadata */}
+              <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "1.25rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", fontSize: "0.82rem" }}>
+                  <div>
+                    <span style={{ color: "#64748b", display: "block" }}>Bound Microservice:</span>
+                    <strong style={{ color: "#0f172a" }}>
+                      {selectedUseCaseModal.service.name} (:{selectedUseCaseModal.service.port})
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b", display: "block" }}>Runtime Engine:</span>
+                    <strong style={{ color: selectedUseCaseModal.service.runtime.includes("rust") ? "#b45309" : "#334155" }}>
+                      {selectedUseCaseModal.service.runtime.includes("rust") ? "🦀 Rust (Axum / Tokio)" : "🟢 Node.js (Express)"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b", display: "block" }}>Database Store:</span>
+                    <strong style={{ color: selectedUseCaseModal.service.dbEngine === "sqlite" ? "#1d4ed8" : "#166534" }}>
+                      {selectedUseCaseModal.service.dbEngine === "sqlite" ? "🗄️ SQLite (WAL Mode)" : "🐘 PostgreSQL 16"} ({selectedUseCaseModal.service.dbName})
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b", display: "block" }}>Official Client:</span>
+                    <strong style={{ color: "#0f172a", textTransform: "capitalize" }}>
+                      {selectedUseCaseModal.useCase.officialClient || "Cross-Platform"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px solid #e2e8f0" }}>
+                  <span style={{ color: "#64748b", fontSize: "0.75rem", display: "block", marginBottom: "0.25rem" }}>
+                    Associated Endpoints:
+                  </span>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                    {selectedUseCaseModal.service.endpoints.map((ep) => (
+                      <code key={ep} style={{ fontSize: "0.72rem", background: "#e2e8f0", color: "#1e293b", padding: "0.1rem 0.35rem", borderRadius: "4px" }}>
+                        {ep}
+                      </code>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  className="pub-btn pub-btn-sm pub-btn-outline"
+                  onClick={() => setSelectedUseCaseModal(null)}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="pub-btn pub-btn-sm pub-btn-primary"
+                  onClick={() => {
+                    setSelectedUseCaseModal(null);
+                    handleTabChange("tests");
+                  }}
+                >
+                  Open in E2E Test Suite 🧪
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         </>
         )}
       </div>

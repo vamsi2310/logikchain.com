@@ -65,9 +65,21 @@ if ($Teardown) {
 # 4. Optional Image Builds
 if ($BuildImages) {
     Write-Host "`n[3/5] Building Docker images locally for Kubernetes..." -ForegroundColor Cyan
-    & .\microservices\devops\scripts\build-all.sh
+    & "$PSScriptRoot\build-all.ps1"
 } else {
-    Write-Host "[3/5] Skipping image builds (pass -BuildImages to build fresh containers)" -ForegroundColor Gray
+    Write-Host "[3/5] Checking required container images..." -ForegroundColor Cyan
+    $missingImages = @()
+    $requiredImages = @('logikchain/gateway:latest', 'logikchain/firebase-bridge:latest', 'logikchain/orders-service-rust:latest', 'logikchain/identity-service-rust:latest')
+    foreach ($img in $requiredImages) {
+        $found = docker images -q $img 2>$null
+        if (-not $found) { $missingImages += $img }
+    }
+    if ($missingImages.Count -gt 0) {
+        Write-Host "Detected missing container images ($($missingImages -join ', ')). Building now..." -ForegroundColor Yellow
+        & "$PSScriptRoot\build-all.ps1"
+    } else {
+        Write-Host "All core container images found in local Docker cache." -ForegroundColor Green
+    }
 }
 
 # 5. Apply Local Kubernetes Manifests

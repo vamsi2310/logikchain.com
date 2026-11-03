@@ -266,7 +266,280 @@ services:
     volumes:
       - social-connect-pgdata:/var/lib/postgresql/data
 
+  # ─── FIREBASE SYNC BRIDGE (CENTRAL INTEGRATION FOR RUST MICROSERVICES) ───
+  firebase-bridge:
+    build:
+      context: .
+      dockerfile: devops/docker/Dockerfile.firebase-bridge
+    container_name: logikchain-firebase-bridge
+    restart: unless-stopped
+    ports:
+      - "4050:4050"
+    environment:
+      PORT: 4050
+      NODE_ENV: development
+      GCLOUD_PROJECT: logikchain-dev
+      FIREBASE_STORAGE_BUCKET: logikchain-dev.appspot.com
+      ENABLE_INBOUND_LISTENERS: "false"
+      ORDERS_SERVICE_URL: http://orders-service-rust:4002
+
+  # ─── RUST PILOT MICROSERVICE (EMBEDDED SQLITE + WAL MODE) ─────────────────
+  orders-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: orders-service
+    container_name: logikchain-orders-rust
+    restart: unless-stopped
+    ports:
+      - "4022:4002"
+    environment:
+      PORT: 4002
+      DATABASE_PATH: /data/orders.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - orders-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  # ─── RUST MICROSERVICES (AXUM + EMBEDDED SQLITE WAL) ───────────────────────
+  identity-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: identity-service
+    container_name: logikchain-identity-service-rust
+    restart: unless-stopped
+    ports:
+      - "4101:4001"
+    environment:
+      PORT: 4001
+      DATABASE_PATH: /data/identity.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - identity-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  gigs-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: gigs-service
+    container_name: logikchain-gigs-service-rust
+    restart: unless-stopped
+    ports:
+      - "4103:4003"
+    environment:
+      PORT: 4003
+      DATABASE_PATH: /data/gigs.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - gigs-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  pamphlet-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: pamphlet-service
+    container_name: logikchain-pamphlet-service-rust
+    restart: unless-stopped
+    ports:
+      - "4104:4004"
+    environment:
+      PORT: 4004
+      DATABASE_PATH: /data/pamphlet.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - pamphlet-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  payments-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: payments-service
+    container_name: logikchain-payments-service-rust
+    restart: unless-stopped
+    ports:
+      - "4105:4005"
+    environment:
+      PORT: 4005
+      DATABASE_PATH: /data/payments.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - payments-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  payouts-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: payouts-service
+    container_name: logikchain-payouts-service-rust
+    restart: unless-stopped
+    ports:
+      - "4106:4006"
+    environment:
+      PORT: 4006
+      DATABASE_PATH: /data/payouts.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - payouts-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  cash-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: cash-service
+    container_name: logikchain-cash-service-rust
+    restart: unless-stopped
+    ports:
+      - "4107:4007"
+    environment:
+      PORT: 4007
+      DATABASE_PATH: /data/cash.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - cash-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  credit-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: credit-service
+    container_name: logikchain-credit-service-rust
+    restart: unless-stopped
+    ports:
+      - "4108:4008"
+    environment:
+      PORT: 4008
+      DATABASE_PATH: /data/credit.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - credit-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  finance-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: finance-service
+    container_name: logikchain-finance-service-rust
+    restart: unless-stopped
+    ports:
+      - "4109:4009"
+    environment:
+      PORT: 4009
+      DATABASE_PATH: /data/finance.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - finance-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  config-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: config-service
+    container_name: logikchain-config-service-rust
+    restart: unless-stopped
+    ports:
+      - "4110:4010"
+    environment:
+      PORT: 4010
+      DATABASE_PATH: /data/config.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - config-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  governance-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: governance-service
+    container_name: logikchain-governance-service-rust
+    restart: unless-stopped
+    ports:
+      - "4111:4011"
+    environment:
+      PORT: 4011
+      DATABASE_PATH: /data/governance.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - governance-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+  social-connect-service-rust:
+    build:
+      context: rust-services
+      dockerfile: Dockerfile.rust-service
+      args:
+        SERVICE_NAME: social-connect-service
+    container_name: logikchain-social-connect-service-rust
+    restart: unless-stopped
+    ports:
+      - "4112:4012"
+    environment:
+      PORT: 4012
+      DATABASE_PATH: /data/socialConnect.db
+      FIREBASE_BRIDGE_URL: http://firebase-bridge:4050
+      SYNC_INTERVAL_MS: "2000"
+    volumes:
+      - social-connect-service-sqlitedata:/data
+    depends_on:
+      - firebase-bridge
+
+
+
 volumes:
+  identity-service-sqlitedata:
+  orders-service-sqlitedata:
+  gigs-service-sqlitedata:
+  pamphlet-service-sqlitedata:
+  payments-service-sqlitedata:
+  payouts-service-sqlitedata:
+  cash-service-sqlitedata:
+  credit-service-sqlitedata:
+  finance-service-sqlitedata:
+  config-service-sqlitedata:
+  governance-service-sqlitedata:
+  social-connect-service-sqlitedata:
   identity-pgdata:
   orders-pgdata:
   gigs-pgdata:

@@ -1,15 +1,18 @@
 # ==============================================================================
-# All 12 Logikchain Domain Microservices (EPIC-01 through EPIC-13)
+# All 12 Logikchain Domain Microservices (Rust + Axum + Embedded SQLite WAL)
+# Local Kubernetes / Minikube Manifests
 # ==============================================================================
 
-# --- EPIC-01: Identity Service (:4001) ---
+# --- EPIC-01: Identity Service (Rust + Axum + Embedded SQLite WAL :4001) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: identity-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: identity-service
@@ -17,32 +20,42 @@ spec:
     metadata:
       labels:
         app: identity-service
+        runtime: rust-axum
     spec:
       containers:
         - name: identity-service
-          image: logikchain/identity-service:latest
+          image: logikchain/identity-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4001
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4001"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/identity_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/identity.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4001
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -56,14 +69,16 @@ spec:
     - port: 4001
       targetPort: 4001
 ---
-# --- EPIC-02: Orders Service (:4002) ---
+# --- EPIC-02: Orders Service (Rust + Axum + Embedded SQLite WAL :4002) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: orders-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: orders-service
@@ -71,32 +86,42 @@ spec:
     metadata:
       labels:
         app: orders-service
+        runtime: rust-axum
     spec:
       containers:
         - name: orders-service
-          image: logikchain/orders-service:latest
+          image: logikchain/orders-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4002
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4002"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/orders_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/orders.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4002
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -110,14 +135,16 @@ spec:
     - port: 4002
       targetPort: 4002
 ---
-# --- EPIC-03: Gigs Service (:4003) ---
+# --- EPIC-03: Gigs Service (Rust + Axum + Embedded SQLite WAL :4003) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gigs-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: gigs-service
@@ -125,32 +152,42 @@ spec:
     metadata:
       labels:
         app: gigs-service
+        runtime: rust-axum
     spec:
       containers:
         - name: gigs-service
-          image: logikchain/gigs-service:latest
+          image: logikchain/gigs-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4003
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4003"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/gigs_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/gigs.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4003
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -164,14 +201,16 @@ spec:
     - port: 4003
       targetPort: 4003
 ---
-# --- EPIC-04: Pamphlet Service (:4004) ---
+# --- EPIC-04: Pamphlet Service (Rust + Axum + Embedded SQLite WAL :4004) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pamphlet-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: pamphlet-service
@@ -179,32 +218,42 @@ spec:
     metadata:
       labels:
         app: pamphlet-service
+        runtime: rust-axum
     spec:
       containers:
         - name: pamphlet-service
-          image: logikchain/pamphlet-service:latest
+          image: logikchain/pamphlet-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4004
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4004"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/pamphlet_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/pamphlet.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4004
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -218,14 +267,16 @@ spec:
     - port: 4004
       targetPort: 4004
 ---
-# --- EPIC-05: Payments Service (:4005) ---
+# --- EPIC-05: Payments Service (Rust + Axum + Embedded SQLite WAL :4005) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payments-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: payments-service
@@ -233,32 +284,42 @@ spec:
     metadata:
       labels:
         app: payments-service
+        runtime: rust-axum
     spec:
       containers:
         - name: payments-service
-          image: logikchain/payments-service:latest
+          image: logikchain/payments-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4005
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4005"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/payments_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/payments.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4005
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -272,14 +333,16 @@ spec:
     - port: 4005
       targetPort: 4005
 ---
-# --- EPIC-06: Payouts Service (:4006) ---
+# --- EPIC-06: Payouts Service (Rust + Axum + Embedded SQLite WAL :4006) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: payouts-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: payouts-service
@@ -287,32 +350,42 @@ spec:
     metadata:
       labels:
         app: payouts-service
+        runtime: rust-axum
     spec:
       containers:
         - name: payouts-service
-          image: logikchain/payouts-service:latest
+          image: logikchain/payouts-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4006
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4006"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/payouts_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/payouts.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4006
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -326,14 +399,16 @@ spec:
     - port: 4006
       targetPort: 4006
 ---
-# --- EPIC-07: Cash Service (:4007) ---
+# --- EPIC-07: Cash Service (Rust + Axum + Embedded SQLite WAL :4007) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cash-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: cash-service
@@ -341,32 +416,42 @@ spec:
     metadata:
       labels:
         app: cash-service
+        runtime: rust-axum
     spec:
       containers:
         - name: cash-service
-          image: logikchain/cash-service:latest
+          image: logikchain/cash-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4007
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4007"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/cash_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/cash.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4007
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -380,14 +465,16 @@ spec:
     - port: 4007
       targetPort: 4007
 ---
-# --- EPIC-08: Credit Service (:4008) ---
+# --- EPIC-08: Credit Service (Rust + Axum + Embedded SQLite WAL :4008) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: credit-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: credit-service
@@ -395,32 +482,42 @@ spec:
     metadata:
       labels:
         app: credit-service
+        runtime: rust-axum
     spec:
       containers:
         - name: credit-service
-          image: logikchain/credit-service:latest
+          image: logikchain/credit-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4008
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4008"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/credit_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/credit.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4008
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -434,14 +531,16 @@ spec:
     - port: 4008
       targetPort: 4008
 ---
-# --- EPIC-09: Finance Service (:4009) ---
+# --- EPIC-09: Finance Service (Rust + Axum + Embedded SQLite WAL :4009) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: finance-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: finance-service
@@ -449,32 +548,42 @@ spec:
     metadata:
       labels:
         app: finance-service
+        runtime: rust-axum
     spec:
       containers:
         - name: finance-service
-          image: logikchain/finance-service:latest
+          image: logikchain/finance-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4009
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4009"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/finance_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/finance.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4009
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -488,14 +597,16 @@ spec:
     - port: 4009
       targetPort: 4009
 ---
-# --- EPIC-10: Config Service (:4010) ---
+# --- EPIC-10: Config Service (Rust + Axum + Embedded SQLite WAL :4010) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: config-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: config-service
@@ -503,32 +614,42 @@ spec:
     metadata:
       labels:
         app: config-service
+        runtime: rust-axum
     spec:
       containers:
         - name: config-service
-          image: logikchain/config-service:latest
+          image: logikchain/config-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4010
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4010"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/config_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/config.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4010
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -542,14 +663,16 @@ spec:
     - port: 4010
       targetPort: 4010
 ---
-# --- EPIC-11: Governance Service (:4011) ---
+# --- EPIC-11: Governance Service (Rust + Axum + Embedded SQLite WAL :4011) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: governance-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: governance-service
@@ -557,32 +680,42 @@ spec:
     metadata:
       labels:
         app: governance-service
+        runtime: rust-axum
     spec:
       containers:
         - name: governance-service
-          image: logikchain/governance-service:latest
+          image: logikchain/governance-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4011
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4011"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/governance_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/governance.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4011
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -596,14 +729,16 @@ spec:
     - port: 4011
       targetPort: 4011
 ---
-# --- EPIC-13: Social Connect Service (:4012) ---
+# --- EPIC-13: Social Connect Service (Rust + Axum + Embedded SQLite WAL :4012) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: social-connect-service
   namespace: logikchain-backend
 spec:
-  replicas: 1
+  replicas: 1 # Single-writer architecture for embedded SQLite WAL database file
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: social-connect-service
@@ -611,32 +746,42 @@ spec:
     metadata:
       labels:
         app: social-connect-service
+        runtime: rust-axum
     spec:
       containers:
         - name: social-connect-service
-          image: logikchain/social-connect-service:latest
+          image: logikchain/social-connect-service-rust:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 4012
-          envFrom:
-            - configMapRef:
-                name: logikchain-config
           env:
             - name: PORT
               value: "4012"
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgrespassword@postgres-service.logikchain-backend.svc.cluster.local:5432/social_connect_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: DATABASE_PATH
+              value: "/data/socialConnect.db"
+            - name: FIREBASE_BRIDGE_URL
+              value: "http://firebase-bridge.logikchain-backend.svc.cluster.local:4050"
+            - name: SYNC_INTERVAL_MS
+              value: "2000"
+          resources:
+            requests:
+              cpu: "25m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
           readinessProbe:
             httpGet:
               path: /health
               port: 4012
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 2
+            periodSeconds: 5
+      volumes:
+        - name: sqlite-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -649,4 +794,59 @@ spec:
   ports:
     - port: 4012
       targetPort: 4012
-
+---
+# --- Firebase Sync Bridge Service (Node.js + Firebase Admin SDK :4050) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firebase-bridge
+  namespace: logikchain-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: firebase-bridge
+  template:
+    metadata:
+      labels:
+        app: firebase-bridge
+    spec:
+      containers:
+        - name: firebase-bridge
+          image: logikchain/firebase-bridge:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4050
+          envFrom:
+            - configMapRef:
+                name: logikchain-config
+          env:
+            - name: PORT
+              value: "4050"
+            - name: ORDERS_SERVICE_URL
+              value: "http://orders-service:4002"
+            - name: IDENTITY_SERVICE_URL
+              value: "http://identity-service:4001"
+            - name: GIGS_SERVICE_URL
+              value: "http://gigs-service:4003"
+            - name: PAYMENTS_SERVICE_URL
+              value: "http://payments-service:4005"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4050
+            initialDelaySeconds: 3
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: firebase-bridge
+  namespace: logikchain-backend
+spec:
+  selector:
+    app: firebase-bridge
+  ports:
+    - port: 4050
+      targetPort: 4050
+---

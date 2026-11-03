@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-31T08:14:30.813Z",
+  "lastUpdated": "2026-10-31T14:45:42.457Z",
   "suites": [
     {
       "id": "uc-01a",
@@ -11,11 +11,11 @@
       "actor": "Consumer / Buyer",
       "description": "Full buyer onboarding: stages user profile for usr_8977848501, opens login dialog, verifies 6-digit OTP, checks default buyer role and village badge, and signs out.",
       "status": "passed",
-      "duration": 13.4,
-      "lastRun": "2026-10-31T08:14:30.813Z",
+      "duration": 12.2,
+      "lastRun": "2026-10-31T10:22:32.119Z",
       "videoUrl": "/recordings/uc-01a.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (8.7s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (9.1s)\n"
     },
     {
       "id": "uc-01b",
@@ -27,11 +27,11 @@
       "actor": "Kirana Merchant",
       "description": "Full merchant onboarding: registers merchant business profile, authenticates via OTP, elevates role to merchant, verifies fullscreen corridor at /m/gigs, and signs out.",
       "status": "passed",
-      "duration": 14.5,
-      "lastRun": "2026-10-31T07:17:53.907Z",
+      "duration": 40.1,
+      "lastRun": "2026-10-31T10:23:12.493Z",
       "videoUrl": "/recordings/uc-01b.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (10.2s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (36.6s)\n"
     },
     {
       "id": "uc-01c",
@@ -42,12 +42,12 @@
       "tier": "Tier 1: Identity",
       "actor": "Fleet Driver",
       "description": "Full transporter onboarding: registers driver vehicle credentials, authenticates driver session, validates mobile PWA layout and route manifests, and signs out.",
-      "status": "passed",
-      "duration": 13.2,
-      "lastRun": "2026-10-31T07:18:08.783Z",
+      "status": "failed",
+      "duration": 51.4,
+      "lastRun": "2026-10-31T14:45:42.457Z",
       "videoUrl": "/recordings/uc-01c.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (10.0s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n××F\n\n  1) [test] › tests\\e2e\\pwa\\business\\usecases-identity-business.spec.ts:138:7 › Business Identity & Multi-Persona Onboarding › UC-01C: Fleet Transporter / Driver Signup, Vehicle Onboarding & Mobile PWA Ingress \n\n    Error: expect(locator).toContainText(expected) failed\n\n    Locator: locator('[data-testid=\"assigned-role-text\"]')\n    Expected pattern: /Fleet Rider/i\n    Received string:  \"Consumer / Buyer\"\n    Timeout: 5000ms\n\n    Call log:\n      - Expect \"toContainText\" locator('[data-testid=\"assigned-role-text\"]') with timeout 5000ms\n      - waiting for locator('[data-testid=\"assigned-role-text\"]')\n        14 × locator resolved to <span data-testid=\"assigned-role-text\">Consumer / Buyer</span>\n           - unexpected value \"Consumer / Buyer\"\n\n\n      148 |\n      149 |     const roleBadge = page.locator('[data-testid=\"assigned-role-text\"]');\n    > 150 |     await expect(roleBadge).toContainText(/Fleet Rider/i);\n          |                             ^\n      151 |\n      152 |     // Navigate to driver corridor\n      153 |     await page.goto('/d/gigs', { waitUntil: 'domcontentloaded' });\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\business\\usecases-identity-business.spec.ts:150:29\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test\\video.webm\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test\\error-context.md\n\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toContainText(expected) failed\n\n    Locator: locator('[data-testid=\"assigned-role-text\"]')\n    Expected pattern: /Fleet Rider/i\n    Received string:  \"Consumer / Buyer\"\n    Timeout: 5000ms\n\n    Call log:\n      - Expect \"toContainText\" locator('[data-testid=\"assigned-role-text\"]') with timeout 5000ms\n      - waiting for locator('[data-testid=\"assigned-role-text\"]')\n        13 × locator resolved to <span data-testid=\"assigned-role-text\">Consumer / Buyer</span>\n           - unexpected value \"Consumer / Buyer\"\n\n\n      148 |\n      149 |     const roleBadge = page.locator('[data-testid=\"assigned-role-text\"]');\n    > 150 |     await expect(roleBadge).toContainText(/Fleet Rider/i);\n          |                             ^\n      151 |\n      152 |     // Navigate to driver corridor\n      153 |     await page.goto('/d/gigs', { waitUntil: 'domcontentloaded' });\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\business\\usecases-identity-business.spec.ts:150:29\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry1\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry1\\video.webm\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry1\\error-context.md\n\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry1\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry1\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toContainText(expected) failed\n\n    Locator: locator('[data-testid=\"assigned-role-text\"]')\n    Expected pattern: /Fleet Rider/i\n    Received string:  \"Consumer / Buyer\"\n    Timeout: 5000ms\n\n    Call log:\n      - Expect \"toContainText\" locator('[data-testid=\"assigned-role-text\"]') with timeout 5000ms\n      - waiting for locator('[data-testid=\"assigned-role-text\"]')\n        13 × locator resolved to <span data-testid=\"assigned-role-text\">Consumer / Buyer</span>\n           - unexpected value \"Consumer / Buyer\"\n\n\n      148 |\n      149 |     const roleBadge = page.locator('[data-testid=\"assigned-role-text\"]');\n    > 150 |     await expect(roleBadge).toContainText(/Fleet Rider/i);\n          |                             ^\n      151 |\n      152 |     // Navigate to driver corridor\n      153 |     await page.goto('/d/gigs', { waitUntil: 'domcontentloaded' });\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\business\\usecases-identity-business.spec.ts:150:29\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry2\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry2\\video.webm\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry2\\error-context.md\n\n    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry2\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\business-usecases-identity-9fe5a-boarding-Mobile-PWA-Ingress-test-retry2\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  1 failed\n    [test] › tests\\e2e\\pwa\\business\\usecases-identity-business.spec.ts:138:7 › Business Identity & Multi-Persona Onboarding › UC-01C: Fleet Transporter / Driver Signup, Vehicle Onboarding & Mobile PWA Ingress \n"
     },
     {
       "id": "uc-01d",
@@ -59,11 +59,11 @@
       "actor": "Wholesale Supplier",
       "description": "Full supplier onboarding: registers agricultural mill entity, authenticates supplier admin, audits escrow funds balance sheet, and signs out.",
       "status": "passed",
-      "duration": 10.9,
-      "lastRun": "2026-10-31T07:18:21.471Z",
+      "duration": 17.8,
+      "lastRun": "2026-10-31T08:15:34.377Z",
       "videoUrl": "/recordings/uc-01d.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (7.4s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (12.2s)\n"
     },
     {
       "id": "uc-01e",
@@ -75,11 +75,11 @@
       "actor": "Support Specialist",
       "description": "Full operator security: authenticates tier-2 support specialist, accesses operations ticket console at /x, validates RBAC privilege elevation, and signs out.",
       "status": "passed",
-      "duration": 9.1,
-      "lastRun": "2026-10-31T07:18:31.856Z",
+      "duration": 10.1,
+      "lastRun": "2026-10-31T08:15:45.381Z",
       "videoUrl": "/recordings/uc-01e.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (5.7s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.5s)\n"
     },
     {
       "id": "uc-01f",
@@ -91,11 +91,11 @@
       "actor": "Finance Auditor",
       "description": "Full audit ingress: authenticates certified finance & tax officer, audits GST withholding schedules and platform balance sheet, and signs out.",
       "status": "passed",
-      "duration": 6.4,
-      "lastRun": "2026-10-31T07:20:42.837Z",
+      "duration": 13.2,
+      "lastRun": "2026-10-31T08:15:58.732Z",
       "videoUrl": "/recordings/uc-01f.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.4s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (9.0s)\n"
     },
     {
       "id": "uc-01g",
@@ -107,11 +107,11 @@
       "actor": "Platform SRE",
       "description": "Full observability ingress: authenticates platform site reliability engineer, verifies zero-trust token, inspects microservices health mesh, and signs out.",
       "status": "passed",
-      "duration": 41.8,
-      "lastRun": "2026-10-31T07:20:55.650Z",
+      "duration": 17,
+      "lastRun": "2026-10-31T08:16:17.393Z",
       "videoUrl": "/recordings/uc-01g.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (11.3s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (13.2s)\n"
     },
     {
       "id": "uc-01h",
@@ -123,11 +123,11 @@
       "actor": "Merchant / Support",
       "description": "Full role transition: starts as rural buyer, submits merchant upgrade request, simulates ops team approval, validates role elevation token, and signs out.",
       "status": "passed",
-      "duration": 19.7,
-      "lastRun": "2026-10-31T07:21:17.237Z",
+      "duration": 17.7,
+      "lastRun": "2026-10-31T08:16:36.910Z",
       "videoUrl": "/recordings/uc-01h.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (15.8s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (14.3s)\n"
     },
     {
       "id": "uc-01i",
@@ -139,11 +139,11 @@
       "actor": "Rural Citizen",
       "description": "Full localization journey: toggles Telugu, Hindi, Tamil, Kannada, Marathi, English, verifies RTL/LTR layout and i18n persistence across sessions.",
       "status": "passed",
-      "duration": 14,
-      "lastRun": "2026-10-31T07:21:32.828Z",
+      "duration": 10.1,
+      "lastRun": "2026-10-31T08:16:47.290Z",
       "videoUrl": "/recordings/uc-01i.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (10.3s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.9s)\n"
     },
     {
       "id": "uc-01j",
@@ -155,11 +155,11 @@
       "actor": "Corporate Buyer",
       "description": "Full federated SSO: initiates Google OAuth 2.0 flow, validates JWT assertion exchange, maps verified email to enterprise profile, and signs out.",
       "status": "passed",
-      "duration": 12.3,
-      "lastRun": "2026-10-31T07:21:46.446Z",
+      "duration": 8.2,
+      "lastRun": "2026-10-31T08:16:57.352Z",
       "videoUrl": "/recordings/uc-01j.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (8.1s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (4.9s)\n"
     },
     {
       "id": "uc-01k",
@@ -171,11 +171,11 @@
       "actor": "Suspended User",
       "description": "Full security circuit breaker: flags compromised account with SUSPENDED status, tests authentication rejection (403), verifies lockout banner, and resets.",
       "status": "passed",
-      "duration": 9.7,
-      "lastRun": "2026-10-31T07:21:56.892Z",
+      "duration": 8.2,
+      "lastRun": "2026-10-31T08:17:06.407Z",
       "videoUrl": "/recordings/uc-01k.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (5.9s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (5.0s)\n"
     },
     {
       "id": "uc-04",
@@ -187,11 +187,11 @@
       "actor": "Kirana Merchant",
       "description": "2-Phase credit reservation: stages ₹50k limit, reserves valid ₹2,500 hold, rejects over-headroom hold with HTTP 402, and commits authorization.",
       "status": "passed",
-      "duration": 11.1,
-      "lastRun": "2026-10-31T07:22:08.476Z",
+      "duration": 9.2,
+      "lastRun": "2026-10-31T08:17:16.417Z",
       "videoUrl": "/recordings/uc-04.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (7.3s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.1s)\n"
     },
     {
       "id": "uc-05",
@@ -203,11 +203,11 @@
       "actor": "Buyer / Merchant",
       "description": "Full commerce checkout: constructs multi-item village pamphlet cart, calculates taxes, issues dynamic UPI QR payment intent, and reconciles settlement.",
       "status": "passed",
-      "duration": 11.2,
-      "lastRun": "2026-10-31T07:22:20.942Z",
+      "duration": 23.3,
+      "lastRun": "2026-10-31T08:17:42.496Z",
       "videoUrl": "/recordings/uc-05.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (7.7s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (18.7s)\n"
     },
     {
       "id": "uc-06",
@@ -219,11 +219,11 @@
       "actor": "Driver / Merchant",
       "description": "Full chain-of-custody dispatch: records hub vehicle departure gate checklist, verifies dual-party 4-digit handover OTP, and updates consignment state.",
       "status": "passed",
-      "duration": 14,
-      "lastRun": "2026-10-31T07:22:36.128Z",
+      "duration": 13.5,
+      "lastRun": "2026-10-31T08:17:58.669Z",
       "videoUrl": "/recordings/uc-06.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (10.3s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (10.2s)\n"
     },
     {
       "id": "uc-07",
@@ -235,11 +235,11 @@
       "actor": "Driver / Support",
       "description": "Full reverse logistics: rejects damaged goods at doorstep, flags return reason code, schedules 72-hr RTO vehicle return window, and releases buyer hold.",
       "status": "passed",
-      "duration": 13.6,
-      "lastRun": "2026-10-31T07:22:50.433Z",
+      "duration": 12.2,
+      "lastRun": "2026-10-31T08:18:11.439Z",
       "videoUrl": "/recordings/uc-07.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (9.1s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (8.0s)\n"
     },
     {
       "id": "uc-08",
@@ -251,11 +251,11 @@
       "actor": "Fleet Driver",
       "description": "CoD cash custody: checks initial zero balance, records customer cash collection, increments active custody, and triggers ₹50,000 transit ceiling guard (422).",
       "status": "passed",
-      "duration": 17.3,
-      "lastRun": "2026-10-31T07:23:09.298Z",
+      "duration": 14.1,
+      "lastRun": "2026-10-31T08:18:26.310Z",
       "videoUrl": "/recordings/uc-08.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (12.8s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (10.2s)\n"
     },
     {
       "id": "uc-09",
@@ -267,11 +267,11 @@
       "actor": "Driver / Hub Cashier",
       "description": "Depot turn-in: stages physical cash handover, verifies 6-digit cryptographic turn-in OTP, discharges driver custody balance to ₹0, and updates depot cash safe.",
       "status": "passed",
-      "duration": 19.1,
-      "lastRun": "2026-10-31T07:23:29.688Z",
+      "duration": 14.7,
+      "lastRun": "2026-10-31T08:18:41.894Z",
       "videoUrl": "/recordings/uc-09.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (14.0s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (11.0s)\n"
     },
     {
       "id": "uc-10",
@@ -283,11 +283,11 @@
       "actor": "Driver / Support",
       "description": "Discrepancy circuit breaker: flags ₹200 shortfall during turn-in, trips payout custody gate, blocks instant withdrawal (422), and routes ticket to audit queue.",
       "status": "passed",
-      "duration": 11.3,
-      "lastRun": "2026-10-31T07:23:41.079Z",
+      "duration": 9.8,
+      "lastRun": "2026-10-31T08:18:53.017Z",
       "videoUrl": "/recordings/uc-10.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (7.2s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.0s)\n"
     },
     {
       "id": "uc-11",
@@ -299,11 +299,11 @@
       "actor": "Transporter / Finance",
       "description": "Encrypted beneficiary setup: registers bank account & IFSC code, encrypts sensitive account numbers with Cloud KMS envelope encryption, and confirms active state.",
       "status": "passed",
-      "duration": 16.6,
-      "lastRun": "2026-10-31T07:23:58.640Z",
+      "duration": 17.1,
+      "lastRun": "2026-10-31T08:19:11.341Z",
       "videoUrl": "/recordings/uc-11.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (12.2s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (12.4s)\n"
     },
     {
       "id": "uc-12",
@@ -315,11 +315,11 @@
       "actor": "Finance / Cloud Tasks",
       "description": "Automated payout: enqueues payout job via Cloud Tasks, executes simulated IMPS transfer via bank gateway, and records 12-digit UTR confirmation code.",
       "status": "passed",
-      "duration": 17.9,
-      "lastRun": "2026-10-31T07:24:18.176Z",
+      "duration": 12.1,
+      "lastRun": "2026-10-31T08:19:25.390Z",
       "videoUrl": "/recordings/uc-12.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (13.6s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (8.9s)\n"
     },
     {
       "id": "uc-13",
@@ -331,11 +331,11 @@
       "actor": "Supplier / Finance",
       "description": "Escrow governance: audits supplier funds ledger, tracks 2.5% merchant PUDO commission, allocates driver kilometer remuneration, and balances escrow reserve.",
       "status": "passed",
-      "duration": 13.4,
-      "lastRun": "2026-10-31T07:24:32.897Z",
+      "duration": 8,
+      "lastRun": "2026-10-31T08:19:36.323Z",
       "videoUrl": "/recordings/uc-13.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (7.8s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (4.9s)\n"
     },
     {
       "id": "uc-14",
@@ -347,11 +347,11 @@
       "actor": "Compliance Officer",
       "description": "NPCI TPAP enforcement: validates strict VPA handle syntax, tests sanitization against suspicious characters, and enforces instant blacklist rejection (400).",
       "status": "passed",
-      "duration": 16.6,
-      "lastRun": "2026-10-31T07:24:50.727Z",
+      "duration": 11.5,
+      "lastRun": "2026-10-31T08:19:50.726Z",
       "videoUrl": "/recordings/uc-14.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (12.1s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (8.3s)\n"
     },
     {
       "id": "uc-15",
@@ -363,11 +363,11 @@
       "actor": "Risk Ops / AML",
       "description": "Fraud velocity circuit breaker: tracks rapid multi-transaction velocity, detects structuring anomalies, freezes suspect account, and alerts compliance.",
       "status": "passed",
-      "duration": 10.5,
-      "lastRun": "2026-10-31T07:25:02.498Z",
+      "duration": 21.8,
+      "lastRun": "2026-10-31T08:20:12.944Z",
       "videoUrl": "/recordings/uc-15.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.4s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n×±\n\n  1) [test] › tests\\e2e\\pwa\\technical\\usecases-governance-technical.spec.ts:133:7 › Technical Governance & Financial Invariants › UC-15 (UC-GOV-02): Real-Time AML Fraud Velocity Interception & Account Freeze Gate \n\n    Error: EBUSY: resource busy or locked, unlink 'C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\test-results\\.playwright-artifacts-0\\cb18868b7adbdf4c3506d32b8d18ef7b.zip'\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\technical-usecases-governa-fb350-ception-Account-Freeze-Gate-test\\test-finished-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────\n    test-results\\technical-usecases-governa-fb350-ception-Account-Freeze-Gate-test\\video.webm\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  1 flaky\n    [test] › tests\\e2e\\pwa\\technical\\usecases-governance-technical.spec.ts:133:7 › Technical Governance & Financial Invariants › UC-15 (UC-GOV-02): Real-Time AML Fraud Velocity Interception & Account Freeze Gate \n"
     },
     {
       "id": "uc-16",
@@ -379,11 +379,11 @@
       "actor": "Dispute Manager",
       "description": "Dispute SLA governance: tracks active UPI chargebacks, renders live 24-hour statutory countdown clock, and compiles daily regulatory compliance export.",
       "status": "passed",
-      "duration": 13,
-      "lastRun": "2026-10-31T07:25:15.779Z",
+      "duration": 12.6,
+      "lastRun": "2026-10-31T08:20:25.855Z",
       "videoUrl": "/recordings/uc-16.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (7.2s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.9s)\n"
     },
     {
       "id": "uc-17",
@@ -395,11 +395,11 @@
       "actor": "Legal / User",
       "description": "Versioned consent gate: records cryptographic timestamped clickwrap acceptance, bumps legal terms version (v2.1), and intercepts unconsented requests.",
       "status": "passed",
-      "duration": 15,
-      "lastRun": "2026-10-31T07:25:32.298Z",
+      "duration": 33,
+      "lastRun": "2026-10-31T08:21:00.180Z",
       "videoUrl": "/recordings/uc-17.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (9.3s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (27.7s)\n"
     },
     {
       "id": "uc-18",
@@ -410,12 +410,12 @@
       "tier": "Tier 4: Governance",
       "actor": "Finance Auditor",
       "description": "Double-entry integrity: audits multi-currency ledger entries, verifies debit/credit exact equality, and rejects unbalanced journal batches with invariant violation.",
-      "status": "failed",
-      "duration": 156.3,
-      "lastRun": "2026-10-31T07:28:08.690Z",
+      "status": "passed",
+      "duration": 12.3,
+      "lastRun": "2026-10-31T08:21:13.545Z",
       "videoUrl": "/recordings/uc-18.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n××F\n\n  1) [test] › tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:410:7 › Tier 4: Financial Ledger, Nightly Bank Reconciliation & TPAP AML › UC-18 (UC-FIN-01): Double-Entry Platform General Ledger & Zero-Sum Invariance Invariant Gate \n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: locator('header.spt-topbar')\n    Expected: visible\n    Timeout: 10000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        2 × waiting for navigation to finish...\n          - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:415:5\n\n    Tearing down \"context\" exceeded the test timeout of 30000ms.\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: locator('header.spt-topbar')\n    Expected: visible\n    Timeout: 10000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        4 × waiting for navigation to finish...\n          - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:415:5\n\n    Tearing down \"context\" exceeded the test timeout of 30000ms.\n\n    Error: browserContext.close: Target page, context or browser has been closed\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry1\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry1\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry1\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry1\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator:  locator('header.spt-topbar')\n    Expected: visible\n    Received: undefined\n    Timeout:  10000ms\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        2 × waiting for navigation to finish...\n          - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:415:5\n\n    Tearing down \"context\" exceeded the test timeout of 30000ms.\n\n    Error: browserContext.close: Target page, context or browser has been closed\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry2\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry2\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry2\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-920ba-m-Invariance-Invariant-Gate-test-retry2\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  1 failed\n    [test] › tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:410:7 › Tier 4: Financial Ledger, Nightly Bank Reconciliation & TPAP AML › UC-18 (UC-FIN-01): Double-Entry Platform General Ledger & Zero-Sum Invariance Invariant Gate \n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (7.4s)\n"
     },
     {
       "id": "uc-19",
@@ -426,12 +426,12 @@
       "tier": "Tier 4: Governance",
       "actor": "Reconciliation Engine",
       "description": "3-Way financial reconciliation: cross-checks platform orders, payment gateway settlements, and bank nodal account statements with automated variance matching.",
-      "status": "failed",
-      "duration": 164.8,
-      "lastRun": "2026-10-31T07:30:10.110Z",
+      "status": "passed",
+      "duration": 10.9,
+      "lastRun": "2026-10-31T08:21:26.134Z",
       "videoUrl": "/recordings/uc-19.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n××F\n\n  1) [test] › tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:490:7 › Tier 4: Financial Ledger, Nightly Bank Reconciliation & TPAP AML › UC-19 (UC-FIN-02): Nightly 3-Way Bank Reconciliation & Vertex AI Variance Analysis \n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: locator('header.spt-topbar')\n    Expected: visible\n    Timeout: 10000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        - waiting for navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n        - waiting for \"http://localhost:5173/home\" navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:495:5\n\n    Tearing down \"context\" exceeded the test timeout of 30000ms.\n\n    Error: browserContext.close: Target page, context or browser has been closed\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: locator('header.spt-topbar')\n    Expected: visible\n    Timeout: 10000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        - waiting for navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n        - waiting for \"http://localhost:5173/home\" navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:495:5\n\n    Tearing down \"context\" exceeded the test timeout of 30000ms.\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test-retry1\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test-retry1\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test-retry1\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test-retry1\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: locator('header.spt-topbar')\n    Expected: visible\n    Timeout: 10000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        - waiting for navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n        - waiting for \"http://localhost:5173/home\" navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:495:5\n\n    Error: apiRequestContext._wrapApiCall: ENOENT: no such file or directory, copyfile 'C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\test-results\\.playwright-artifacts-2\\traces\\288c64033ccfed3ab36d-3891c27539661a50ef8c-retry2-recording1.network' -> 'C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\test-results\\.playwright-artifacts-2\\traces\\288c64033ccfed3ab36d-3891c27539661a50ef8c-retry2-recording1-pwnetcopy-1.network'\n\n    Error: browserContext._wrapApiCall: ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\test-results\\.playwright-artifacts-2\\traces\\288c64033ccfed3ab36d-3891c27539661a50ef8c-retry2.trace'\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test-retry2\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test-retry2\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-cddd5-Vertex-AI-Variance-Analysis-test-retry2\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  1 failed\n    [test] › tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:490:7 › Tier 4: Financial Ledger, Nightly Bank Reconciliation & TPAP AML › UC-19 (UC-FIN-02): Nightly 3-Way Bank Reconciliation & Vertex AI Variance Analysis \n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.7s)\n"
     },
     {
       "id": "uc-20",
@@ -442,12 +442,12 @@
       "tier": "Tier 4: Governance",
       "actor": "Tax Officer",
       "description": "Direct tax compliance: computes 1% Section 194O e-commerce TDS and 194C transport TDS, records quarterly challan withholding, and balances liabilities.",
-      "status": "failed",
-      "duration": 167.8,
-      "lastRun": "2026-10-31T07:32:07.146Z",
+      "status": "passed",
+      "duration": 9.4,
+      "lastRun": "2026-10-31T08:21:36.560Z",
       "videoUrl": "/recordings/uc-20.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n××F\n\n  1) [test] › tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:561:7 › Tier 4: Financial Ledger, Nightly Bank Reconciliation & TPAP AML › UC-20 (UC-FIN-03): Section 194C/194O TDS Deductions, Government Challan Settlement & Ledger Balancing \n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator:  locator('header.spt-topbar')\n    Expected: visible\n    Received: undefined\n    Timeout:  10000ms\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        - waiting for navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:566:5\n\n    Tearing down \"context\" exceeded the test timeout of 30000ms.\n\n    Error: browserContext.close: Test ended.\n    Browser logs:\n\n    [pid=3788][err] [1031/130040.945:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130040.954:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130041.147:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130041.238:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130041.259:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130041.408:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130041.555:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130041.898:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130041.915:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130042.039:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130042.203:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130042.346:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130042.492:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130042.500:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130042.669:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130042.825:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130042.887:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130043.180:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130043.293:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130043.328:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130043.538:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130043.766:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130043.809:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130043.930:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130044.250:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130044.272:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130044.429:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130044.650:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130044.674:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130044.759:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130044.989:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130045.005:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130045.190:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130045.379:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130045.401:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130045.595:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130045.719:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130045.985:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130046.012:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130046.172:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130046.448:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130046.470:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130046.599:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130046.872:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130046.893:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130046.992:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130047.007:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130047.200:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130047.449:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130047.503:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130047.683:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130047.791:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130047.796:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130048.086:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130048.219:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130048.256:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130048.316:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130048.447:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130048.484:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130048.881:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130049.039:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130049.095:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130049.247:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130049.358:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130049.386:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130049.590:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130049.753:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130049.763:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130050.130:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130050.304:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130050.650:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130050.929:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130051.087:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130051.120:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130051.513:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130051.684:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130051.722:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130051.905:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130052.023:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130052.087:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130052.149:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130052.319:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130052.336:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130052.529:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130052.704:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130052.747:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130052.838:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130052.967:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130052.986:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130053.099:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130053.211:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130053.242:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130053.311:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130053.401:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130053.412:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130053.514:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130053.640:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130053.675:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130053.745:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130053.906:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130053.965:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130054.090:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130054.214:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130054.235:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130054.332:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130054.476:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130054.525:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130054.730:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130054.905:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130054.958:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130055.029:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130055.184:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130055.240:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130055.349:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130055.498:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130055.515:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130055.728:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130055.989:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130056.039:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130056.384:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130056.667:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130056.698:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130056.878:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130057.118:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130057.226:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130057.390:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130057.548:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130057.570:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130057.731:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130057.905:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130057.986:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130058.173:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130058.416:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130058.440:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130058.760:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130058.919:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130058.989:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130059.087:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130059.263:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130059.270:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130059.417:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130059.552:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130059.633:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130059.704:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130059.839:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130059.888:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788][err] [1031/130059.948:INFO:CONSOLE:20103] \"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\", source: http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=7e82c9b1 (20103)\n    [pid=3788][err] [1031/130100.273:INFO:CONSOLE:789] \"[vite] connecting...\", source: http://localhost:5173/@vite/client (789)\n    [pid=3788][err] [1031/130100.291:INFO:CONSOLE:912] \"[vite] connected.\", source: http://localhost:5173/@vite/client (912)\n    [pid=3788] <gracefully close start>\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: locator('header.spt-topbar')\n    Expected: visible\n    Timeout: 10000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        - waiting for navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:566:5\n\n    Tearing down \"context\" exceeded the test timeout of 30000ms.\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test-retry1\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Error Context: test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test-retry1\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test-retry1\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test-retry1\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: locator('header.spt-topbar')\n    Expected: visible\n    Timeout: 10000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" locator('header.spt-topbar') with timeout 10000ms\n      - waiting for locator('header.spt-topbar')\n        - waiting for navigation to finish...\n        2 × navigated to \"http://localhost:5173/home\"\n          - waiting for \"http://localhost:5173/home\" navigation to finish...\n        - navigated to \"http://localhost:5173/home\"\n\n\n       at ..\\test-data-setup.ts:36\n\n      34 |     await page.goto('/x/ops', { waitUntil: 'domcontentloaded' });\n      35 |     const topbar = page.locator('header.spt-topbar');\n    > 36 |     await expect(topbar).toBeVisible({ timeout: 10000 });\n         |                          ^\n      37 |   } else if (actorRole === 'sre') {\n      38 |     await page.goto('/status', { waitUntil: 'domcontentloaded' });\n      39 |     const gatewayCard = page.locator('.svc-card, .pub-header').first();\n        at performUserSignIn (C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\test-data-setup.ts:36:26)\n        at C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:566:5\n\n    Error: apiRequestContext._wrapApiCall: ENOENT: no such file or directory, copyfile 'C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\test-results\\.playwright-artifacts-2\\traces\\288c64033ccfed3ab36d-1ba4a87b9eb10f578b32-retry2-recording1.network' -> 'C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\test-results\\.playwright-artifacts-2\\traces\\288c64033ccfed3ab36d-1ba4a87b9eb10f578b32-retry2-recording1-pwnetcopy-1.network'\n\n    Error: browserContext._wrapApiCall: ENOENT: no such file or directory, open 'C:\\Users\\Admin\\Downloads\\logikchain\\logikchain.com\\test-results\\.playwright-artifacts-2\\traces\\288c64033ccfed3ab36d-1ba4a87b9eb10f578b32-retry2.network'\n\n    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test-retry2\\test-failed-1.png\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test-retry2\\trace.zip\n    Usage:\n\n        npx playwright show-trace test-results\\usecases-governance-ledger-764de-Settlement-Ledger-Balancing-test-retry2\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  1 failed\n    [test] › tests\\e2e\\pwa\\usecases-governance-ledger.spec.ts:561:7 › Tier 4: Financial Ledger, Nightly Bank Reconciliation & TPAP AML › UC-20 (UC-FIN-03): Section 194C/194O TDS Deductions, Government Challan Settlement & Ledger Balancing \n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (5.6s)\n"
     },
     {
       "id": "uc-21",
@@ -459,11 +459,11 @@
       "actor": "Platform Architect",
       "description": "End-to-end golden path: verifies critical path milestone completion across all 10 roadmap stages, from multi-tenant identity to zero-variance balance sheet.",
       "status": "passed",
-      "duration": 67.3,
-      "lastRun": "2026-10-31T07:32:15.552Z",
+      "duration": 9.5,
+      "lastRun": "2026-10-31T08:21:48.668Z",
       "videoUrl": "/recordings/uc-21.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (21.5s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.0s)\n"
     },
     {
       "id": "config-geo-hierarchy",
@@ -474,11 +474,11 @@
       "actor": "Support / Admin",
       "description": "Full operator flow: stages 4-tier geographic master data, authenticates support session, audits Countries, States, Districts, Villages and Hubs at /x/config, and executes explicit sign-out.",
       "status": "passed",
-      "duration": 13.8,
-      "lastRun": "2026-10-31T07:32:30.830Z",
+      "duration": 9.7,
+      "lastRun": "2026-10-31T08:21:59.949Z",
       "videoUrl": "/recordings/config-geo-hierarchy.webm",
       "videoExists": true,
-      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (9.3s)\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.0s)\n"
     },
     {
       "id": "config-subscription-plans",
@@ -488,12 +488,12 @@
       "tier": "Tier 5: Platform",
       "actor": "Merchant / Admin",
       "description": "Full commercial plans flow: stages Silver, Gold, Platinum plan tiers, signs in commercial operator, audits quotas at /x/config/plans and platform order tariffs at /x/config/tariffs, and executes explicit sign-out.",
-      "status": "failed",
-      "duration": 4.8,
-      "lastRun": "2026-10-31T07:32:36.123Z",
+      "status": "passed",
+      "duration": 10.8,
+      "lastRun": "2026-10-31T08:22:11.951Z",
       "videoUrl": "/recordings/config-subscription-plans.webm",
       "videoExists": true,
-      "logOutput": "\nError: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.\n\n\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (6.6s)\n"
     },
     {
       "id": "config-tax-profiles",
@@ -503,12 +503,12 @@
       "tier": "Tier 5: Platform",
       "actor": "Finance / Admin",
       "description": "Full tax compliance flow: stages commodity GST splits (0%, 5%, 18%) and Section 194C/194O TDS profiles, signs in tax officer, audits rates at /x/config/tax and /x/config/tds, and executes explicit sign-out.",
-      "status": "failed",
-      "duration": 4.1,
-      "lastRun": "2026-10-31T07:32:41.644Z",
+      "status": "passed",
+      "duration": 12.3,
+      "lastRun": "2026-10-31T08:22:24.523Z",
       "videoUrl": "/recordings/config-tax-profiles.webm",
       "videoExists": true,
-      "logOutput": "\nError: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.\n\n\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (8.2s)\n"
     },
     {
       "id": "support-supplier-bulk-ingest",
@@ -518,12 +518,12 @@
       "tier": "Tier 5: Platform",
       "actor": "Supplier / Support",
       "description": "Full ingestion flow: stages multi-entity catalog data for sup_ongole_01, signs in support operator, selects 11 entity types, validates schema dry-run, catches 14-char invalid GSTIN error, locks commit button, and executes explicit sign-out.",
-      "status": "failed",
-      "duration": 5,
-      "lastRun": "2026-10-31T07:32:48.583Z",
+      "status": "passed",
+      "duration": 17.7,
+      "lastRun": "2026-10-31T08:22:44.395Z",
       "videoUrl": "/recordings/support-supplier-bulk-ingest.webm",
       "videoExists": true,
-      "logOutput": "\nError: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.\n\n\n"
+      "logOutput": "\nRunning 2 tests using 1 worker\n··\n  2 passed (10.9s)\n"
     },
     {
       "id": "support-supplier-proxy",
@@ -533,12 +533,12 @@
       "tier": "Tier 5: Platform",
       "actor": "Support / Supplier",
       "description": "Full proxy delegation flow: stages proxy authorization contexts, signs in operator, selects sup_ongole_01 via topbar switcher, confirms localStorage context persistence, verifies dual-identity audit headers, and executes explicit sign-out.",
-      "status": "failed",
-      "duration": 5.6,
-      "lastRun": "2026-10-31T07:32:55.361Z",
+      "status": "passed",
+      "duration": 7.8,
+      "lastRun": "2026-10-31T08:22:52.996Z",
       "videoUrl": "/recordings/support-supplier-proxy.webm",
       "videoExists": true,
-      "logOutput": "\nError: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.\n\n\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (4.8s)\n"
     },
     {
       "id": "status-services",
@@ -548,12 +548,12 @@
       "tier": "Tier 5: Platform",
       "actor": "DevOps / SRE",
       "description": "Full observability flow: stages cluster health probes, connects telemetry observer, queries API Gateway :30080 health summary, validates all 13 services reporting HTTP 200, checks all 12 isolated database pools, and disconnects session observer.",
-      "status": "failed",
-      "duration": 16.5,
-      "lastRun": "2026-10-31T07:33:12.436Z",
+      "status": "passed",
+      "duration": 97.5,
+      "lastRun": "2026-10-31T08:24:31.762Z",
       "videoUrl": "/recordings/status-services.webm",
       "videoExists": true,
-      "logOutput": "\nError: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.\n\n\n"
+      "logOutput": "\nRunning 11 tests using 1 worker\n···········\n  11 passed (1.5m)\n"
     },
     {
       "id": "status-test-runner",
@@ -563,12 +563,12 @@
       "tier": "Tier 5: Platform",
       "actor": "DevOps / SRE",
       "description": "Full test runner inspection flow: verifies /status/tests portal, switches between Microservices and Test Runner tabs, opens WebM video player, tests playback speeds (0.5x–2x), inspects log output modal, and downloads video recordings.",
-      "status": "failed",
-      "duration": 6.4,
-      "lastRun": "2026-10-31T07:33:20.011Z",
+      "status": "passed",
+      "duration": 15.8,
+      "lastRun": "2026-10-31T08:24:49.113Z",
       "videoUrl": "/recordings/status-test-runner.webm",
       "videoExists": true,
-      "logOutput": "\nError: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.\n\n\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (12.4s)\n"
     },
     {
       "id": "user-flow-login-role-village",
@@ -578,12 +578,12 @@
       "tier": "Full Journey Baseline",
       "actor": "Buyer / Merchant / Support",
       "description": "Full user flow: seeds initial state, signs in with phone 8977848501 & OTP 123123, elevates role to Kirana Merchant, launches fullscreen corridor (/m/gigs), updates village to village_kandukur_523105 in profile, verifies persistence in PostgreSQL, and performs explicit sign-out.",
-      "status": "failed",
-      "duration": 12.8,
-      "lastRun": "2026-10-31T07:33:34.596Z",
+      "status": "passed",
+      "duration": 17,
+      "lastRun": "2026-10-31T08:25:08.152Z",
       "videoUrl": "/recordings/user-flow-login-role-village.webm",
       "videoExists": true,
-      "logOutput": "\nError: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.\n\n\n"
+      "logOutput": "\nRunning 1 test using 1 worker\n·\n  1 passed (13.8s)\n"
     }
   ]
 }

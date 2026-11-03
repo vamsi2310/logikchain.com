@@ -7,7 +7,10 @@
     "test:status": "playwright test tests/e2e/pwa/status-services.spec.ts",
     "test:commerce": "playwright test tests/e2e/pwa/usecases-commerce.spec.ts",
     "test:usecases": "playwright test tests/e2e/pwa/",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "k8s:build": "npm --prefix microservices run docker:build-all",
+    "k8s:deploy": "npm --prefix microservices run k8s:deploy",
+    "k8s:status": "npm --prefix microservices run k8s:status"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0"

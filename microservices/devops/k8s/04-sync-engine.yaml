@@ -1,58 +1,68 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sync-engine
+  name: firebase-bridge
   namespace: logikchain-backend
   labels:
-    app: sync-engine
+    app: firebase-bridge
 spec:
-  replicas: 1 # Singleton daemon to avoid duplicate CDC stream processing
+  replicas: 1 # Singleton bridge to coordinate Firestore bulk writes and listeners
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: sync-engine
+      app: firebase-bridge
   template:
     metadata:
       labels:
-        app: sync-engine
+        app: firebase-bridge
     spec:
       containers:
-        - name: syncer
-          image: gcr.io/logikchain-prod/sync-engine:latest
+        - name: bridge
+          image: gcr.io/logikchain-prod/firebase-bridge:latest
           ports:
             - containerPort: 4050
           envFrom:
             - configMapRef:
                 name: logikchain-config
           env:
-            - name: DATABASE_URL
-              value: "postgresql://postgres:$(DB_PASSWORD)@postgres-cluster.logikchain-backend.svc.cluster.local:5432/sync_db"
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: logikchain-secrets
-                  key: DB_PASSWORD
+            - name: PORT
+              value: "4050"
+            - name: NODE_ENV
+              value: "production"
+            - name: GCLOUD_PROJECT
+              value: "logikchain-prod"
+            - name: FIREBASE_STORAGE_BUCKET
+              value: "logikchain-prod.appspot.com"
+            - name: ENABLE_INBOUND_LISTENERS
+              value: "true"
+            - name: ORDERS_SERVICE_URL
+              value: "http://orders-service.logikchain-backend.svc.cluster.local:4002"
+            - name: GIGS_SERVICE_URL
+              value: "http://gigs-service.logikchain-backend.svc.cluster.local:4003"
           resources:
             requests:
-              cpu: "300m"
-              memory: "512Mi"
+              cpu: "100m"
+              memory: "128Mi"
             limits:
-              cpu: "1000m"
-              memory: "1Gi"
+              cpu: "500m"
+              memory: "256Mi"
           readinessProbe:
             httpGet:
               path: /health
               port: 4050
+            initialDelaySeconds: 5
+            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: sync-engine
+  name: firebase-bridge
   namespace: logikchain-backend
 spec:
   selector:
-    app: sync-engine
+    app: firebase-bridge
   ports:
-    - port: 4050
+    - name: http
+      port: 4050
       targetPort: 4050

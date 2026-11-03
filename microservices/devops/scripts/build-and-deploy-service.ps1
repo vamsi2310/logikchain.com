@@ -2,10 +2,10 @@
 .SYNOPSIS
     Builds Docker containers for specified microservices and deploys them to local Kubernetes cluster.
 .PARAMETER Services
-    Array of service names to build and deploy. Defaults to @('identity-service', 'social-connect-service').
+    Array of service names to build and deploy. Defaults to @('orders-service').
 #>
 param(
-    [string[]]$Services = @('identity-service', 'social-connect-service')
+    [string[]]$Services = @('orders-service')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -21,13 +21,24 @@ Write-Host "========================================================" -Foregroun
 Set-Location $RootDir
 
 foreach ($svc in $Services) {
-    Write-Host "`n[1/3] Building TypeScript for $svc..." -ForegroundColor Yellow
-    npm --prefix "services/$svc" run build
+    if ($svc -eq 'gateway') {
+        Write-Host "`nBuilding API Gateway: logikchain/gateway:latest..." -ForegroundColor Yellow
+        docker build -t logikchain/gateway:latest -f devops/docker/Dockerfile.gateway .
+    }
+    elseif ($svc -eq 'firebase-bridge') {
+        Write-Host "`nBuilding Firebase Bridge: logikchain/firebase-bridge:latest..." -ForegroundColor Yellow
+        docker build -t logikchain/firebase-bridge:latest -f devops/docker/Dockerfile.firebase-bridge .
+    }
+    else {
+        # Domain Microservice in Rust
+        Write-Host "`nBuilding Rust container: logikchain/${svc}-rust:latest (SERVICE_NAME=$svc)..." -ForegroundColor Yellow
+        docker build -f rust-services/Dockerfile.rust-service `
+            -t "logikchain/${svc}-rust:latest" `
+            --build-arg "SERVICE_NAME=$svc" `
+            rust-services
+    }
 
-    Write-Host "[2/3] Building Docker container: logikchain/${svc}:latest..." -ForegroundColor Yellow
-    docker build -t "logikchain/${svc}:latest" --build-arg "SERVICE_NAME=$svc" -f "devops/docker/Dockerfile.service" .
-
-    Write-Host "[3/3] Rolling out to Kubernetes namespace: logikchain-backend..." -ForegroundColor Yellow
+    Write-Host "Rolling out to Kubernetes namespace: logikchain-backend..." -ForegroundColor Yellow
     kubectl rollout restart "deployment/$svc" -n logikchain-backend
     kubectl rollout status "deployment/$svc" -n logikchain-backend --timeout=60s
 }

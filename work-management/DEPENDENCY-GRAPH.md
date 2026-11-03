@@ -166,7 +166,7 @@ graph LR
     FEAT1007["FEAT-10.07<br/>Master Corridors & Routes"]:::feat
     FEAT1201["FEAT-12.01<br/>API Gateway Routing"]:::feat
     FEAT1202["FEAT-12.02<br/>App Check Firewall"]:::feat
-    FEAT1203["FEAT-12.03<br/>PostgreSQL-Firestore CDC"]:::feat
+    FEAT1203["FEAT-12.03<br/>Firebase Sync Bridge (SQLite to Firestore)"]:::feat
 
     FEAT1301["FEAT-13.01<br/>Notification Preferences"]:::feat
     FEAT1302["FEAT-13.02<br/>WhatsApp OTP Orchestration"]:::feat
@@ -368,7 +368,7 @@ graph TD
 | **`FEAT-10.07`** | Master Corridors & Route Governance | `[READY]` | PWA-10.07.01, AND-10.07.01, IOS-10.07.01, TEST-10.07.PWA | `FEAT-10.01`, `FEAT-03.01` | Regional Suppliers (`SUP-07`, `SUP-02`), Support (`SPT-09.4`) |
 | **`FEAT-12.01`** | API Gateway Multi-Client Routing | `[IN_PROGRESS]` | PWA-12.01.01, AND-12.01.01, IOS-12.01.01, TEST-12.01.PWA | Kubernetes Cluster Ingress, DNS | All Client Frontends (PWA, Android, iOS) |
 | **`FEAT-12.02`** | App Check Zero-Trust Perimeter | `[IN_PROGRESS]` | PWA-12.02.01, AND-12.02.01, IOS-12.02.01, TEST-12.02.PWA | Play Integrity, DeviceCheck keys | `FEAT-03.02`, `FEAT-02.03` |
-| **`FEAT-12.03`** | CDC Sync Engine (PG $\rightarrow$ Firestore)| `[READY]` | PWA-12.03.01, AND-12.03.01, IOS-12.03.01, TEST-12.03.PWA | PostgreSQL Outbox tables, Firestore Admin SDK | Mobile & Web Offline Viewers |
+| **`FEAT-12.03`** | Firebase Sync Bridge (SQLite $\rightarrow$ Firestore)| `[READY]` | PWA-12.03.01, AND-12.03.01, IOS-12.03.01, TEST-12.03.PWA | SQLite Outbox streams, Firebase Bridge (:4050) | Mobile & Web Offline Viewers |
 | **`FEAT-12.04`** | Cloud Storage Media Sync | `[READY]` | PWA-12.04.01, AND-12.04.01, IOS-12.04.01, TEST-12.04.PWA | Firebase Cloud Storage bucket, GCP IAM | `FEAT-04.03`, `FEAT-09.03`, `FEAT-13.04`, `FEAT-01.06` |
 | **`FEAT-13.01`** | Notification Preferences | `[IN_PROGRESS]` | PWA-13.01.01, AND-13.01.01, IOS-13.01.01, TEST-13.01.PWA | `FEAT-12.03` (Firestore Sync) | `FEAT-13.02`, `FEAT-13.03`, `FEAT-13.04` |
 | **`FEAT-13.02`** | WhatsApp OTP Orchestration | `[IN_PROGRESS]` | PWA-13.02.01, AND-13.02.01, IOS-13.02.01, TEST-13.02.PWA | Meta WhatsApp Cloud API credentials | `FEAT-01.01` (Auth Bootstrap) |

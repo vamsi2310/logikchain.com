@@ -636,7 +636,7 @@ const NODES = [
   {
     id: 'firebase-core', x: 1020, y: 560, w: 210, h: 200, color: '#d97706', layer: 'firebase',
     icon: '🔥', title: 'Firebase Core', sub: 'Auth · Firestore · FCM · Storage · App Check',
-    desc: 'One Auth directory, one Firestore, one set of Functions, one FCM config per project alias. Provides client real-time snapshot reads and storage. Each backend microservice independently connects to Firestore & Storage for periodic quick syncs.',
+    desc: 'One Auth directory, one Firestore, one set of Functions, one FCM config per project alias. Provides client real-time snapshot reads and storage. Connected to Rust domain microservices via dedicated Firebase Sync Bridge (:4050) bridging local SQLite outboxes to Firestore.',
     fns: [
       { name: 'Phone OTP + Google SSO', m: 'auth' },
       { name: 'Firestore (reads + onSnapshot)', m: 'db' },

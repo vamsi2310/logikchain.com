@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { FALLBACK_TEST_SUITES } from "../../data/fallbackTestSuites";
 
 export interface TestCaseSuite {
   id: string;
@@ -254,8 +255,8 @@ const FLOW_STEPS_MAP: Record<string, string[]> = {
 };
 
 export function E2ETestRunnerSection() {
-  const [suites, setSuites] = useState<TestCaseSuite[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [suites, setSuites] = useState<TestCaseSuite[]>(FALLBACK_TEST_SUITES);
+  const [loading, setLoading] = useState(false);
   const [selectedActor, setSelectedActor] = useState<string>("all");
   const [selectedTier, setSelectedTier] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<"all" | "business" | "technical">("all");
@@ -266,31 +267,38 @@ export function E2ETestRunnerSection() {
   const [runningAll, setRunningAll] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Fetch test suites from /api/tests with fallback to /recordings/test-results.json
+  // Fetch test suites from /api/tests with fallback to /recordings/test-results.json and FALLBACK_TEST_SUITES
   const fetchSuites = useCallback(async () => {
     try {
-      let res = await fetch("/api/tests");
-      if (!res.ok) {
-        res = await fetch("/recordings/test-results.json");
+      let res: Response | null = null;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        res = await fetch("/api/tests", { signal: controller.signal });
+        clearTimeout(timeoutId);
+      } catch {
+        res = null;
       }
-      if (res.ok) {
+
+      if (!res || !res.ok) {
+        try {
+          const fallbackCtrl = new AbortController();
+          const fbTimeout = setTimeout(() => fallbackCtrl.abort(), 3000);
+          res = await fetch("/recordings/test-results.json", { signal: fallbackCtrl.signal });
+          clearTimeout(fbTimeout);
+        } catch {
+          res = null;
+        }
+      }
+
+      if (res && res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.suites)) {
+        if (Array.isArray(data.suites) && data.suites.length > 0) {
           setSuites(data.suites);
         }
       }
-    } catch {
-      try {
-        const res = await fetch("/recordings/test-results.json");
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.suites)) {
-            setSuites(data.suites);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load test suites:", err);
-      }
+    } catch (err) {
+      console.warn("Telemetry fetch fell back to static suites:", err);
     } finally {
       setLoading(false);
     }

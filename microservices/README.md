@@ -3,9 +3,9 @@
 This directory contains the containerized **Microservices Backend** for Logikchain, architected from the functional specifications in [`logikchain_architecture.html`](../work-management/logikchain_architecture.html).
 
 It provides:
-1. **Domain-Driven Microservices** with strict **Database-Per-Service** encapsulation.
+1. **Domain-Driven Microservices in Rust** with zero-daemon **Embedded SQLite-Per-Service** encapsulation.
 2. **Unified API Gateway** serving **PWA (Web)**, **Android**, and **iOS** clients with App Check and Firebase Auth verification.
-3. **Bidirectional Sync Engine** ensuring all microservice PostgreSQL changes are mirrored in real-time to **Firebase Firestore** and **Firebase Cloud Storage** (and vice-versa for offline mobile outbox queues).
+3. **Firebase Sync Bridge (:4050)** in Node.js using official `firebase-admin`, buffering transactional outboxes from Rust services to **Cloud Firestore** and streaming inbound mobile mutations back into microservice SQLite engines.
 4. **Complete DevOps Suite**: Multi-stage production `Dockerfiles`, `docker-compose.yml`, Kubernetes (`k8s/`) manifests, Terraform GCP infrastructure, and CI/CD pipelines.
 
 ---
@@ -34,17 +34,17 @@ It provides:
      │  (:4001) │    │  (:4002) │  │  (:4003) │  │  (:4004) │  │  (:4005) │    │   (:4011)   │
      └────┬─────┘    └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    └──────┬──────┘
           │               │             │             │             │                 │
-    (identity_db)    (orders_db)    (gigs_db)   (pamphlet_db) (payments_db)    (governance_db)
+    (identity.db)   (orders.db)    (gigs.db)   (pamphlet.db) (payments.db)    (governance.db)
           │               │             │             │             │                 │
           └───────────────┼─────────────┴─────────────┼─────────────┴─────────────────┘
                           ▼                           ▼
                   ┌──────────────────────────────────────────┐
-                  │    PostgreSQL Outbox Event Streams       │
+                  │    SQLite WAL Outbox Event Streams       │
                   └─────────────────────┬────────────────────┘
                                         │
                                         ▼
                   ┌──────────────────────────────────────────┐
-                  │     Sync Engine (CDC Worker :4050)       │
+                  │   Firebase Sync Bridge (Node.js :4050)   │
                   │   • Replicates Outbox to Firestore       │
                   │   • Listens to Firestore onSnapshot      │
                   │   • Syncs Media to Cloud Storage         │
@@ -60,34 +60,39 @@ It provides:
 
 ## 📦 Service Registry & Functional Map
 
-| Service | Port | Database | Primary Responsibility |
-| :--- | :--- | :--- | :--- |
-| **`gateway`** | `8080` | — | Ingress router, rate limiter, verifies App Check (reCAPTCHA / Play Integrity / DeviceCheck). |
-| **`identity-service`** | `4001` | `identity_db` | User profiles, role conversion, custom claims (`role`, `status`), suspension. |
-| **`orders-service`** | `4002` | `orders_db` | Purchase orders (CoD / prepaid), merchant fulfillment orders, idempotency keys. |
-| **`gigs-service`** | `4003` | `gigs_db` | Driver lifecycle, vehicle-keyed Gigs (`{vehicleId}_{startDatetime}`), real-time location. |
-| **`pamphlet-service`** | `4004` | `pamphlet_db` | Dynamic stock manifest per Gig, stock load/unload deltas, order linkings. |
-| **`payments-service`** | `4005` | `payments_db` | UPI intent/collect flows, PSP HMAC webhook validation, refunds, disputes. |
-| **`payouts-service`** | `4006` | `payouts_db` | Driver & supplier payouts, KMS-encrypted beneficiary accounts, transfer queue. |
-| **`cash-service`** | `4007` | `cash_db` | Physical cash handover for CoD rural deliveries, 6-digit OTP confirmation. |
-| **`credit-service`** | `4008` | `credit_db` | Merchant credit limits, credit approvals, repayments, overdue credit relief. |
-| **`finance-service`** | `4009` | `finance_db` | Daily ledger reconciliation, period close, TDS challan & register. |
-| **`config-service`** | `4010` | `config_db` | Village hierarchy (Google Maps geocoding), subscription plans, tax profiles. |
-| **`governance-service`**| `4011` | `governance_db`| UPI TPAP compliance, AML fraud velocity checks, dispute SLA tracking, audit logs. |
-| **`social-connect-service`**| `4012` | `social_connect_db`| User interaction orchestrator: WhatsApp OTPs, notifications, bills & ownership alerts, local preference check & Firestore sync. |
-| **`sync-engine`** | `4050` | `sync_db` | Bidirectional synchronization between PostgreSQL and Cloud Firestore / Storage. |
+| Service | Port | Runtime | Database | Primary Responsibility |
+| :--- | :--- | :--- | :--- | :--- |
+| **`gateway`** | `8080` | `Node.js (Express)` | — | Ingress router, rate limiter, verifies App Check (reCAPTCHA / Play Integrity / DeviceCheck). |
+| **`identity-service`** | `4001` | **`Rust (Axum)`** | `identity.db (SQLite WAL)` | User profiles, role conversion, custom claims (`role`, `status`), suspension. |
+| **`orders-service`** | `4002` | **`Rust (Axum)`** | `orders.db (SQLite WAL)` | Purchase orders (CoD / prepaid), merchant fulfillment orders, idempotency keys. |
+| **`gigs-service`** | `4003` | **`Rust (Axum)`** | `gigs.db (SQLite WAL)` | Driver lifecycle, vehicle-keyed Gigs (`{vehicleId}_{startDatetime}`), real-time location. |
+| **`pamphlet-service`** | `4004` | **`Rust (Axum)`** | `pamphlet.db (SQLite WAL)` | Dynamic stock manifest per Gig, stock load/unload deltas, order linkings. |
+| **`payments-service`** | `4005` | **`Rust (Axum)`** | `payments.db (SQLite WAL)` | UPI intent/collect flows, PSP HMAC webhook validation, refunds, disputes. |
+| **`payouts-service`** | `4006` | **`Rust (Axum)`** | `payouts.db (SQLite WAL)` | Driver & supplier payouts, KMS-encrypted beneficiary accounts, transfer queue. |
+| **`cash-service`** | `4007` | **`Rust (Axum)`** | `cash.db (SQLite WAL)` | Physical cash handover for CoD rural deliveries, 6-digit OTP confirmation. |
+| **`credit-service`** | `4008` | **`Rust (Axum)`** | `credit.db (SQLite WAL)` | Merchant credit limits, credit approvals, repayments, overdue credit relief. |
+| **`finance-service`** | `4009` | **`Rust (Axum)`** | `finance.db (SQLite WAL)` | Daily ledger reconciliation, period close, TDS challan & register. |
+| **`config-service`** | `4010` | **`Rust (Axum)`** | `config.db (SQLite WAL)` | Village hierarchy (Google Maps geocoding), subscription plans, tax profiles. |
+| **`governance-service`**| `4011` | **`Rust (Axum)`** | `governance.db (SQLite WAL)`| UPI TPAP compliance, AML fraud velocity checks, dispute SLA tracking, audit logs. |
+| **`social-connect-service`**| `4012` | **`Rust (Axum)`** | `socialConnect.db (SQLite WAL)`| User interaction orchestrator: WhatsApp OTPs, notifications, bills & ownership alerts. |
+| **`firebase-bridge`** | `4050` | `Node.js (Express)` | `bridge.db (SQLite WAL)` | Official Firebase Admin bridge between Rust SQLite microservices and Cloud Firestore / Storage. |
 
 ---
 
-## 🔄 Independent Periodic Database & Storage Sync
+## 🔄 Microservices-to-Firebase Sync Architecture (Bridge Pattern)
 
-Each microservice is fully autonomous and **independently connects to Cloud Firestore and Firebase Storage** without bottlenecking through a single service:
+Rust domain microservices execute local transactions against embedded SQLite files with sub-millisecond latency. The **`firebase-bridge`** service (:4050) acts as the single, reliable gateway between Rust services and Firebase:
 
-1. **Independent Embedded Syncer (`PeriodicServiceSyncer`)**:
-   * Every microservice runs its own instance of `createPeriodicSyncer` from `@logikchain/common`.
-   * **Outbound Firestore Sync**: Every `SYNC_INTERVAL_MS` (default 2000ms), the service polls its own local `outbox_events` and commits batch updates to its corresponding Firestore collection (`Orders`, `Gigs`, `UserProfiles`, etc.).
-   * **Outbound Storage Sync**: Every period, the service syncs binary file records (signatures, KYC, delivery photos, invoices) from `storage_sync_events` directly to Firebase Cloud Storage.
-   * **Inbound Real-time Listeners**: Each microservice maintains its own scoped `onSnapshot` listener on its Firestore collection to ingest mutations from offline Android (Room / WorkManager) or PWA clients into PostgreSQL.
+1. **Rust Transactional Outbox (Outbound)**:
+   * Every mutation committed in Rust (orders, gigs, payments) writes both the business entity and an `outbox_events` record within a single SQLite transaction (`WAL` mode).
+   * A lightweight background worker in each Rust service streams pending outbox batches to the `firebase-bridge` via internal RPC / fast HTTP (`POST /v1/bridge/outbox`).
+   * The Bridge uses official Google `firebase-admin` to commit batch writes (`bulkWriter`) to **Cloud Firestore** and updates sync status.
+2. **Inbound Real-time Listeners (Inbound)**:
+   * The `firebase-bridge` maintains scoped `onSnapshot` listeners on Firestore collections to capture mutations originating from offline mobile clients (`/outbox_mobile/`).
+   * Upon change detection, the Bridge calls the target Rust service's internal webhook (`POST http://<service>:400X/internal/sync-inbound`).
+   * The Rust service applies the update using its internal SQLite writer connection, avoiding SQLite file contention and guaranteeing local constraint validation.
+3. **Cloud Storage Bridge**:
+   * Binary assets (delivery signatures, KYC photos, PDF receipts) are uploaded via pre-signed URLs generated by the Bridge (`POST /v1/bridge/storage/sign-upload`), keeping Rust services free of complex GCP IAM/KMS dependencies.
 2. **Observability & Manual Triggers**:
    * Every service exposes `GET /sync/status` returning current sync metrics (last sync time, total synced, errors).
    * Every service exposes `POST /sync/trigger` to force an immediate on-demand synchronization flush.
